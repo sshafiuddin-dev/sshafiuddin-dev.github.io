@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prayer Timings</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <style>
+        /* Add some basic styles for the collapsible section */
+        .collapsible {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .collapsible-content {
+            display: none; /* Hidden by default */
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Prayer Timings</h1>
+
+    <!-- Today's Timings Table -->
+    <section id="todays-timings" class="centered">
+        <h2>Today's Prayer Timings</h2>
+        <table id="today-timings">
+            <thead>
+                <tr>
+                    <th scope="col">Fajr</th>
+                    <th scope="col">Dhuhr</th>
+                    <th scope="col">Asr</th>
+                    <th scope="col">Maghrib</th>
+                    <th scope="col">Isha</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="5">No timings available for today.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Monthly View Toggle -->
+    <div class="collapsible" id="toggleMonthlyView">Monthly View</div>
+    <div class="collapsible-content" id="monthlyView">
+        <table id="timings">
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Fajr</th>
+                    <th scope="col">Dhuhr</th>
+                    <th scope="col">Asr</th>
+                    <th scope="col">Maghrib</th>
+                    <th scope="col">Isha</th>
+                    <th scope="col">Jummah - 1</th>
+                    <th scope="col">Jummah - 2</th>
+                    <th scope="col">Jummah - 3</th>
+                    <th scope="col">Jummah - 4</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Prayer timings will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="script.js"></script> <!-- Link to your JavaScript file -->
+    <script>
+        // JavaScript to toggle the Monthly View
+        document.getElementById('toggleMonthlyView').addEventListener('click', function() {
+            const content = document.getElementById('monthlyView');
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+            } else {
+                content.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

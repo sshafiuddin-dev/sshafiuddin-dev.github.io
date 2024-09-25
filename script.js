@@ -57,6 +57,9 @@ function displayTimings(records) {
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
 
+    // Sort records by the 'Date' field in ascending order
+    records.sort((a, b) => new Date(a.fields.Date) - new Date(b.fields.Date));
+
     let todaysTimings = {};
 
     records.forEach(record => {
@@ -118,6 +121,7 @@ function displayTimings(records) {
         todayTimingsTableBody.innerHTML = '<tr><td colspan="5">No timings available for today.</td></tr>';
     }
 }
+
 
 // Fetch prayer timings when the page loads
 fetchPrayerTimings();

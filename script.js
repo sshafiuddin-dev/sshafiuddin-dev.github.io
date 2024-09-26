@@ -56,12 +56,22 @@ function displayTimings(records) {
     const todayString = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     console.log('Today\'s date:', todayString);
 
+    // Get the current month and year
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Filter records to include only those from the current month
+    const currentMonthRecords = records.filter(record => {
+        const recordDate = new Date(record.fields.Date);
+        return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+    });
+
     // Sort records by Date
-    records.sort((a, b) => new Date(a.fields.Date) - new Date(b.fields.Date));
+    currentMonthRecords.sort((a, b) => new Date(a.fields.Date) - new Date(b.fields.Date));
 
     let todaysTimings = {};
 
-    records.forEach(record => {
+    currentMonthRecords.forEach(record => {
         const fields = record.fields;
         const isToday = fields.Date === todayString; // Check if the date is today
         console.log('Record date:', fields.Date, 'Is today:', isToday);

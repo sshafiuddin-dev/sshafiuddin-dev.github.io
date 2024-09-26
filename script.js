@@ -117,11 +117,7 @@ function displayTimings(records) {
         const placeholderRow = `
             <tr style="font-weight: normal; background-color: #f9f9f9;">
                 <td>${firstDayOfMonth}</td>
-                <td>N/A</td>
-                <td>N/A</td>
-                <td>N/A</td>
-                <td>N/A</td>
-                <td>N/A</td>
+                <td colspan="5">No timings available for this date.</td>
                 <td colspan="4">N/A</td>
             </tr>
         `;

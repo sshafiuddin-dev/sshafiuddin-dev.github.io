@@ -74,7 +74,7 @@ function displayTimings(records) {
             const isFriday = recordDate.getDay() === 5; // Check if it's a Friday
 
             const timingRow = `
-                <tr style="font-weight: ${isToday ? 'bold' : 'normal'};">
+                <tr style="font-weight: ${isToday ? 'bold' : 'normal'}; background-color: ${isToday ? '#f0f8ff' : 'transparent'};">
                     <td>${fields.Date || 'N/A'}</td>
                     <td>${fields.Fajr ? formatTime(fields.Fajr) : 'N/A'}</td>
                     <td>${fields.Dhuhr ? formatTime(fields.Dhuhr) : 'N/A'}</td>

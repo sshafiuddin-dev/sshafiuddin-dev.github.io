@@ -54,6 +54,7 @@ function displayTimings(records) {
     // Get today's date in YYYY-MM-DD format, adjusted for local timezone
     const today = new Date();
     const todayString = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    console.log('Today\'s date:', todayString);
 
     // Sort records by Date
     records.sort((a, b) => new Date(a.fields.Date) - new Date(b.fields.Date));
@@ -63,6 +64,7 @@ function displayTimings(records) {
     records.forEach(record => {
         const fields = record.fields;
         const isToday = fields.Date === todayString; // Check if the date is today
+        console.log('Record date:', fields.Date, 'Is today:', isToday);
 
         // Populate today's timings
         if (isToday) {
@@ -116,6 +118,7 @@ function displayTimings(records) {
         todayTimingsTableBody.innerHTML = '<tr><td colspan="5">No timings available for today.</td></tr>';
     }
 }
+
 
 // Fetch prayer timings when the page loads
 fetchPrayerTimings();

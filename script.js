@@ -79,7 +79,8 @@ function displayTimings(records) {
 
         // Check if the date is a Friday
         const date = new Date(fields.Date);
-        const isFriday = date.getDay() === 5; // 5 corresponds to Friday
+        const isFriday = date.getUTCDay() === 5; // 5 corresponds to Friday
+        console.log('Record date:', fields.Date, 'Is Friday:', isFriday);
 
         // Add the record to the main table
         const timingRow = `
@@ -118,6 +119,7 @@ function displayTimings(records) {
         todayTimingsTableBody.innerHTML = '<tr><td colspan="5">No timings available for today.</td></tr>';
     }
 }
+
 
 
 // Fetch prayer timings when the page loads

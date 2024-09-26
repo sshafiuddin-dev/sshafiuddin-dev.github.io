@@ -54,52 +54,15 @@ function displayTimings(records) {
     // Get today's date in YYYY-MM-DD format
     const today = new Date();
     const todayString = today.toISOString().split('T')[0]; // e.g., '2024-09-26'
-    const currentMonth = today.getMonth(); // Zero-based index for months
-    const currentYear = today.getFullYear();
 
-    // Sort records by the 'Date' field in ascending order
+    // Sort records by Date
     records.sort((a, b) => new Date(a.fields.Date) - new Date(b.fields.Date));
 
     let todaysTimings = {};
-    let firstDayOfMonth = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0]; // e.g., '2024-09-01'
-    let hasFirstDayRecord = false;
 
-    // Check if the first day of the month has a record
     records.forEach(record => {
         const fields = record.fields;
-        const recordDate = new Date(fields.Date);
-        const recordMonth = recordDate.getMonth(); // Zero-based index for months
-        const recordYear = recordDate.getFullYear();
         const isToday = fields.Date === todayString; // Check if the date is today
-
-        // Only show records from the current month and year in the monthly view
-        if (recordMonth === currentMonth && recordYear === currentYear) {
-            if (fields.Date === firstDayOfMonth) {
-                hasFirstDayRecord = true; // Mark that we have a record for the first day
-            }
-
-            const isFriday = recordDate.getDay() === 5; // Check if it's a Friday
-
-            const timingRow = `
-                <tr style="font-weight: ${isToday ? 'bold' : 'normal'}; background-color: ${isToday ? '#f0f8ff' : 'transparent'};">
-                    <td>${fields.Date || 'N/A'}</td>
-                    <td>${fields.Fajr ? formatTime(fields.Fajr) : 'N/A'}</td>
-                    <td>${fields.Dhuhr ? formatTime(fields.Dhuhr) : 'N/A'}</td>
-                    <td>${fields.Asr ? formatTime(fields.Asr) : 'N/A'}</td>
-                    <td>On-Time${fields.Sunset ? ' (' + formatTime(fields.Sunset) + ')' : ''}</td>
-                    <td>${fields.Isha ? formatTime(fields.Isha) : 'N/A'}</td>
-                    ${isFriday ? `
-                        <td>${fields['Jummah - 1'] ? formatTime(fields['Jummah - 1']) : 'N/A'}</td>
-                        <td>${fields['Jummah - 2'] ? formatTime(fields['Jummah - 2']) : 'N/A'}</td>
-                        <td>${fields['Jummah - 3'] ? formatTime(fields['Jummah - 3']) : 'N/A'}</td>
-                        <td>${fields['Jummah - 4'] ? formatTime(fields['Jummah - 4']) : 'N/A'}</td>
-                    ` : `
-                        <td colspan="4">N/A</td>
-                    `}
-                </tr>
-            `;
-            timingsTableBody.innerHTML += timingRow;
-        }
 
         // Populate today's timings
         if (isToday) {
@@ -111,19 +74,32 @@ function displayTimings(records) {
                 Isha: fields.Isha ? formatTime(fields.Isha) : 'N/A',
             };
         }
-    });
 
-    // If the first day of the month is missing, add a placeholder row
-    if (!hasFirstDayRecord) {
-        const placeholderRow = `
-            <tr style="font-weight: normal; background-color: #f9f9f9;">
-                <td>${firstDayOfMonth}</td>
-                <td colspan="5">No timings available for this date.</td>
-                <td colspan="4">N/A</td>
+        // Check if the date is a Friday
+        const date = new Date(fields.Date);
+        const isFriday = date.getDay() === 5; // 5 corresponds to Friday
+
+        // Add the record to the main table
+        const timingRow = `
+            <tr style="font-weight: ${isToday ? 'bold' : 'normal'};">
+                <td>${fields.Date || 'N/A'}</td>
+                <td>${fields.Fajr ? formatTime(fields.Fajr) : 'N/A'}</td>
+                <td>${fields.Dhuhr ? formatTime(fields.Dhuhr) : 'N/A'}</td>
+                <td>${fields.Asr ? formatTime(fields.Asr) : 'N/A'}</td>
+                <td>On-Time${fields.Sunset ? ' (' + formatTime(fields.Sunset) + ')' : ''}</td>
+                <td>${fields.Isha ? formatTime(fields.Isha) : 'N/A'}</td>
+                ${isFriday ? `
+                    <td>${fields['Jummah - 1'] ? formatTime(fields['Jummah - 1']) : 'N/A'}</td>
+                    <td>${fields['Jummah - 2'] ? formatTime(fields['Jummah - 2']) : 'N/A'}</td>
+                    <td>${fields['Jummah - 3'] ? formatTime(fields['Jummah - 3']) : 'N/A'}</td>
+                    <td>${fields['Jummah - 4'] ? formatTime(fields['Jummah - 4']) : 'N/A'}</td>
+                ` : `
+                    <td colspan="4">N/A</td>
+                `}
             </tr>
         `;
-        timingsTableBody.innerHTML = placeholderRow + timingsTableBody.innerHTML;
-    }
+        timingsTableBody.innerHTML += timingRow;
+    });
 
     // Populate today's timings table
     if (todaysTimings.Fajr) {

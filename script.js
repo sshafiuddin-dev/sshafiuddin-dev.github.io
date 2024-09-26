@@ -122,6 +122,5 @@ function displayTimings(records) {
     }
 }
 
-
 // Fetch prayer timings when the page loads
 fetchPrayerTimings();

@@ -54,7 +54,7 @@ function displayTimings(records) {
     // Get today's date in YYYY-MM-DD format
     const today = new Date();
     const todayString = today.toISOString().split('T')[0]; // e.g., '2024-09-26'
-    const currentMonth = today.getMonth() + 1;
+    const currentMonth = today.getMonth(); // Zero-based index for months
     const currentYear = today.getFullYear();
 
     // Sort records by the 'Date' field in ascending order
@@ -65,11 +65,11 @@ function displayTimings(records) {
     records.forEach(record => {
         const fields = record.fields;
         const recordDate = new Date(fields.Date);
-        const recordMonth = recordDate.getMonth() + 1;
+        const recordMonth = recordDate.getMonth(); // Zero-based index for months
         const recordYear = recordDate.getFullYear();
         const isToday = fields.Date === todayString; // Check if the date is today
 
-        // Only show records from the current month in the monthly view
+        // Only show records from the current month and year in the monthly view
         if (recordMonth === currentMonth && recordYear === currentYear) {
             const isFriday = recordDate.getDay() === 5; // Check if it's a Friday
 

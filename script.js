@@ -61,6 +61,8 @@ function displayTimings(records) {
     records.sort((a, b) => new Date(a.fields.Date) - new Date(b.fields.Date));
 
     let todaysTimings = {};
+    let firstDayOfMonth = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0]; // e.g., '2024-09-01'
+    let hasFirstDayRecord = false;
 
     records.forEach(record => {
         const fields = record.fields;
@@ -71,6 +73,10 @@ function displayTimings(records) {
 
         // Only show records from the current month and year in the monthly view
         if (recordMonth === currentMonth && recordYear === currentYear) {
+            if (fields.Date === firstDayOfMonth) {
+                hasFirstDayRecord = true; // Mark that we have a record for the first day
+            }
+
             const isFriday = recordDate.getDay() === 5; // Check if it's a Friday
 
             const timingRow = `
@@ -105,6 +111,22 @@ function displayTimings(records) {
             };
         }
     });
+
+    // If the first day of the month is missing, add a placeholder row
+    if (!hasFirstDayRecord) {
+        const placeholderRow = `
+            <tr style="font-weight: normal; background-color: #f9f9f9;">
+                <td>${firstDayOfMonth}</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td colspan="4">N/A</td>
+            </tr>
+        `;
+        timingsTableBody.innerHTML = placeholderRow + timingsTableBody.innerHTML;
+    }
 
     // Populate today's timings table
     if (todaysTimings.Fajr) {

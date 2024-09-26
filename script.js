@@ -51,9 +51,9 @@ function displayTimings(records) {
         return;
     }
 
-    // Get today's date in YYYY-MM-DD format
+    // Get today's date in YYYY-MM-DD format, adjusted for local timezone
     const today = new Date();
-    const todayString = today.toISOString().split('T')[0]; // e.g., '2024-09-26'
+    const todayString = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
     // Sort records by Date
     records.sort((a, b) => new Date(a.fields.Date) - new Date(b.fields.Date));

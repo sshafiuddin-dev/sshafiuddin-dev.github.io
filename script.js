@@ -64,6 +64,7 @@ function displayTimings(records) {
     let firstDayOfMonth = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0]; // e.g., '2024-09-01'
     let hasFirstDayRecord = false;
 
+    // Check if the first day of the month has a record
     records.forEach(record => {
         const fields = record.fields;
         const recordDate = new Date(fields.Date);

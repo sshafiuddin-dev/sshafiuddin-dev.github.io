@@ -73,8 +73,8 @@ function displayTimings(records) {
 
     currentMonthRecords.forEach(record => {
         const fields = record.fields;
-        const isToday = fields.Date === todayString; // Check if the date is today
-        console.log('Record date:', fields.Date, 'Is today:', isToday);
+        const recordDate = new Date(fields.Date);
+        const isToday = recordDate.toISOString().split('T')[0] === todayString; // Check if the date is today
 
         // Populate today's timings
         if (isToday) {
@@ -86,12 +86,12 @@ function displayTimings(records) {
                 Isha: fields.Isha ? formatTime(fields.Isha) : 'N/A',
             };
         }
-
+    
         // Check if the date is a Friday
         const date = new Date(fields.Date);
         const isFriday = date.getUTCDay() === 5; // 5 corresponds to Friday
         console.log('Record date:', fields.Date, 'Is Friday:', isFriday);
-
+    
         // Add the record to the main table
         const timingRow = `
             <tr style="font-weight: ${isToday ? 'bold' : 'normal'};">
@@ -113,9 +113,9 @@ function displayTimings(records) {
         `;
         timingsTableBody.innerHTML += timingRow;
     });
-
+    
     // Populate today's timings table
-    if (todaysTimings.Fajr) {
+    if (Object.keys(todaysTimings).length > 0) {
         todayTimingsTableBody.innerHTML = `
             <tr>
                 <td>${todaysTimings.Fajr}</td>
@@ -128,9 +128,8 @@ function displayTimings(records) {
     } else {
         todayTimingsTableBody.innerHTML = '<tr><td colspan="5">No timings available for today.</td></tr>';
     }
-}
-
-
-
-// Fetch prayer timings when the page loads
-fetchPrayerTimings();
+    }
+    
+    // Fetch prayer timings when the page loads
+    fetchPrayerTimings();
+    

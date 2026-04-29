@@ -187,15 +187,87 @@
     </div>
   </section>
 
+  <!-- CONTACT -->
   <section id="contact">
     <div class="container">
       <div class="section-label">Get In Touch</div>
-      <h2 class="section-title">Let's Connect</h2>
-      <p class="contact-sub">Whether you're looking to discuss SAP security architecture, GRC transformation, SOX compliance programs, or cloud migration strategies &mdash; I'm always open to connecting and exchanging ideas.</p>
-      <div class="contact-cards">
-        <a href="mailto:sshafiudin@pm.me" class="contact-card"><span class="contact-icon">&#9993;</span><span class="contact-label">Email</span><span class="contact-value">sshafiudin@pm.me</span></a>
-        <a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="contact-card"><span class="contact-icon">&#128101;</span><span class="contact-label">LinkedIn</span><span class="contact-value">linkedin.com/in/shafiuddinsyed</span></a>
-        <a href="tel:+16099944999" class="contact-card"><span class="contact-icon">&#128222;</span><span class="contact-label">Phone</span><span class="contact-value">+1 609-994-4999</span></a>
+      <h2 class="section-title">Let&rsquo;s Connect</h2>
+      <p class="contact-sub">Have a question about SAP security, GRC transformation, SOX compliance, or just want to connect? Fill out the form and I&rsquo;ll get back to you.</p>
+
+      <div class="contact-wrapper">
+        <!-- LEFT: social links only - no personal details -->
+        <div class="contact-info">
+          <div class="contact-info-card">
+            <span class="ci-icon">&#128101;</span>
+            <div>
+              <p class="ci-label">LinkedIn</p>
+              <a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="ci-value">Connect with me &rarr;</a>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <span class="ci-icon">&#128196;</span>
+            <div>
+              <p class="ci-label">GitHub</p>
+              <a href="https://github.com/sshafiuddin-dev" target="_blank" class="ci-value">sshafiuddin-dev &rarr;</a>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <span class="ci-icon">&#127758;</span>
+            <div>
+              <p class="ci-label">Location</p>
+              <p class="ci-value">New York / New Jersey Area</p>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <span class="ci-icon">&#9201;</span>
+            <div>
+              <p class="ci-label">Response Time</p>
+              <p class="ci-value">Usually within 24 hours</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Formspree contact form -->
+        <!-- ACTION NEEDED: Replace YOUR_FORM_ID below after signing up at formspree.io -->
+        <form
+          class="contact-form"
+          action="https://formspree.io/f/YOUR_FORM_ID"
+          method="POST"
+          id="contactForm"
+        >
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Your Name <span class="required">*</span></label>
+              <input type="text" id="name" name="name" placeholder="John Smith" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Your Email <span class="required">*</span></label>
+              <input type="email" id="email" name="email" placeholder="john@company.com" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject <span class="required">*</span></label>
+            <input type="text" id="subject" name="subject" placeholder="SAP GRC consultation, job opportunity, general inquiry..." required />
+          </div>
+          <div class="form-group">
+            <label for="message">Message <span class="required">*</span></label>
+            <textarea id="message" name="message" rows="5" placeholder="Tell me about your project, role, or question..." required></textarea>
+          </div>
+          <!-- Honeypot spam trap -->
+          <input type="text" name="_gotcha" style="display:none" />
+          <input type="hidden" name="_subject" value="New message from portfolio site" />
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span id="btnText">Send Message &#10148;</span>
+            <span id="btnLoading" style="display:none">Sending...</span>
+          </button>
+          <p class="form-note">* Required fields. Your contact details are used only to reply to you.</p>
+          <div id="formSuccess" class="form-success" style="display:none">
+            &#10003; Message sent! I&rsquo;ll get back to you within 24 hours.
+          </div>
+          <div id="formError" class="form-error" style="display:none">
+            &#9888; Something went wrong. Please try again or reach out via LinkedIn.
+          </div>
+        </form>
       </div>
     </div>
   </section>

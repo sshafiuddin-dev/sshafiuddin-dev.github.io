@@ -195,7 +195,8 @@
       <p class="contact-sub">Have a question about SAP security, GRC transformation, SOX compliance, or just want to connect? Fill out the form and I&rsquo;ll get back to you.</p>
 
       <div class="contact-wrapper">
-        <!-- LEFT: social links only - no personal details -->
+
+        <!-- LEFT: social/info cards -->
         <div class="contact-info">
           <div class="contact-info-card">
             <span class="ci-icon">&#128101;</span>
@@ -227,48 +228,59 @@
           </div>
         </div>
 
-        <!-- RIGHT: Formspree contact form -->
-        <!-- ACTION NEEDED: Replace YOUR_FORM_ID below after signing up at formspree.io -->
-        <form
-          class="contact-form"
-          action="https://formspree.io/f/YOUR_FORM_ID"
-          method="POST"
-          id="contactForm"
-        >
-          <div class="form-row">
-            <div class="form-group">
-              <label for="name">Your Name <span class="required">*</span></label>
-              <input type="text" id="name" name="name" placeholder="John Smith" required />
+        <!-- RIGHT: Formspree Ajax form -->
+        <div class="contact-form">
+
+          <!-- Global success / error banners rendered by @formspree/ajax -->
+          <div data-fs-success class="form-success">&#10003;&nbsp; Message sent! I&rsquo;ll get back to you within 24 hours.</div>
+          <div data-fs-error class="form-error"></div>
+
+          <form id="contact-form">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Your Name <span class="required">*</span></label>
+                <input type="text" id="name" name="name"
+                       placeholder="John Smith"
+                       data-fs-field required />
+                <span data-fs-error="name" class="field-error"></span>
+              </div>
+              <div class="form-group">
+                <label for="email">Your Email <span class="required">*</span></label>
+                <input type="email" id="email" name="email"
+                       placeholder="john@company.com"
+                       data-fs-field required />
+                <span data-fs-error="email" class="field-error"></span>
+              </div>
             </div>
+
             <div class="form-group">
-              <label for="email">Your Email <span class="required">*</span></label>
-              <input type="email" id="email" name="email" placeholder="john@company.com" required />
+              <label for="subject">Subject <span class="required">*</span></label>
+              <input type="text" id="subject" name="subject"
+                     placeholder="SAP GRC consultation, job opportunity, general inquiry..."
+                     data-fs-field required />
+              <span data-fs-error="subject" class="field-error"></span>
             </div>
-          </div>
-          <div class="form-group">
-            <label for="subject">Subject <span class="required">*</span></label>
-            <input type="text" id="subject" name="subject" placeholder="SAP GRC consultation, job opportunity, general inquiry..." required />
-          </div>
-          <div class="form-group">
-            <label for="message">Message <span class="required">*</span></label>
-            <textarea id="message" name="message" rows="5" placeholder="Tell me about your project, role, or question..." required></textarea>
-          </div>
-          <!-- Honeypot spam trap -->
-          <input type="text" name="_gotcha" style="display:none" />
-          <input type="hidden" name="_subject" value="New message from portfolio site" />
-          <button type="submit" class="btn-submit" id="submitBtn">
-            <span id="btnText">Send Message &#10148;</span>
-            <span id="btnLoading" style="display:none">Sending...</span>
-          </button>
-          <p class="form-note">* Required fields. Your contact details are used only to reply to you.</p>
-          <div id="formSuccess" class="form-success" style="display:none">
-            &#10003; Message sent! I&rsquo;ll get back to you within 24 hours.
-          </div>
-          <div id="formError" class="form-error" style="display:none">
-            &#9888; Something went wrong. Please try again or reach out via LinkedIn.
-          </div>
-        </form>
-      </div>
+
+            <div class="form-group">
+              <label for="message">Message <span class="required">*</span></label>
+              <textarea id="message" name="message" rows="5"
+                        placeholder="Tell me about your project, role, or question..."
+                        data-fs-field required></textarea>
+              <span data-fs-error="message" class="field-error"></span>
+            </div>
+
+            <!-- Honeypot spam trap -->
+            <input type="text" name="_gotcha" style="display:none" />
+
+            <button type="submit" data-fs-submit-btn class="btn-submit">
+              Send Message &#10148;
+            </button>
+            <p class="form-note">* Required fields. Your details are used only to reply to you.</p>
+
+          </form>
+        </div><!-- /.contact-form -->
+      </div><!-- /.contact-wrapper -->
     </div>
   </section>
 
@@ -276,6 +288,15 @@
     <p>&copy; 2026 Shafiuddin Syed &mdash; All rights reserved.</p>
     <p class="footer-sub">Built with HTML, CSS &amp; hosted on GitHub Pages</p>
   </footer>
+
+  <!-- Formspree Ajax SDK (CDN, no bundler needed) -->
+  <script>
+    window.formspree = window.formspree || function () {
+      (formspree.q = formspree.q || []).push(arguments);
+    };
+    formspree('initForm', { formElement: '#contact-form', formId: 'mrernorw' });
+  </script>
+  <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
 
   <script src="app.js"></script>
 </body>

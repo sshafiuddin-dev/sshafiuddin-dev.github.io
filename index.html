@@ -1,89 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iqama Times</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
-    <style>
-        /* Add some basic styles for the collapsible section */
-        .collapsible {
-            cursor: pointer;
-            padding: 10px;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .collapsible-content {
-            display: none; /* Hidden by default */
-            margin-top: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Shafiuddin Syed - Sr. Manager, Application Security & Global Operations | SAP GRC | SOX | IAM | Azure"/>
+  <meta name="keywords" content="SAP GRC, SOX Compliance, IAM, S/4HANA Security, Access Governance, RBAC, Azure, SAP Security"/>
+  <title>Shafiuddin Syed | SAP Security & Access Governance Leader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Iqama Times</h1>
 
-    <!-- Today's Timings Table -->
-    <section id="todays-date" class="centered">
-    <h2><span id="currentDate"></span></h2>    
-    </section>
-
-    <section id="todays-timings" class="centered">
-        <table id="today-timings">
-            <thead>
-                <tr>
-                    <th scope="col">Fajr</th>
-                    <th scope="col">Dhuhr</th>
-                    <th scope="col">Asr</th>
-                    <th scope="col">Maghrib</th>
-                    <th scope="col">Isha</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="5">No timings available for today.</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <!-- Monthly View Toggle -->
-    <div class="collapsible" id="toggleMonthlyView">Monthly View</div>
-    <div class="collapsible-content" id="monthlyView">
-        <table id="timings">
-            <thead>
-                <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Fajr</th>
-                    <th scope="col">Dhuhr</th>
-                    <th scope="col">Asr</th>
-                    <th scope="col">Maghrib</th>
-                    <th scope="col">Isha</th>
-                    <th scope="col">Jummah - 1</th>
-                    <th scope="col">Jummah - 2</th>
-                    <th scope="col">Jummah - 3</th>
-                    <th scope="col">Jummah - 4</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Prayer timings will be inserted here -->
-            </tbody>
-        </table>
+  <nav id="navbar">
+    <div class="nav-inner">
+      <span class="nav-logo">SS</span>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#education">Education</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="menu">&#9776;</button>
     </div>
+    <ul class="nav-mobile" id="nav-mobile">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
 
-    <script src="script.js"></script> <!-- Link to your JavaScript file -->
-    <script>
-        // JavaScript to toggle the Monthly View
-        document.getElementById('toggleMonthlyView').addEventListener('click', function() {
-            const content = document.getElementById('monthlyView');
-            if (content.style.display === 'block') {
-                content.style.display = 'none';
-            } else {
-                content.style.display = 'block';
-            }
-        });
-    </script>
+  <header id="hero">
+    <div class="hero-content">
+      <div class="hero-badge">20+ Years of Enterprise Security Leadership</div>
+      <h1>Shafiuddin Syed</h1>
+      <p class="hero-title">Sr. Manager, Application Security &amp; Global Operations</p>
+      <p class="hero-sub">SAP GRC &bull; S/4HANA Security &bull; SOX Compliance &bull; IAM &bull; Azure Cloud</p>
+      <div class="hero-cta">
+        <a href="#contact" class="btn btn-primary">Get in Touch</a>
+        <a href="#experience" class="btn btn-outline">View Experience</a>
+      </div>
+    </div>
+    <div class="hero-metrics">
+      <div class="metric"><span class="metric-num">20+</span><span class="metric-label">Years Experience</span></div>
+      <div class="metric-divider"></div>
+      <div class="metric"><span class="metric-num">90%</span><span class="metric-label">Provisioning Time Saved</span></div>
+      <div class="metric-divider"></div>
+      <div class="metric"><span class="metric-num">35%</span><span class="metric-label">SOX Violations Reduced</span></div>
+      <div class="metric-divider"></div>
+      <div class="metric"><span class="metric-num">1000+</span><span class="metric-label">Redwood Jobs Migrated</span></div>
+    </div>
+  </header>
+
+  <section id="about">
+    <div class="container">
+      <div class="section-label">About Me</div>
+      <h2 class="section-title">Building Security Programs That Actually Reduce Risk</h2>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>I've spent more than 20 years building enterprise security programs that hold up under audit, scale across global systems, and actually reduce risk &mdash; not just document it. At Avaya, I've led the transformation of the entire SAP security and access governance function, redesigning thousands of roles using a least-privilege model, cutting SOX violations by 35%, and building automation that slashed user provisioning turnaround by up to 90%.</p>
+          <p>My work spans SAP GRC Access Control 10.1 and 12.0, S/4HANA and ECC security architecture, Segregation of Duties (SoD) governance, SOX audit ownership, Identity and Access Management (IAM), and non-SAP platforms including Microsoft Dynamics 365 and Azure cloud environments. I lead teams, own audit relationships, and build tools that make security operations measurably better.</p>
+        </div>
+        <div class="about-highlights">
+          <div class="highlight-card"><div class="highlight-icon">&#128274;</div><div class="highlight-text"><strong>Access Governance</strong><span>SAP GRC, RBAC, SoD, PAM, IGA</span></div></div>
+          <div class="highlight-card"><div class="highlight-icon">&#9989;</div><div class="highlight-text"><strong>Compliance &amp; Audit</strong><span>SOX, CMMC Level 2, FDA, Data Privacy</span></div></div>
+          <div class="highlight-card"><div class="highlight-icon">&#9729;</div><div class="highlight-text"><strong>Cloud &amp; Infrastructure</strong><span>Microsoft Azure, SAP HANA, S/4HANA, BTP</span></div></div>
+          <div class="highlight-card"><div class="highlight-icon">&#128187;</div><div class="highlight-text"><strong>Automation &amp; Development</strong><span>Python, Streamlit, pyrfc, VBA, AppSheet</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" class="bg-light">
+    <div class="container">
+      <div class="section-label">Technical Skills</div>
+      <h2 class="section-title">Core Expertise</h2>
+      <div class="skills-grid">
+        <div class="skill-card"><h3>SAP Security &amp; GRC</h3><ul><li>SAP GRC Access Control 10.1 / 12.0</li><li>Access Risk Analysis (ARA)</li><li>Access Request Management (ARM)</li><li>Emergency Access Management (EAM / Firefighter)</li><li>Business Role Management (BRM)</li><li>SAP S/4HANA Security &amp; Role Design</li><li>SAP ECC Security (4.6 &ndash; ECC6 EHP5)</li><li>Fiori Security &amp; NWBC</li><li>SAP Master Data Governance (MDG)</li></ul></div>
+        <div class="skill-card"><h3>Identity &amp; Access Management</h3><ul><li>Role-Based Access Control (RBAC)</li><li>Least-Privilege Access Design</li><li>Privileged Access Management (PAM)</li><li>Identity Governance &amp; Administration (IGA)</li><li>SoD Ruleset Design &amp; Remediation</li><li>Kerberos-based Single Sign-On (SSO)</li></ul></div>
+        <div class="skill-card"><h3>Compliance &amp; Audit</h3><ul><li>SOX Compliance &amp; Control Ownership</li><li>Audit Liaison (Internal &amp; External)</li><li>CMMC Level 2 Access Governance</li><li>FDA Compliance Controls</li><li>Data Privacy Impact Assessments</li><li>IT Data Privacy Stewardship</li></ul></div>
+        <div class="skill-card"><h3>SAP Cloud &amp; Extended Platforms</h3><ul><li>SAP Business Technology Platform (BTP)</li><li>SAP Analytics Cloud (SAC)</li><li>SAP SuccessFactors</li><li>SAP Signavio</li><li>SAP BRIM (SOM, Convergent Mediation &amp; Charging)</li></ul></div>
+        <div class="skill-card"><h3>Automation &amp; Development</h3><ul><li>Python &amp; Streamlit</li><li>pyrfc (SAP RFC Connectivity)</li><li>Excel VBA</li><li>ABAP Scripting</li><li>Google AppSheet</li><li>Power Automate</li></ul></div>
+        <div class="skill-card"><h3>Infrastructure &amp; Enterprise Systems</h3><ul><li>Microsoft Azure Cloud</li><li>Microsoft Dynamics 365 CE &amp; F&amp;O</li><li>SAP Basis Administration</li><li>SAP HANA &amp; Oracle Database</li><li>Redwood Enterprise Job Scheduling</li><li>SAP Enterprise Portal</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="experience">
+    <div class="container">
+      <div class="section-label">Career History</div>
+      <h2 class="section-title">Professional Experience</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div><h3 class="timeline-role">Sr. Manager, Application Security &amp; Global Operations</h3><p class="timeline-company">Avaya</p></div>
+              <span class="timeline-date">Nov 2014 &ndash; Present</span>
+            </div>
+            <p class="timeline-desc">Leading enterprise application security strategy and daily operations across SAP and non-SAP platforms, with direct ownership of access governance, SOX compliance, automation, and infrastructure security.</p>
+            <ul class="timeline-bullets">
+              <li>Led full-cycle upgrade of SAP GRC 10.1 to 12.0 including Oracle-to-HANA migration and on-premises-to-cloud OS transition &mdash; zero production disruption</li>
+              <li>Redesigned ECC roles using least-privilege RBAC &mdash; <strong>60% reduction in duplicate roles</strong>, <strong>35% reduction in SOX violations</strong></li>
+              <li>Integrated Germany-based SAP ECC instance into GRC, extending SOX reporting, EAM/Firefighter, and SoD rulesets to a previously ungoverned landscape</li>
+              <li>Own monthly and quarterly SOX controls across all SAP applications; primary liaison to internal and external auditors</li>
+              <li>Defined full S/4HANA security strategy and architecture; drove Fiori role design, tile/catalog config, and service activation through production go-live</li>
+              <li>Designed Fiori and NWBC roles for SAP MDG across Materials Management and Financial Accounting modules</li>
+              <li>Managed end-to-end security for SAP S/4HANA BRIM (SOM, Convergent Mediation, Convergent Charging)</li>
+              <li>Administered SuccessFactors, SAP BTP, SAC, and Signavio with consistent IAM standards across all environments</li>
+              <li>Implemented enterprise-wide Kerberos SSO across the SAP landscape</li>
+              <li>Built Python/Streamlit/pyrfc provisioning app &mdash; <strong>up to 90% reduction</strong> in user provisioning turnaround</li>
+              <li>Developed Excel VBA automation for bulk user management, role assignments, and SOX reporting</li>
+              <li>Built Google AppSheet app to automate Data Privacy Review workflows for Project Management organization</li>
+              <li>Security Lead for Dynamics 365 CE and F&amp;O under CMMC Level 2 compliance</li>
+              <li>Led SAP Basis team &mdash; <strong>100% migration</strong> of SAP server infrastructure from on-premises to Microsoft Azure</li>
+              <li>Directed multi-system production DR testing, validating RTO and RPO targets across the full SAP landscape</li>
+              <li>Lead Enterprise Job Scheduling team &mdash; <strong>1,000+ Redwood jobs</strong> migrated to Azure-aligned infrastructure</li>
+              <li>Serve as IT Data Privacy Steward, leading Privacy Impact Assessments and automated review workflows</li>
+            </ul>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div><h3 class="timeline-role">Sr. SAP Basis &amp; Security Consultant</h3><p class="timeline-company">iGATE (formerly Patni Computer Systems)</p></div>
+              <span class="timeline-date">Sep 2005 &ndash; Nov 2014</span>
+            </div>
+            <p class="timeline-desc">Delivered SAP Basis and Security consulting across pharmaceutical, manufacturing, healthcare, and technology clients.</p>
+            <ul class="timeline-bullets">
+              <li><strong>Church &amp; Dwight:</strong> End-to-end SAP ECC6 security implementation. Redesigned SoD ruleset &mdash; <strong>50% reduction in SoD violations</strong>, clean external audit compliance. Implemented SOX and FDA controls.</li>
+              <li><strong>St. Jude Medical:</strong> SAP Basis administration, CCMS alerts, ALM integration, user administration, Redwood CPS scheduling</li>
+              <li><strong>GE and Bose:</strong> Solution Manager upgrades, Unicode conversions, Kernel upgrades, PFCG role administration, UNIX/ABAP scripting</li>
+              <li>Led installation and post-config of SAP ECC 6.0/EHP1, CRM 5.0, SRM 5.0, and Solution Manager 7.0 for presales POC environments</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="bg-light">
+    <div class="container">
+      <div class="section-label">Built &amp; Deployed</div>
+      <h2 class="section-title">Projects</h2>
+      <div class="projects-grid">
+        <div class="project-card">
+          <div class="project-icon">&#127918;</div>
+          <div class="project-body">
+            <h3>Wiki Jeopardy</h3>
+            <p>A multiplayer Jeopardy-style quiz app that generates topic-based clues live from Wikipedia. Supports 2&ndash;8 players, automatic scoring, team mode, leaderboard, and a 90s/30s timer. Built as a PWA &mdash; installable on any device.</p>
+            <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Wikipedia API</span><span>PWA</span></div>
+            <a href="https://sshafiuddin-dev.github.io/wiki-jeopardy/" target="_blank" class="project-link">Live Demo &rarr;</a>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-icon">&#128204;</div>
+          <div class="project-body">
+            <h3>Iqama Times</h3>
+            <p>A prayer schedule web app displaying daily and monthly Iqama times pulled live from Airtable. Features today&rsquo;s timings at a glance, monthly table view, and Jummah prayer columns for Fridays.</p>
+            <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Airtable API</span></div>
+            <a href="/iqama/" class="project-link">View App &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="education">
+    <div class="container">
+      <div class="section-label">Education</div>
+      <h2 class="section-title">Academic Background</h2>
+      <div class="edu-card">
+        <div class="edu-icon">&#127891;</div>
+        <div class="edu-text">
+          <h3>Bachelor of Technology (B.Tech)</h3>
+          <p class="edu-field">Computer Science &amp; Engineering</p>
+          <p class="edu-school">Jawaharlal Nehru Technological University</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <div class="section-label">Get In Touch</div>
+      <h2 class="section-title">Let's Connect</h2>
+      <p class="contact-sub">Whether you're looking to discuss SAP security architecture, GRC transformation, SOX compliance programs, or cloud migration strategies &mdash; I'm always open to connecting and exchanging ideas.</p>
+      <div class="contact-cards">
+        <a href="mailto:sshafiudin@pm.me" class="contact-card"><span class="contact-icon">&#9993;</span><span class="contact-label">Email</span><span class="contact-value">sshafiudin@pm.me</span></a>
+        <a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="contact-card"><span class="contact-icon">&#128101;</span><span class="contact-label">LinkedIn</span><span class="contact-value">linkedin.com/in/shafiuddinsyed</span></a>
+        <a href="tel:+16099944999" class="contact-card"><span class="contact-icon">&#128222;</span><span class="contact-label">Phone</span><span class="contact-value">+1 609-994-4999</span></a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 Shafiuddin Syed &mdash; All rights reserved.</p>
+    <p class="footer-sub">Built with HTML, CSS &amp; hosted on GitHub Pages</p>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>

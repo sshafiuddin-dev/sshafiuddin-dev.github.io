@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iqama Times</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .collapsible {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .collapsible-content { display: none; margin-top: 10px; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: #2E4057;
+            text-decoration: none;
+            font-family: Arial, sans-serif;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <a class="back-link" href="/">&larr; Back to Portfolio</a>
+    <h1>Iqama Times</h1>
+    <section id="todays-date" class="centered">
+        <h2><span id="currentDate"></span></h2>
+    </section>
+    <section id="todays-timings" class="centered">
+        <table id="today-timings">
+            <thead>
+                <tr>
+                    <th scope="col">Fajr</th>
+                    <th scope="col">Dhuhr</th>
+                    <th scope="col">Asr</th>
+                    <th scope="col">Maghrib</th>
+                    <th scope="col">Isha</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="5">No timings available for today.</td></tr>
+            </tbody>
+        </table>
+    </section>
+    <div class="collapsible" id="toggleMonthlyView">Monthly View</div>
+    <div class="collapsible-content" id="monthlyView">
+        <table id="timings">
+            <thead>
+                <tr>
+                    <th>Date</th><th>Fajr</th><th>Dhuhr</th><th>Asr</th>
+                    <th>Maghrib</th><th>Isha</th>
+                    <th>Jummah - 1</th><th>Jummah - 2</th>
+                    <th>Jummah - 3</th><th>Jummah - 4</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('toggleMonthlyView').addEventListener('click', function() {
+            const content = document.getElementById('monthlyView');
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        });
+    </script>
+</body>
+</html>

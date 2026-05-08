@@ -8,13 +8,27 @@ window.addEventListener('scroll', () => {
 const hamburger = document.getElementById('hamburger');
 const navMobile = document.getElementById('nav-mobile');
 if (hamburger && navMobile) {
-  hamburger.addEventListener('click', () => {
-    navMobile.classList.toggle('open');
-  });
+  hamburger.addEventListener('click', () => navMobile.classList.toggle('open'));
   navMobile.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => navMobile.classList.remove('open'));
   });
 }
+
+// Dark / Light mode toggle
+const themeToggle = document.getElementById('theme-toggle');
+const html = document.documentElement;
+
+const savedTheme = localStorage.getItem('theme') || 'dark';
+html.setAttribute('data-theme', savedTheme);
+themeToggle.textContent = savedTheme === 'dark' ? '\u2600' : '\u263D';
+
+themeToggle.addEventListener('click', () => {
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  themeToggle.textContent = next === 'dark' ? '\u2600' : '\u263D';
+});
 
 // Typed headline effect
 const titles = [

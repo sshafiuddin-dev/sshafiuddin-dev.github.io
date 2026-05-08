@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -23,7 +23,10 @@
         <li><a href="#projects">Projects</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
-      <button class="hamburger" id="hamburger" aria-label="menu">&#9776;</button>
+      <div class="nav-right">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle theme">&#9790;</button>
+        <button class="hamburger" id="hamburger" aria-label="menu">&#9776;</button>
+      </div>
     </div>
     <ul class="nav-mobile" id="nav-mobile">
       <li><a href="#about">About</a></li>
@@ -75,85 +78,51 @@
     </div>
   </section>
 
-  <section id="skills" class="bg-light">
+  <section id="skills" class="bg-alt">
     <div class="container">
       <div class="section-label" data-aos="fade-up">Technical Skills</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Core Expertise</h2>
       <div class="skills-grid skills-grid-2">
-
         <div class="skill-card" data-aos="fade-up" data-aos-delay="100">
           <h3>&#128274; Security &amp; Access Governance</h3>
           <div class="skill-tags">
-            <span>SAP GRC Access Control 10.1/12.0</span>
-            <span>SoD Governance</span>
-            <span>SOX Compliance</span>
-            <span>Identity &amp; Access Management</span>
-            <span>CMMC Level 2</span>
-            <span>Least-Privilege Design</span>
-            <span>Audit Liaison</span>
-            <span>Data Privacy (PIA)</span>
-            <span>UAR Governance</span>
-            <span>Emergency Access Management</span>
+            <span>SAP GRC Access Control 10.1/12.0</span><span>SoD Governance</span><span>SOX Compliance</span>
+            <span>Identity &amp; Access Management</span><span>CMMC Level 2</span><span>Least-Privilege Design</span>
+            <span>Audit Liaison</span><span>Data Privacy (PIA)</span><span>UAR Governance</span><span>Emergency Access Management</span>
           </div>
         </div>
-
         <div class="skill-card" data-aos="fade-up" data-aos-delay="150">
           <h3>&#9729; SAP &amp; Cloud Platforms</h3>
           <div class="skill-tags">
-            <span>SAP S/4HANA</span>
-            <span>SAP ECC</span>
-            <span>SAP BTP</span>
-            <span>SAP SuccessFactors</span>
-            <span>SAP Analytics Cloud</span>
-            <span>SAP Master Data Governance</span>
-            <span>Microsoft Azure</span>
-            <span>Dynamics 365 CE &amp; F&amp;O</span>
-            <span>SAP Fiori</span>
-            <span>Vertex O-Series</span>
-            <span>Leena AI</span>
+            <span>SAP S/4HANA</span><span>SAP ECC</span><span>SAP BTP</span><span>SAP SuccessFactors</span>
+            <span>SAP Analytics Cloud</span><span>SAP Master Data Governance</span><span>Microsoft Azure</span>
+            <span>Dynamics 365 CE &amp; F&amp;O</span><span>SAP Fiori</span><span>Vertex O-Series</span><span>Leena AI</span>
           </div>
         </div>
-
         <div class="skill-card" data-aos="fade-up" data-aos-delay="200">
           <h3>&#128187; Automation &amp; Development</h3>
           <div class="skill-tags">
-            <span>Python 3.12</span>
-            <span>FastAPI</span>
-            <span>Streamlit</span>
-            <span>Jinja2</span>
-            <span>pyrfc</span>
-            <span>Excel VBA</span>
-            <span>Google AppSheet</span>
-            <span>ABAP</span>
-            <span>Power Automate</span>
+            <span>Python 3.12</span><span>FastAPI</span><span>Streamlit</span><span>Jinja2</span><span>pyrfc</span>
+            <span>Excel VBA</span><span>Google AppSheet</span><span>ABAP</span><span>Power Automate</span>
           </div>
         </div>
-
         <div class="skill-card" data-aos="fade-up" data-aos-delay="250">
           <h3>&#128295; Infrastructure &amp; Operations</h3>
           <div class="skill-tags">
-            <span>SAP Basis Administration</span>
-            <span>SAP HANA &amp; Oracle DB</span>
-            <span>Azure Cloud Migration</span>
-            <span>Redwood Job Scheduling</span>
-            <span>Disaster Recovery Testing</span>
-            <span>Kerberos SSO</span>
-            <span>SAP Enterprise Portal</span>
-            <span>DR Testing (RTO/RPO)</span>
+            <span>SAP Basis Administration</span><span>SAP HANA &amp; Oracle DB</span><span>Azure Cloud Migration</span>
+            <span>Redwood Job Scheduling</span><span>Disaster Recovery Testing</span><span>Kerberos SSO</span>
+            <span>SAP Enterprise Portal</span><span>DR Testing (RTO/RPO)</span>
           </div>
         </div>
-
       </div>
     </div>
   </section>
 
-  <!-- TIMELINE SECTION -->
   <section id="timeline">
     <div class="container">
       <div class="section-label" data-aos="fade-up">Career Journey</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Experience &amp; Key Milestones</h2>
       <div class="timeline">
-
         <div class="timeline-item" data-aos="fade-right" data-aos-delay="100">
           <div class="timeline-dot"></div>
           <div class="timeline-date">2014 &mdash; Present</div>
@@ -171,12 +140,9 @@
               <li>Reduced SOX violations by 35% through RBAC role redesign; cut provisioning time by 90% via automation</li>
               <li>Govern 1,000+ Redwood job scheduling landscape migrated to Azure cloud infrastructure</li>
             </ul>
-            <div class="timeline-tags">
-              <span>SAP Basis</span><span>GRC 12.0</span><span>Azure</span><span>CMMC</span><span>SOX</span><span>Python</span><span>Redwood</span>
-            </div>
+            <div class="timeline-tags"><span>SAP Basis</span><span>GRC 12.0</span><span>Azure</span><span>CMMC</span><span>SOX</span><span>Python</span><span>Redwood</span></div>
           </div>
         </div>
-
         <div class="timeline-item" data-aos="fade-right" data-aos-delay="150">
           <div class="timeline-dot"></div>
           <div class="timeline-date">2005 &mdash; 2014</div>
@@ -190,41 +156,43 @@
               <li>Executed SAP GRC upgrades, OS migrations, and production DR testing for enterprise clients</li>
               <li>Delivered SAP ECC, CRM, SRM, and Solution Manager installations for multi-client landscapes</li>
             </ul>
-            <div class="timeline-tags">
-              <span>SAP ECC</span><span>GRC</span><span>SoD</span><span>SOX</span><span>FDA</span><span>Basis Admin</span><span>Redwood CPS</span>
-            </div>
+            <div class="timeline-tags"><span>SAP ECC</span><span>GRC</span><span>SoD</span><span>SOX</span><span>FDA</span><span>Basis Admin</span><span>Redwood CPS</span></div>
           </div>
         </div>
-
       </div>
     </div>
   </section>
 
-  <section id="projects" class="bg-light">
+  <section id="projects" class="bg-alt">
     <div class="container">
       <div class="section-label" data-aos="fade-up">Built &amp; Deployed</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Projects</h2>
-      <div class="projects-grid">
 
-        <div class="project-card" data-aos="fade-up" data-aos-delay="100">
+      <!-- FEATURED PROJECTS -->
+      <div class="projects-featured">
+        <div class="project-card project-featured" data-aos="fade-up" data-aos-delay="80">
+          <div class="featured-badge">&#11088; Featured</div>
           <div class="project-icon">&#128203;</div>
           <div class="project-body">
             <h3>UAR Governance &amp; Compliance Application</h3>
-            <p>Designed and developed a full-stack User Access Review (UAR) governance platform replacing fragmented spreadsheet and email-based compliance processes with a fully auditable, governed workflow. Built with Python 3.12, FastAPI, Jinja2, Streamlit, and pyrfc for live SAP RFC integration.</p>
-            <div class="project-tags"><span>Python 3.12</span><span>FastAPI</span><span>Jinja2</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Governance</span></div>
+            <p>Designed and developed a full-stack User Access Review (UAR) governance platform replacing fragmented spreadsheet and email-based compliance processes with a fully auditable, governed workflow. Built with Python 3.12, FastAPI, Jinja2, Streamlit, and pyrfc for live SAP RFC integration &mdash; enabling real-time role reviews, approval chains, and audit-ready reporting.</p>
+            <div class="project-tags"><span>Python 3.12</span><span>FastAPI</span><span>Jinja2</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Governance</span><span>Audit</span></div>
           </div>
         </div>
-
-        <div class="project-card" data-aos="fade-up" data-aos-delay="150">
+        <div class="project-card project-featured" data-aos="fade-up" data-aos-delay="130">
+          <div class="featured-badge">&#11088; Featured</div>
           <div class="project-icon">&#128204;</div>
           <div class="project-body">
             <h3>SAP User Provisioning Automation</h3>
-            <p>Streamlit web application using Python and pyrfc for SAP RFC connectivity to fully automate SAP user provisioning workflows &mdash; replacing a manual SU01-based process and reducing turnaround time by up to 90%.</p>
-            <div class="project-tags"><span>Python</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Automation</span></div>
+            <p>Streamlit web application using Python and pyrfc for SAP RFC connectivity to fully automate SAP user provisioning workflows &mdash; replacing a manual SU01-based process and reducing turnaround time by up to 90%. Supports bulk provisioning, role assignment, and real-time status tracking through a clean browser interface.</p>
+            <div class="project-tags"><span>Python</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Automation</span><span>SU01</span></div>
           </div>
         </div>
+      </div>
 
-        <div class="project-card" data-aos="fade-up" data-aos-delay="200">
+      <!-- STANDARD PROJECTS -->
+      <div class="projects-grid" style="margin-top: 24px;">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="100">
           <div class="project-icon">&#128196;</div>
           <div class="project-body">
             <h3>Data Privacy Review Automation</h3>
@@ -232,8 +200,7 @@
             <div class="project-tags"><span>Google AppSheet</span><span>Google Workspace</span><span>Data Privacy</span><span>Automation</span></div>
           </div>
         </div>
-
-        <div class="project-card" data-aos="fade-up" data-aos-delay="250">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="150">
           <div class="project-icon">&#129302;</div>
           <div class="project-body">
             <h3>Jeopardy Unleashed</h3>
@@ -242,8 +209,7 @@
             <a href="https://sshafiuddin-dev.github.io/jeopardy/" target="_blank" class="project-link">Live Demo &rarr;</a>
           </div>
         </div>
-
-        <div class="project-card" data-aos="fade-up" data-aos-delay="300">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="200">
           <div class="project-icon">&#128205;</div>
           <div class="project-body">
             <h3>Iqama Times</h3>
@@ -252,53 +218,25 @@
             <a href="/iqama/" class="project-link">View App &rarr;</a>
           </div>
         </div>
-
       </div>
     </div>
   </section>
 
-  <section id="contact" class="bg-light" style="background: var(--navy-d) !important;">
+  <section id="contact" style="background: var(--contact-bg) !important;">
     <div class="container">
-      <div class="section-label">Get In Touch</div>
-      <h2 class="section-title" style="color:white;">Let&rsquo;s Connect</h2>
+      <div class="section-label contact-label">Get In Touch</div>
+      <h2 class="section-title contact-title">Let&rsquo;s Connect</h2>
       <p class="contact-sub">Have a question about SAP architecture, enterprise security, access governance, compliance, or just want to connect? Fill out the form and I&rsquo;ll get back to you.</p>
-
       <div class="contact-wrapper">
         <div class="contact-info">
-          <div class="contact-info-card">
-            <span class="ci-icon">&#128101;</span>
-            <div>
-              <p class="ci-label">LinkedIn</p>
-              <a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="ci-value">Connect with me &rarr;</a>
-            </div>
-          </div>
-          <div class="contact-info-card">
-            <span class="ci-icon">&#128196;</span>
-            <div>
-              <p class="ci-label">GitHub</p>
-              <a href="https://github.com/sshafiuddin-dev" target="_blank" class="ci-value">sshafiuddin-dev &rarr;</a>
-            </div>
-          </div>
-          <div class="contact-info-card">
-            <span class="ci-icon">&#127758;</span>
-            <div>
-              <p class="ci-label">Location</p>
-              <p class="ci-value">New York / New Jersey Area</p>
-            </div>
-          </div>
-          <div class="contact-info-card">
-            <span class="ci-icon">&#9201;</span>
-            <div>
-              <p class="ci-label">Response Time</p>
-              <p class="ci-value">Usually within 24 hours</p>
-            </div>
-          </div>
+          <div class="contact-info-card"><span class="ci-icon">&#128101;</span><div><p class="ci-label">LinkedIn</p><a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="ci-value">Connect with me &rarr;</a></div></div>
+          <div class="contact-info-card"><span class="ci-icon">&#128196;</span><div><p class="ci-label">GitHub</p><a href="https://github.com/sshafiuddin-dev" target="_blank" class="ci-value">sshafiuddin-dev &rarr;</a></div></div>
+          <div class="contact-info-card"><span class="ci-icon">&#127758;</span><div><p class="ci-label">Location</p><p class="ci-value">New York / New Jersey Area</p></div></div>
+          <div class="contact-info-card"><span class="ci-icon">&#9201;</span><div><p class="ci-label">Response Time</p><p class="ci-value">Usually within 24 hours</p></div></div>
         </div>
-
         <div class="contact-form">
           <div data-fs-success class="form-success">&#10003;&nbsp; Message sent! I&rsquo;ll get back to you within 24 hours.</div>
           <div data-fs-error class="form-error"></div>
-
           <form id="contact-form">
             <div class="form-row">
               <div class="form-group">
@@ -337,9 +275,7 @@
   </footer>
 
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-  <script>
-    AOS.init({ duration: 600, once: true, offset: 60 });
-  </script>
+  <script>AOS.init({ duration: 600, once: true, offset: 60 });</script>
   <script>
     window.formspree = window.formspree || function () {
       (formspree.q = formspree.q || []).push(arguments);

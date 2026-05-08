@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="Shafiuddin Syed - Sr. Manager, Global Operations | SAP Basis & Architecture | SAP Security | Enterprise Application Access | Azure | Automation | CMMC | SOX"/>
   <meta name="keywords" content="SAP Security, SAP Basis, GRC, Access Governance, IAM, S/4HANA, Azure Cloud Migration, Python, Automation, CMMC, SOX, Enterprise Security, Redwood Job Scheduling, Dynamics 365, Data Privacy, Vertex O-Series, Leena AI"/>
-
-  <!-- Open Graph / LinkedIn / Slack rich preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://sshafiuddin-dev.github.io/" />
   <meta property="og:title" content="Shafiuddin Syed | SAP Architect & Enterprise Security Leader" />
@@ -15,7 +13,6 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Shafiuddin Syed | SAP Architect & Enterprise Security Leader" />
   <meta name="twitter:description" content="20+ years designing enterprise SAP security programs, access governance, and automation." />
-
   <title>Shafiuddin Syed | SAP Architect & Enterprise Security Leader</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,10 +21,13 @@
 </head>
 <body>
 
+  <!-- Skip to content -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
   <nav id="navbar">
     <div class="nav-inner">
-      <span class="nav-logo">SS</span>
-      <ul class="nav-links">
+      <span class="nav-logo" aria-label="Shafiuddin Syed">SS</span>
+      <ul class="nav-links" role="navigation" aria-label="Main navigation">
         <li><a href="#about">About</a></li>
         <li><a href="#skills">Skills</a></li>
         <li><a href="#timeline">Experience</a></li>
@@ -36,10 +36,10 @@
       </ul>
       <div class="nav-right">
         <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle theme">&#9790;</button>
-        <button class="hamburger" id="hamburger" aria-label="menu">&#9776;</button>
+        <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false">&#9776;</button>
       </div>
     </div>
-    <ul class="nav-mobile" id="nav-mobile">
+    <ul class="nav-mobile" id="nav-mobile" role="navigation" aria-label="Mobile navigation">
       <li><a href="#about">About</a></li>
       <li><a href="#skills">Skills</a></li>
       <li><a href="#timeline">Experience</a></li>
@@ -59,21 +59,35 @@
         <a href="#projects" class="btn btn-outline">View Projects</a>
       </div>
     </div>
-    <div class="hero-metrics">
+    <div class="hero-metrics" role="region" aria-label="Career highlights">
       <div class="metric"><span class="metric-num">20+</span><span class="metric-label">Years Experience</span></div>
-      <div class="metric-divider"></div>
+      <div class="metric-divider" aria-hidden="true"></div>
       <div class="metric"><span class="metric-num">90%</span><span class="metric-label">Provisioning Time Saved</span></div>
-      <div class="metric-divider"></div>
+      <div class="metric-divider" aria-hidden="true"></div>
       <div class="metric"><span class="metric-num">35%</span><span class="metric-label">SOX Violations Reduced</span></div>
-      <div class="metric-divider"></div>
+      <div class="metric-divider" aria-hidden="true"></div>
       <div class="metric"><span class="metric-num">1000+</span><span class="metric-label">Redwood Jobs Governed</span></div>
     </div>
   </header>
+
+  <!-- Quick Facts Strip -->
+  <div class="quick-facts" role="region" aria-label="Quick overview" id="main-content">
+    <div class="qf-item"><span class="qf-label">Specialty</span><span class="qf-value">SAP Security &amp; GRC</span></div>
+    <div class="qf-dot" aria-hidden="true"></div>
+    <div class="qf-item"><span class="qf-label">Cloud</span><span class="qf-value">Microsoft Azure</span></div>
+    <div class="qf-dot" aria-hidden="true"></div>
+    <div class="qf-item"><span class="qf-label">Compliance</span><span class="qf-value">SOX &amp; CMMC Level 2</span></div>
+    <div class="qf-dot" aria-hidden="true"></div>
+    <div class="qf-item"><span class="qf-label">Automation</span><span class="qf-value">Python &bull; Streamlit &bull; pyrfc</span></div>
+    <div class="qf-dot" aria-hidden="true"></div>
+    <div class="qf-item"><span class="qf-label">Location</span><span class="qf-value">New York / New Jersey</span></div>
+  </div>
 
   <section id="about">
     <div class="container">
       <div class="section-label" data-aos="fade-up">About Me</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Building Security Programs That Actually Reduce Risk</h2>
+      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">Enterprise SAP architect and security leader with 20+ years owning access governance, SOX compliance, cloud migration, and automation across global systems.</p>
       <div class="about-grid">
         <div class="about-text" data-aos="fade-right" data-aos-delay="100">
           <p>I've spent more than 20 years designing, securing, and modernizing enterprise SAP and non-SAP ecosystems. In my current role, I serve as the architect of record across SAP Basis &amp; Infrastructure, SAP Security &amp; GRC, Enterprise Job Scheduling, and non-SAP application security &mdash; owning SOX audit relationships, CMMC compliance initiatives, and organization-wide data privacy governance.</p>
@@ -93,6 +107,7 @@
     <div class="container">
       <div class="section-label" data-aos="fade-up">Technical Skills</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Core Expertise</h2>
+      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">20 years across SAP security, identity governance, cloud infrastructure, and enterprise automation.</p>
       <div class="skills-grid skills-grid-2">
         <div class="skill-card" data-aos="fade-up" data-aos-delay="100">
           <h3>&#128274; Security &amp; Access Governance</h3>
@@ -133,6 +148,7 @@
     <div class="container">
       <div class="section-label" data-aos="fade-up">Career Journey</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Experience &amp; Key Milestones</h2>
+      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">20+ years of progressive SAP and enterprise IT leadership across security, infrastructure, and cloud.</p>
       <div class="timeline">
 
         <div class="timeline-item" data-aos="fade-right" data-aos-delay="100">
@@ -173,7 +189,6 @@
           </div>
         </div>
 
-        <!-- EDUCATION CARD -->
         <div class="timeline-item" data-aos="fade-right" data-aos-delay="200">
           <div class="timeline-dot timeline-dot-edu"></div>
           <div class="timeline-date">Education</div>
@@ -183,11 +198,7 @@
               <div class="edu-body">
                 <h3>Bachelor of Technology &mdash; Computer Science &amp; Engineering</h3>
                 <p class="timeline-sub">Jawaharlal Nehru Technological University</p>
-                <div class="timeline-tags">
-                  <span>B.Tech</span>
-                  <span>Computer Science</span>
-                  <span>Engineering</span>
-                </div>
+                <div class="timeline-tags"><span>B.Tech</span><span>Computer Science</span><span>Engineering</span></div>
               </div>
             </div>
           </div>
@@ -201,6 +212,7 @@
     <div class="container">
       <div class="section-label" data-aos="fade-up">Built &amp; Deployed</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Projects</h2>
+      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">Enterprise tools and side projects — from SAP automation to AI-powered trivia games.</p>
       <div class="projects-featured">
         <div class="project-card project-featured" data-aos="fade-up" data-aos-delay="80">
           <div class="featured-badge">&#11088; Featured</div>
@@ -236,7 +248,7 @@
             <h3>Jeopardy Unleashed</h3>
             <p>A free, PWA-installable Jeopardy-style multiplayer trivia game built with HTML, CSS, and JavaScript. Questions are generated in real time by Llama 3.3 70B via the Groq API through a Cloudflare Worker proxy &mdash; no static question banks, every board is unique.</p>
             <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Groq API</span><span>Llama 3.3 70B</span><span>Cloudflare Worker</span><span>PWA</span></div>
-            <a href="https://sshafiuddin-dev.github.io/jeopardy/" target="_blank" class="project-link">Live Demo &rarr;</a>
+            <a href="https://sshafiuddin-dev.github.io/jeopardy/" target="_blank" class="project-link" aria-label="Live demo of Jeopardy Unleashed">Live Demo &rarr;</a>
           </div>
         </div>
         <div class="project-card" data-aos="fade-up" data-aos-delay="200">
@@ -245,7 +257,7 @@
             <h3>Iqama Times</h3>
             <p>A prayer schedule web app displaying daily and monthly Iqama times pulled live from Airtable. Features today&rsquo;s timings at a glance, monthly table view, and Jummah prayer columns for Fridays.</p>
             <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Airtable API</span></div>
-            <a href="/iqama/" class="project-link">View App &rarr;</a>
+            <a href="/iqama/" class="project-link" aria-label="View Iqama Times app">View App &rarr;</a>
           </div>
         </div>
       </div>
@@ -259,8 +271,8 @@
       <p class="contact-sub">Have a question about SAP architecture, enterprise security, access governance, compliance, or just want to connect? Fill out the form and I&rsquo;ll get back to you.</p>
       <div class="contact-wrapper">
         <div class="contact-info">
-          <div class="contact-info-card"><span class="ci-icon">&#128101;</span><div><p class="ci-label">LinkedIn</p><a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="ci-value">Connect with me &rarr;</a></div></div>
-          <div class="contact-info-card"><span class="ci-icon">&#128196;</span><div><p class="ci-label">GitHub</p><a href="https://github.com/sshafiuddin-dev" target="_blank" class="ci-value">sshafiuddin-dev &rarr;</a></div></div>
+          <div class="contact-info-card"><span class="ci-icon">&#128101;</span><div><p class="ci-label">LinkedIn</p><a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="ci-value" aria-label="Connect on LinkedIn">Connect with me &rarr;</a></div></div>
+          <div class="contact-info-card"><span class="ci-icon">&#128196;</span><div><p class="ci-label">GitHub</p><a href="https://github.com/sshafiuddin-dev" target="_blank" class="ci-value" aria-label="View GitHub profile">sshafiuddin-dev &rarr;</a></div></div>
           <div class="contact-info-card"><span class="ci-icon">&#127758;</span><div><p class="ci-label">Location</p><p class="ci-value">New York / New Jersey Area</p></div></div>
           <div class="contact-info-card"><span class="ci-icon">&#9201;</span><div><p class="ci-label">Response Time</p><p class="ci-value">Usually within 24 hours</p></div></div>
         </div>
@@ -270,27 +282,27 @@
           <form id="contact-form">
             <div class="form-row">
               <div class="form-group">
-                <label for="name">Your Name <span class="required">*</span></label>
-                <input type="text" id="name" name="name" placeholder="John Smith" data-fs-field required />
-                <span data-fs-error="name" class="field-error"></span>
+                <label for="name">Your Name <span class="required" aria-label="required">*</span></label>
+                <input type="text" id="name" name="name" placeholder="John Smith" data-fs-field required autocomplete="name" />
+                <span data-fs-error="name" class="field-error" role="alert"></span>
               </div>
               <div class="form-group">
-                <label for="email">Your Email <span class="required">*</span></label>
-                <input type="email" id="email" name="email" placeholder="john@company.com" data-fs-field required />
-                <span data-fs-error="email" class="field-error"></span>
+                <label for="email">Your Email <span class="required" aria-label="required">*</span></label>
+                <input type="email" id="email" name="email" placeholder="john@company.com" data-fs-field required autocomplete="email" />
+                <span data-fs-error="email" class="field-error" role="alert"></span>
               </div>
             </div>
             <div class="form-group">
-              <label for="subject">Subject <span class="required">*</span></label>
+              <label for="subject">Subject <span class="required" aria-label="required">*</span></label>
               <input type="text" id="subject" name="subject" placeholder="Security consultation, job opportunity, general inquiry..." data-fs-field required />
-              <span data-fs-error="subject" class="field-error"></span>
+              <span data-fs-error="subject" class="field-error" role="alert"></span>
             </div>
             <div class="form-group">
-              <label for="message">Message <span class="required">*</span></label>
+              <label for="message">Message <span class="required" aria-label="required">*</span></label>
               <textarea id="message" name="message" rows="5" placeholder="Tell me about your project, role, or question..." data-fs-field required></textarea>
-              <span data-fs-error="message" class="field-error"></span>
+              <span data-fs-error="message" class="field-error" role="alert"></span>
             </div>
-            <input type="text" name="_gotcha" style="display:none" />
+            <input type="text" name="_gotcha" style="display:none" aria-hidden="true" />
             <button type="submit" data-fs-submit-btn class="btn-submit">Send Message &#10148;</button>
             <p class="form-note">* Required fields. Your details are used only to reply to you.</p>
           </form>
@@ -304,7 +316,6 @@
     <p class="footer-sub">Built with HTML, CSS &amp; hosted on GitHub Pages</p>
   </footer>
 
-  <!-- Back to Top -->
   <button id="back-to-top" aria-label="Back to top" title="Back to top">&#8679;</button>
 
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>

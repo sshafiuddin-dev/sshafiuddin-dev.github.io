@@ -38,6 +38,26 @@ if (btt) {
   });
 }
 
+// Active nav section highlighting via IntersectionObserver
+const sections = document.querySelectorAll('section[id], header[id]');
+const navLinks = document.querySelectorAll('.nav-links a, .nav-mobile a');
+
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + id) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+
+sections.forEach(sec => sectionObserver.observe(sec));
+
 // Typed headline effect
 const titles = [
   'Sr. Manager, Global Operations',

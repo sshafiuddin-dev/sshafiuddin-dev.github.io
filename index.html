@@ -8,6 +8,7 @@
   <title>Shafiuddin Syed | SAP Architect & Enterprise Security Leader</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,6 +19,7 @@
       <ul class="nav-links">
         <li><a href="#about">About</a></li>
         <li><a href="#skills">Skills</a></li>
+        <li><a href="#timeline">Experience</a></li>
         <li><a href="#projects">Projects</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
@@ -26,6 +28,7 @@
     <ul class="nav-mobile" id="nav-mobile">
       <li><a href="#about">About</a></li>
       <li><a href="#skills">Skills</a></li>
+      <li><a href="#timeline">Experience</a></li>
       <li><a href="#projects">Projects</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
@@ -35,7 +38,7 @@
     <div class="hero-content">
       <div class="hero-badge">20+ Years of Enterprise IT Architecture &amp; Security Leadership</div>
       <h1>Shafiuddin Syed</h1>
-      <p class="hero-title">Sr. Manager, Global Operations &mdash; SAP Basis &amp; Architecture | SAP Security | Enterprise Application Access</p>
+      <p class="hero-title"><span id="typed-title"></span></p>
       <p class="hero-sub">SAP Architecture &bull; Access Governance &bull; Azure Cloud &bull; Automation &bull; CMMC &amp; SOX Compliance</p>
       <div class="hero-cta">
         <a href="#contact" class="btn btn-primary">Get in Touch</a>
@@ -55,14 +58,14 @@
 
   <section id="about">
     <div class="container">
-      <div class="section-label">About Me</div>
-      <h2 class="section-title">Building Security Programs That Actually Reduce Risk</h2>
+      <div class="section-label" data-aos="fade-up">About Me</div>
+      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Building Security Programs That Actually Reduce Risk</h2>
       <div class="about-grid">
-        <div class="about-text">
+        <div class="about-text" data-aos="fade-right" data-aos-delay="100">
           <p>I've spent more than 20 years designing, securing, and modernizing enterprise SAP and non-SAP ecosystems. In my current role, I serve as the architect of record across SAP Basis &amp; Infrastructure, SAP Security &amp; GRC, Enterprise Job Scheduling, and non-SAP application security &mdash; owning SOX audit relationships, CMMC compliance initiatives, and organization-wide data privacy governance.</p>
           <p>Recent programs I've led include a full SAP server migration to Microsoft Azure cloud, end-to-end SAP ECC production DR testing, a Vertex O-Series SR17&rarr;SR20 tax engine upgrade, Leena AI integration with SAP SuccessFactors, CMMC-compliant role design for Microsoft Dynamics 365 CE &amp; F&amp;O, and building a UAR Governance &amp; Compliance application from the ground up using Python, FastAPI, Streamlit, and pyrfc. I lead teams, own audit relationships, and build tools that make security operations measurably better.</p>
         </div>
-        <div class="about-highlights">
+        <div class="about-highlights" data-aos="fade-left" data-aos-delay="150">
           <div class="highlight-card"><div class="highlight-icon">&#128274;</div><div class="highlight-text"><strong>Access Governance</strong><span>SAP GRC, RBAC, SoD, PAM, IGA, UAR</span></div></div>
           <div class="highlight-card"><div class="highlight-icon">&#9989;</div><div class="highlight-text"><strong>Compliance &amp; Audit</strong><span>SOX, CMMC Level 2, FDA, Data Privacy Steward</span></div></div>
           <div class="highlight-card"><div class="highlight-icon">&#9729;</div><div class="highlight-text"><strong>SAP Architecture &amp; Cloud</strong><span>Azure Migration, SAP Basis, S/4HANA, BTP, HANA</span></div></div>
@@ -74,11 +77,11 @@
 
   <section id="skills" class="bg-light">
     <div class="container">
-      <div class="section-label">Technical Skills</div>
-      <h2 class="section-title">Core Expertise</h2>
+      <div class="section-label" data-aos="fade-up">Technical Skills</div>
+      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Core Expertise</h2>
       <div class="skills-grid skills-grid-2">
 
-        <div class="skill-card">
+        <div class="skill-card" data-aos="fade-up" data-aos-delay="100">
           <h3>&#128274; Security &amp; Access Governance</h3>
           <div class="skill-tags">
             <span>SAP GRC Access Control 10.1/12.0</span>
@@ -94,7 +97,7 @@
           </div>
         </div>
 
-        <div class="skill-card">
+        <div class="skill-card" data-aos="fade-up" data-aos-delay="150">
           <h3>&#9729; SAP &amp; Cloud Platforms</h3>
           <div class="skill-tags">
             <span>SAP S/4HANA</span>
@@ -111,7 +114,7 @@
           </div>
         </div>
 
-        <div class="skill-card">
+        <div class="skill-card" data-aos="fade-up" data-aos-delay="200">
           <h3>&#128187; Automation &amp; Development</h3>
           <div class="skill-tags">
             <span>Python 3.12</span>
@@ -126,7 +129,7 @@
           </div>
         </div>
 
-        <div class="skill-card">
+        <div class="skill-card" data-aos="fade-up" data-aos-delay="250">
           <h3>&#128295; Infrastructure &amp; Operations</h3>
           <div class="skill-tags">
             <span>SAP Basis Administration</span>
@@ -144,13 +147,66 @@
     </div>
   </section>
 
-  <section id="projects">
+  <!-- TIMELINE SECTION -->
+  <section id="timeline">
     <div class="container">
-      <div class="section-label">Built &amp; Deployed</div>
-      <h2 class="section-title">Projects</h2>
+      <div class="section-label" data-aos="fade-up">Career Journey</div>
+      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Experience &amp; Key Milestones</h2>
+      <div class="timeline">
+
+        <div class="timeline-item" data-aos="fade-right" data-aos-delay="100">
+          <div class="timeline-dot"></div>
+          <div class="timeline-date">2014 &mdash; Present</div>
+          <div class="timeline-card">
+            <h3>Sr. Manager, Global Operations</h3>
+            <p class="timeline-sub">SAP Basis &amp; Architecture &nbsp;&bull;&nbsp; SAP Security &amp; GRC &nbsp;&bull;&nbsp; Enterprise Job Scheduling &nbsp;&bull;&nbsp; Non-SAP Application Security</p>
+            <ul class="timeline-bullets">
+              <li>Architected full SAP server migration to Microsoft Azure cloud &mdash; ECC, GRC, PPM, and Enterprise Portal</li>
+              <li>Upgraded SAP GRC 10.1 &rarr; 12.0 on HANA with simultaneous Oracle-to-HANA DB migration</li>
+              <li>Led end-to-end production DR testing validating RTO/RPO across the full SAP landscape</li>
+              <li>Upgraded Vertex O-Series Tax Engine SR17 &rarr; SR20, resolving a critical enterprise tax reporting issue</li>
+              <li>Designed and implemented CMMC Level 2 role permissions for Dynamics 365 CE &amp; F&amp;O</li>
+              <li>Built UAR Governance &amp; Compliance app using Python 3.12, FastAPI, Jinja2, Streamlit &amp; pyrfc</li>
+              <li>Implemented Leena AI integration with SAP SuccessFactors</li>
+              <li>Reduced SOX violations by 35% through RBAC role redesign; cut provisioning time by 90% via automation</li>
+              <li>Govern 1,000+ Redwood job scheduling landscape migrated to Azure cloud infrastructure</li>
+            </ul>
+            <div class="timeline-tags">
+              <span>SAP Basis</span><span>GRC 12.0</span><span>Azure</span><span>CMMC</span><span>SOX</span><span>Python</span><span>Redwood</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item" data-aos="fade-right" data-aos-delay="150">
+          <div class="timeline-dot"></div>
+          <div class="timeline-date">2005 &mdash; 2014</div>
+          <div class="timeline-card">
+            <h3>Sr. SAP Basis &amp; Security Consultant</h3>
+            <p class="timeline-sub">SAP Basis Administration &nbsp;&bull;&nbsp; Security Architecture &nbsp;&bull;&nbsp; GRC &amp; SoD &nbsp;&bull;&nbsp; Multi-industry Client Delivery</p>
+            <ul class="timeline-bullets">
+              <li>Led full end-to-end SAP ECC6 security implementations across pharmaceutical, manufacturing, and technology clients</li>
+              <li>Redesigned SoD rulesets achieving 50% reduction in violations and clean external audit compliance</li>
+              <li>Implemented SOX and FDA-mandated security controls across multiple regulated environments</li>
+              <li>Executed SAP GRC upgrades, OS migrations, and production DR testing for enterprise clients</li>
+              <li>Delivered SAP ECC, CRM, SRM, and Solution Manager installations for multi-client landscapes</li>
+            </ul>
+            <div class="timeline-tags">
+              <span>SAP ECC</span><span>GRC</span><span>SoD</span><span>SOX</span><span>FDA</span><span>Basis Admin</span><span>Redwood CPS</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="bg-light">
+    <div class="container">
+      <div class="section-label" data-aos="fade-up">Built &amp; Deployed</div>
+      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Projects</h2>
       <div class="projects-grid">
 
-        <div class="project-card">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="100">
           <div class="project-icon">&#128203;</div>
           <div class="project-body">
             <h3>UAR Governance &amp; Compliance Application</h3>
@@ -159,7 +215,7 @@
           </div>
         </div>
 
-        <div class="project-card">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="150">
           <div class="project-icon">&#128204;</div>
           <div class="project-body">
             <h3>SAP User Provisioning Automation</h3>
@@ -168,7 +224,7 @@
           </div>
         </div>
 
-        <div class="project-card">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="200">
           <div class="project-icon">&#128196;</div>
           <div class="project-body">
             <h3>Data Privacy Review Automation</h3>
@@ -177,7 +233,7 @@
           </div>
         </div>
 
-        <div class="project-card">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="250">
           <div class="project-icon">&#129302;</div>
           <div class="project-body">
             <h3>Jeopardy Unleashed</h3>
@@ -187,7 +243,7 @@
           </div>
         </div>
 
-        <div class="project-card">
+        <div class="project-card" data-aos="fade-up" data-aos-delay="300">
           <div class="project-icon">&#128205;</div>
           <div class="project-body">
             <h3>Iqama Times</h3>
@@ -280,6 +336,10 @@
     <p class="footer-sub">Built with HTML, CSS &amp; hosted on GitHub Pages</p>
   </footer>
 
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({ duration: 600, once: true, offset: 60 });
+  </script>
   <script>
     window.formspree = window.formspree || function () {
       (formspree.q = formspree.q || []).push(arguments);

@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e2d3d"/>
+      <stop offset="60%" style="stop-color:#2E4057"/>
+      <stop offset="100%" style="stop-color:#3d5475"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="85%" cy="15%" r="40%">
+      <stop offset="0%" style="stop-color:#4A90D9;stop-opacity:0.25"/>
+      <stop offset="100%" style="stop-color:#4A90D9;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="15%" cy="85%" r="35%">
+      <stop offset="0%" style="stop-color:#6aaff0;stop-opacity:0.12"/>
+      <stop offset="100%" style="stop-color:#6aaff0;stop-opacity:0"/>
+    </radialGradient>
+    <linearGradient id="accentLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4A90D9"/>
+      <stop offset="100%" style="stop-color:#6aaff0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- Subtle grid lines -->
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="630" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="800" y1="0" x2="800" y2="630" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+  <!-- Left accent bar -->
+  <rect x="80" y="160" width="5" height="310" rx="3" fill="url(#accentLine)"/>
+
+  <!-- SS Avatar circle -->
+  <circle cx="980" cy="315" r="160" fill="rgba(74,144,217,0.08)" stroke="rgba(74,144,217,0.2)" stroke-width="1.5"/>
+  <circle cx="980" cy="315" r="120" fill="rgba(74,144,217,0.12)" stroke="rgba(74,144,217,0.25)" stroke-width="1"/>
+  <circle cx="980" cy="315" r="80" fill="rgba(46,64,87,0.9)" stroke="rgba(74,144,217,0.4)" stroke-width="2"/>
+  <text x="980" y="330" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="700" fill="#6aaff0" text-anchor="middle">SS</text>
+
+  <!-- Top label -->
+  <text x="120" y="175" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="600" fill="#6aaff0" letter-spacing="3">ENTERPRISE IT ARCHITECT &amp; SECURITY LEADER</text>
+
+  <!-- Name -->
+  <text x="120" y="275" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="700" fill="#ffffff" letter-spacing="-1">Shafiuddin Syed</text>
+
+  <!-- Title -->
+  <text x="120" y="335" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="500" fill="rgba(255,255,255,0.75)">Sr. Manager, Global Operations</text>
+
+  <!-- Accent divider -->
+  <rect x="120" y="360" width="520" height="3" rx="2" fill="url(#accentLine)"/>
+
+  <!-- Metrics row -->
+  <text x="120" y="410" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#6aaff0">20+</text>
+  <text x="165" y="410" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="rgba(255,255,255,0.5)">Years Experience</text>
+
+  <text x="120" y="445" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#6aaff0">90%</text>
+  <text x="165" y="445" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="rgba(255,255,255,0.5)">Provisioning Time Saved</text>
+
+  <text x="120" y="480" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#6aaff0">35%</text>
+  <text x="165" y="480" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400" fill="rgba(255,255,255,0.5)">SOX Violations Reduced</text>
+
+  <!-- Tag pills -->
+  <rect x="120" y="520" width="115" height="34" rx="17" fill="rgba(74,144,217,0.15)" stroke="rgba(74,144,217,0.3)" stroke-width="1"/>
+  <text x="177" y="542" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" fill="#6aaff0" text-anchor="middle">SAP GRC</text>
+
+  <rect x="248" y="520" width="90" height="34" rx="17" fill="rgba(74,144,217,0.15)" stroke="rgba(74,144,217,0.3)" stroke-width="1"/>
+  <text x="293" y="542" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" fill="#6aaff0" text-anchor="middle">Azure</text>
+
+  <rect x="351" y="520" width="80" height="34" rx="17" fill="rgba(74,144,217,0.15)" stroke="rgba(74,144,217,0.3)" stroke-width="1"/>
+  <text x="391" y="542" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" fill="#6aaff0" text-anchor="middle">IAM</text>
+
+  <rect x="444" y="520" width="80" height="34" rx="17" fill="rgba(74,144,217,0.15)" stroke="rgba(74,144,217,0.3)" stroke-width="1"/>
+  <text x="484" y="542" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" fill="#6aaff0" text-anchor="middle">SOX</text>
+
+  <rect x="537" y="520" width="105" height="34" rx="17" fill="rgba(74,144,217,0.15)" stroke="rgba(74,144,217,0.3)" stroke-width="1"/>
+  <text x="589" y="542" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" fill="#6aaff0" text-anchor="middle">Python</text>
+
+  <!-- URL watermark -->
+  <text x="1120" y="600" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500" fill="rgba(255,255,255,0.25)" text-anchor="end">sshafiuddin-dev.github.io</text>
+</svg>

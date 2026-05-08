@@ -21,7 +21,6 @@
 </head>
 <body>
 
-  <!-- Skip to content -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <nav id="navbar">
@@ -70,7 +69,6 @@
     </div>
   </header>
 
-  <!-- Quick Facts Strip -->
   <div class="quick-facts" role="region" aria-label="Quick overview" id="main-content">
     <div class="qf-item"><span class="qf-label">Specialty</span><span class="qf-value">SAP Security &amp; GRC</span></div>
     <div class="qf-dot" aria-hidden="true"></div>
@@ -82,6 +80,8 @@
     <div class="qf-dot" aria-hidden="true"></div>
     <div class="qf-item"><span class="qf-label">Location</span><span class="qf-value">New York / New Jersey</span></div>
   </div>
+
+  <hr class="section-sep" aria-hidden="true">
 
   <section id="about">
     <div class="container">
@@ -102,6 +102,8 @@
       </div>
     </div>
   </section>
+
+  <hr class="section-sep" aria-hidden="true">
 
   <section id="skills" class="bg-alt">
     <div class="container">
@@ -144,6 +146,8 @@
     </div>
   </section>
 
+  <hr class="section-sep" aria-hidden="true">
+
   <section id="timeline">
     <div class="container">
       <div class="section-label" data-aos="fade-up">Career Journey</div>
@@ -157,6 +161,7 @@
           <div class="timeline-card">
             <h3>Sr. Manager, Global Operations</h3>
             <p class="timeline-sub">SAP Basis &amp; Architecture &nbsp;&bull;&nbsp; SAP Security &amp; GRC &nbsp;&bull;&nbsp; Enterprise Job Scheduling &nbsp;&bull;&nbsp; Non-SAP Application Security</p>
+            <div class="impact-badge"><span>&#9889;</span> 35% SOX violations reduced &nbsp;&bull;&nbsp; 90% provisioning time saved &nbsp;&bull;&nbsp; 100% Azure cloud migration</div>
             <ul class="timeline-bullets">
               <li>Architected full SAP server migration to Microsoft Azure cloud &mdash; ECC, GRC, PPM, and Enterprise Portal</li>
               <li>Upgraded SAP GRC 10.1 &rarr; 12.0 on HANA with simultaneous Oracle-to-HANA DB migration</li>
@@ -178,6 +183,7 @@
           <div class="timeline-card">
             <h3>Sr. SAP Basis &amp; Security Consultant</h3>
             <p class="timeline-sub">SAP Basis Administration &nbsp;&bull;&nbsp; Security Architecture &nbsp;&bull;&nbsp; GRC &amp; SoD &nbsp;&bull;&nbsp; Multi-industry Client Delivery</p>
+            <div class="impact-badge"><span>&#9889;</span> 50% SoD violations reduced &nbsp;&bull;&nbsp; Clean external audit compliance across all clients</div>
             <ul class="timeline-bullets">
               <li>Led full end-to-end SAP ECC6 security implementations across pharmaceutical, manufacturing, and technology clients</li>
               <li>Redesigned SoD rulesets achieving 50% reduction in violations and clean external audit compliance</li>
@@ -208,17 +214,20 @@
     </div>
   </section>
 
+  <hr class="section-sep" aria-hidden="true">
+
   <section id="projects" class="bg-alt">
     <div class="container">
       <div class="section-label" data-aos="fade-up">Built &amp; Deployed</div>
       <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Projects</h2>
-      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">Enterprise tools and side projects — from SAP automation to AI-powered trivia games.</p>
+      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">Enterprise tools and side projects &mdash; from SAP automation to AI-powered trivia games.</p>
       <div class="projects-featured">
         <div class="project-card project-featured" data-aos="fade-up" data-aos-delay="80">
           <div class="featured-badge">&#11088; Featured</div>
           <div class="project-icon">&#128203;</div>
           <div class="project-body">
             <h3>UAR Governance &amp; Compliance Application</h3>
+            <div class="project-impact"><span>&#9889;</span> Replaced manual spreadsheet UAR process &bull; Full audit trail</div>
             <p>Designed and developed a full-stack User Access Review (UAR) governance platform replacing fragmented spreadsheet and email-based compliance processes with a fully auditable, governed workflow. Built with Python 3.12, FastAPI, Jinja2, Streamlit, and pyrfc for live SAP RFC integration &mdash; enabling real-time role reviews, approval chains, and audit-ready reporting.</p>
             <div class="project-tags"><span>Python 3.12</span><span>FastAPI</span><span>Jinja2</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Governance</span><span>Audit</span></div>
           </div>
@@ -228,6 +237,7 @@
           <div class="project-icon">&#128204;</div>
           <div class="project-body">
             <h3>SAP User Provisioning Automation</h3>
+            <div class="project-impact"><span>&#9889;</span> &#8595; 90% provisioning turnaround time</div>
             <p>Streamlit web application using Python and pyrfc for SAP RFC connectivity to fully automate SAP user provisioning workflows &mdash; replacing a manual SU01-based process and reducing turnaround time by up to 90%. Supports bulk provisioning, role assignment, and real-time status tracking through a clean browser interface.</p>
             <div class="project-tags"><span>Python</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Automation</span><span>SU01</span></div>
           </div>
@@ -238,6 +248,7 @@
           <div class="project-icon">&#128196;</div>
           <div class="project-body">
             <h3>Data Privacy Review Automation</h3>
+            <div class="project-impact"><span>&#9889;</span> Replaced manual PIA process &bull; Governed &amp; trackable</div>
             <p>Built a Google AppSheet workflow application to automate Data Privacy Impact Assessment (PIA) review processes for the Project Management organization, replacing a manual spreadsheet process with a governed, trackable, and auditable solution.</p>
             <div class="project-tags"><span>Google AppSheet</span><span>Google Workspace</span><span>Data Privacy</span><span>Automation</span></div>
           </div>
@@ -246,6 +257,7 @@
           <div class="project-icon">&#129302;</div>
           <div class="project-body">
             <h3>Jeopardy Unleashed</h3>
+            <div class="project-impact"><span>&#9889;</span> AI-generated questions &bull; Every board is unique</div>
             <p>A free, PWA-installable Jeopardy-style multiplayer trivia game built with HTML, CSS, and JavaScript. Questions are generated in real time by Llama 3.3 70B via the Groq API through a Cloudflare Worker proxy &mdash; no static question banks, every board is unique.</p>
             <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Groq API</span><span>Llama 3.3 70B</span><span>Cloudflare Worker</span><span>PWA</span></div>
             <a href="https://sshafiuddin-dev.github.io/jeopardy/" target="_blank" class="project-link" aria-label="Live demo of Jeopardy Unleashed">Live Demo &rarr;</a>
@@ -255,6 +267,7 @@
           <div class="project-icon">&#128205;</div>
           <div class="project-body">
             <h3>Iqama Times</h3>
+            <div class="project-impact"><span>&#9889;</span> Live Airtable data &bull; Daily &amp; monthly view</div>
             <p>A prayer schedule web app displaying daily and monthly Iqama times pulled live from Airtable. Features today&rsquo;s timings at a glance, monthly table view, and Jummah prayer columns for Fridays.</p>
             <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Airtable API</span></div>
             <a href="/iqama/" class="project-link" aria-label="View Iqama Times app">View App &rarr;</a>
@@ -263,6 +276,8 @@
       </div>
     </div>
   </section>
+
+  <hr class="section-sep" aria-hidden="true">
 
   <section id="contact" style="background: var(--contact-bg) !important;">
     <div class="container">

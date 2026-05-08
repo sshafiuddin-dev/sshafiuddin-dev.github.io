@@ -8,9 +8,15 @@ window.addEventListener('scroll', () => {
 const hamburger = document.getElementById('hamburger');
 const navMobile = document.getElementById('nav-mobile');
 if (hamburger && navMobile) {
-  hamburger.addEventListener('click', () => navMobile.classList.toggle('open'));
+  hamburger.addEventListener('click', () => {
+    const isOpen = navMobile.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', isOpen);
+  });
   navMobile.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => navMobile.classList.remove('open'));
+    link.addEventListener('click', () => {
+      navMobile.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
   });
 }
 
@@ -41,22 +47,40 @@ if (btt) {
 // Active nav section highlighting via IntersectionObserver
 const sections = document.querySelectorAll('section[id], header[id]');
 const navLinks = document.querySelectorAll('.nav-links a, .nav-mobile a');
-
 const sectionObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       const id = entry.target.getAttribute('id');
       navLinks.forEach(link => {
         link.classList.remove('active');
-        if (link.getAttribute('href') === '#' + id) {
-          link.classList.add('active');
-        }
+        if (link.getAttribute('href') === '#' + id) link.classList.add('active');
       });
     }
   });
 }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
-
 sections.forEach(sec => sectionObserver.observe(sec));
+
+// Timeline Show More / Show Less
+document.querySelectorAll('.timeline-bullets').forEach(list => {
+  const items = list.querySelectorAll('li');
+  if (items.length <= 4) return;
+  items.forEach((li, i) => { if (i >= 4) li.classList.add('bullet-hidden'); });
+  const btn = document.createElement('button');
+  btn.className = 'show-more-btn';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.innerHTML = 'Show ' + (items.length - 4) + ' more &#8964;';
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    items.forEach((li, i) => {
+      if (i >= 4) li.classList.toggle('bullet-hidden', expanded);
+    });
+    btn.setAttribute('aria-expanded', !expanded);
+    btn.innerHTML = expanded
+      ? 'Show ' + (items.length - 4) + ' more &#8964;'
+      : 'Show less &#8963;';
+  });
+  list.after(btn);
+});
 
 // Typed headline effect
 const titles = [

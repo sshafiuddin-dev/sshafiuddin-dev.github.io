@@ -119,8 +119,8 @@ section { padding-block: clamp(4rem, 9vw, 7.5rem); border-top: 1px solid var(--l
 .hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(2rem, 5vw, 4.5rem); align-items: center; }
 .hero-grid > * { min-width: 0; }
 h1 {
-  font: 800 clamp(3.1rem, 7.6vw, 6.4rem)/.88 var(--display);
-  font-stretch: 75%; letter-spacing: -.035em;
+  font: 800 clamp(3.1rem, 7.2vw, 6rem)/.9 var(--display);
+  font-stretch: 88%; letter-spacing: -.02em;
 }
 h1 .word { display: inline-block; white-space: nowrap; }
 h1 .ch { display: inline-block; }
@@ -191,23 +191,25 @@ h1 .ch { display: inline-block; }
 .skill-rows { margin-top: 2.5rem; }
 .skill-row { display: grid; grid-template-columns: 17rem 1fr; gap: 1rem 2rem; padding-block: 1.6rem; border-top: 1px solid var(--line); }
 
-/* Timeline */
-.timeline { position: relative; display: grid; gap: 4rem; margin-top: 3rem; padding-left: clamp(1.5rem, 4vw, 3rem); }
-.timeline::before, .timeline::after { content: ""; position: absolute; left: 0; top: .6rem; bottom: 0; width: 2px; background: var(--line); }
-.timeline::after { background: var(--clear); transform-origin: 50% 0; display: none; }
-@supports (animation-timeline: view()) {
-  .timeline::after { display: block; animation: grow-y linear both; animation-timeline: view(); animation-range: cover 15% cover 75%; }
-}
-@keyframes grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-.job { position: relative; display: grid; gap: .9rem; max-width: 52rem; }
-.job::before { content: ""; position: absolute; left: calc(-1 * clamp(1.5rem, 4vw, 3rem) - .3rem); top: .55rem; width: .75rem; height: .75rem; border-radius: 2px; background: var(--paper); border: 2px solid var(--clear); z-index: 1; }
-.job-date { font: 700 clamp(1.5rem, 3vw, 2.2rem)/1 var(--display); font-stretch: 80%; color: var(--clear); }
+/* Experience as an SM37-style job overview */
+.joblog { margin-top: 3rem; font-variant-numeric: tabular-nums; }
+.joblog-head, .job-row { display: grid; grid-template-columns: 1fr 7.5rem 4.5rem 4.5rem 6.5rem; gap: .25rem 1.25rem; align-items: baseline; }
+.joblog-head { padding-bottom: .6rem; border-bottom: 2px solid var(--ink); font-size: .88rem; color: var(--muted); }
+.job { padding-block: 1.75rem 2.25rem; border-bottom: 1px solid var(--line); }
+.job-row h3 { font-size: clamp(1.3rem, 2.4vw, 1.75rem); }
+.status { display: inline-flex; align-items: center; gap: .45rem; font-weight: 500; color: var(--muted); }
+.status::before { content: ""; width: .6rem; height: .6rem; border-radius: 2px; background: var(--muted); }
+.status-active { color: var(--clear); }
+.status-active::before { background: var(--clear); border-radius: 50%; animation: beat 1.6s ease-in-out infinite; }
+@keyframes beat { 50% { transform: scale(.55); opacity: .5; } }
+.job-body { display: grid; gap: .9rem; max-width: 52rem; margin-top: .9rem; }
 .job-sub { color: var(--muted); }
 .impact { display: flex; flex-wrap: wrap; gap: .5rem 2rem; padding: .9rem 1.1rem; background: var(--surface); border-left: 3px solid var(--clear); }
 .impact strong { font: 700 1.25rem/1 var(--display); margin-right: .2rem; }
-.job-bullets { display: grid; gap: .5rem; }
-.job-bullets li { padding-left: 1.2rem; position: relative; }
-.job-bullets li::before { content: ""; position: absolute; left: 0; top: .72em; width: .5rem; height: 1.5px; background: var(--muted); }
+h4 { margin: .4rem 0 0; font: 600 .95rem/1.2 var(--body); color: var(--muted); }
+.job-log { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.job-log li { padding-left: 1.3rem; position: relative; }
+.job-log li::before { content: ""; position: absolute; left: 0; top: .55em; width: .5rem; height: .5rem; border-radius: 1px; background: var(--clear); }
 
 /* Projects */
 .projects { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
@@ -275,6 +277,7 @@ h1 .ch { display: inline-block; }
   h2.in { animation: wipe .9s var(--ease) both; }
   .in:not(h2) { animation: fade .7s var(--ease) both; }
   .in .grants li { animation: pop .45s var(--ease) both; animation-delay: calc(var(--i, 0) * 35ms); }
+  .in .job-log li { animation: pop .5s var(--ease) both; animation-delay: calc(.25s + var(--i, 0) * 90ms); }
 }
 @keyframes rise { from { transform: translateY(105%) rotate(6deg); opacity: 0; } }
 @keyframes fade { from { opacity: 0; transform: translateY(14px); } }
@@ -284,7 +287,8 @@ h1 .ch { display: inline-block; }
   .marquee-track { animation: none; flex-wrap: wrap; width: auto; row-gap: 1rem; }
   .marquee-track li[data-dup] { display: none; }
   .cell.conflict::before { animation: none; }
-  .progress, .timeline::after { display: none; }
+  .progress { display: none; }
+  .status-active::before { animation: none; }
 }
 
 @media (max-width: 60rem) {
@@ -302,4 +306,9 @@ h1 .ch { display: inline-block; }
   .cell { width: 1.9rem; height: 1.9rem; }
   .sod-foot { flex-direction: column; align-items: flex-start; }
   .contact-info > div { grid-template-columns: 1fr; gap: .1rem; }
+  .joblog-head { display: none; }
+  .joblog { border-top: 2px solid var(--ink); }
+  .job-row { grid-template-columns: auto auto auto 1fr; font-size: .92rem; }
+  .job-row h3 { grid-column: 1 / -1; }
+  .job-row span:empty { display: none; }
 }

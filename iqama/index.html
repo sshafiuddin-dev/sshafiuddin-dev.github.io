@@ -4,69 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iqama Times</title>
+    <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+    <!-- shares the portfolio's tokens, type and buttons -->
+    <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .collapsible {
-            cursor: pointer;
-            padding: 10px;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
-            text-align: center;
-            margin-top: 20px;
-        }
-        .collapsible-content { display: none; margin-top: 10px; }
-        .back-link {
-            display: inline-block;
-            margin-bottom: 16px;
-            font-size: 0.9rem;
-            color: #2E4057;
-            text-decoration: none;
-            font-family: Arial, sans-serif;
-        }
-        .back-link:hover { text-decoration: underline; }
-    </style>
 </head>
 <body>
-    <a class="back-link" href="/">&larr; Back to Portfolio</a>
-    <h1>Iqama Times</h1>
-    <section id="todays-date" class="centered">
-        <h2><span id="currentDate"></span></h2>
-    </section>
-    <section id="todays-timings" class="centered">
-        <table id="today-timings">
-            <thead>
-                <tr>
-                    <th scope="col">Fajr</th>
-                    <th scope="col">Dhuhr</th>
-                    <th scope="col">Asr</th>
-                    <th scope="col">Maghrib</th>
-                    <th scope="col">Isha</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td colspan="5">No timings available for today.</td></tr>
-            </tbody>
-        </table>
-    </section>
-    <div class="collapsible" id="toggleMonthlyView">Monthly View</div>
-    <div class="collapsible-content" id="monthlyView">
-        <table id="timings">
-            <thead>
-                <tr>
-                    <th>Date</th><th>Fajr</th><th>Dhuhr</th><th>Asr</th>
-                    <th>Maghrib</th><th>Isha</th>
-                    <th>Jummah - 1</th><th>Jummah - 2</th>
-                    <th>Jummah - 3</th><th>Jummah - 4</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+    <main class="wrap iqama">
+        <a class="back-link" href="/">Back to portfolio</a>
+        <h1>Iqama Times</h1>
+        <p class="iqama-date" id="todays-date"><span id="currentDate"></span></p>
+        <section id="todays-timings" aria-label="Today's iqama times">
+            <table id="today-timings">
+                <thead>
+                    <tr>
+                        <th scope="col">Fajr</th>
+                        <th scope="col">Dhuhr</th>
+                        <th scope="col">Asr</th>
+                        <th scope="col">Maghrib</th>
+                        <th scope="col">Isha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="5">No timings available for today.</td></tr>
+                </tbody>
+            </table>
+        </section>
+        <button class="btn btn-outline" id="toggleMonthlyView" type="button" aria-expanded="false" aria-controls="monthlyView">Show this month</button>
+        <div class="table-scroll" id="monthlyView" hidden>
+            <table id="timings">
+                <thead>
+                    <tr>
+                        <th>Date</th><th>Fajr</th><th>Dhuhr</th><th>Asr</th>
+                        <th>Maghrib</th><th>Isha</th>
+                        <th>Jummah - 1</th><th>Jummah - 2</th>
+                        <th>Jummah - 3</th><th>Jummah - 4</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </main>
     <script src="script.js"></script>
     <script>
-        document.getElementById('toggleMonthlyView').addEventListener('click', function() {
-            const content = document.getElementById('monthlyView');
-            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        const toggle = document.getElementById('toggleMonthlyView'), monthly = document.getElementById('monthlyView');
+        toggle.addEventListener('click', () => {
+            monthly.hidden = !monthly.hidden;
+            toggle.setAttribute('aria-expanded', !monthly.hidden);
+            toggle.textContent = monthly.hidden ? 'Show this month' : 'Hide this month';
         });
     </script>
 </body>

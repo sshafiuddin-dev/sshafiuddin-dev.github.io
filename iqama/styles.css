@@ -1,18 +1,46 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
+/* Iqama Times: tokens, type and buttons come from ../style.css; this file is only the page's own layout. */
+.iqama { display: grid; gap: 1.5rem; justify-items: start; padding-block: clamp(2rem, 6vw, 4rem); }
+.iqama > * { min-width: 0; }
+.iqama section { width: 100%; padding-block: 0; border-top: 0; }
+.back-link { color: var(--muted); font-size: .95rem; text-underline-offset: .25em; }
+.back-link:hover { color: var(--ink); }
+.iqama h1 { font-size: clamp(2.8rem, 9vw, 5.5rem); }
+.iqama-date { min-height: 1.2em; font: 500 1.35rem/1.2 var(--display); color: var(--clear); }
+[hidden] { display: none !important; }
+
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: .7rem .9rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--line); }
+th { font-size: .9rem; font-weight: 500; color: var(--muted); }
+
+#today-timings { border-collapse: separate; border-spacing: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+#today-timings th { padding: 1.1rem 1.25rem .15rem; border-bottom: 0; }
+#today-timings td { padding: .15rem 1.25rem 1.2rem; border-bottom: 0; white-space: normal; font: 700 clamp(1.3rem, 2.6vw, 2rem)/1.15 var(--display); }
+#today-timings td[colspan] { font: 400 1rem/1.5 var(--body); color: var(--muted); }
+
+.table-scroll { width: 100%; overflow-x: auto; }
+#timings tbody tr:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+#timings tr.today { font-weight: 600; background: color-mix(in srgb, var(--clear) 14%, transparent); }
+#timings tr.today td:first-child { box-shadow: inset 3px 0 var(--clear); }
+
+@media (prefers-reduced-motion: no-preference) {
+  #today-timings td { animation: fade .6s var(--ease) both; }
+  #today-timings td:nth-child(2) { animation-delay: .08s; }
+  #today-timings td:nth-child(3) { animation-delay: .16s; }
+  #today-timings td:nth-child(4) { animation-delay: .24s; }
+  #today-timings td:nth-child(5) { animation-delay: .32s; }
 }
-h1 { text-align: center; }
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+
+/* Phones: today's five times stack as label and time rows */
+@media (max-width: 40rem) {
+  #today-timings thead { display: none; }
+  #today-timings tr { display: grid; }
+  #today-timings td { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: .85rem 1rem; border-bottom: 1px solid var(--line); font-size: 1.25rem; }
+  #today-timings td:last-child { border-bottom: 0; }
+  #today-timings td::before { font: 500 .95rem/1.2 var(--body); color: var(--muted); }
+  #today-timings td:nth-child(1)::before { content: "Fajr"; }
+  #today-timings td:nth-child(2)::before { content: "Dhuhr"; }
+  #today-timings td:nth-child(3)::before { content: "Asr"; }
+  #today-timings td:nth-child(4)::before { content: "Maghrib"; }
+  #today-timings td:nth-child(5)::before { content: "Isha"; }
+  #today-timings td[colspan]::before { content: none; }
 }
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-}
-th { background-color: #f2f2f2; }
-tr:nth-child(even) { background-color: #f9f9f9; }
-tr:hover { background-color: #f1f1f1; }

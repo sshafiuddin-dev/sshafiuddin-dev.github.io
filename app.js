@@ -100,7 +100,7 @@ const marquee = $('marquee');
 [...marquee.children].forEach(li => { const c = li.cloneNode(true); c.dataset.dup = ''; marquee.append(c); });
 
 // Scroll-in entrances and stat count-up
-document.querySelectorAll('.grants').forEach(ul => [...ul.children].forEach((li, i) => li.style.setProperty('--i', i)));
+document.querySelectorAll('.grants, .job-log').forEach(ul => [...ul.children].forEach((li, i) => li.style.setProperty('--i', i)));
 const io = new IntersectionObserver((entries) => entries.forEach(en => {
   if (!en.isIntersecting) return;
   io.unobserve(en.target);
@@ -149,3 +149,6 @@ document.querySelectorAll('.project').forEach(p => p.addEventListener('pointermo
   p.style.setProperty('--mx', `${e.clientX - r.left}px`);
   p.style.setProperty('--my', `${e.clientY - r.top}px`);
 }));
+
+// Current role: duration stays right without yearly edits
+document.querySelectorAll('[data-since]').forEach(el => { el.textContent = `${new Date().getFullYear() - el.dataset.since} years`; });

@@ -67,7 +67,7 @@ function displayTimings(records) {
         }
 
         timingsTableBody.innerHTML += `
-            <tr style="font-weight:${isToday ? 'bold' : 'normal'}">
+            <tr${isToday ? ' class="today"' : ''}>
                 <td>${f.Date || 'N/A'}</td>
                 <td>${f.Fajr    ? formatTime(f.Fajr)    : 'N/A'}</td>
                 <td>${f.Dhuhr   ? formatTime(f.Dhuhr)   : 'N/A'}</td>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iqama Times</title>
-    <meta name="description" content="Prayer and iqama times for the Islamic Society of Central Jersey with a live countdown. Set your own iqama times, share them, and install it as an app.">
+    <meta name="description" content="Prayer and iqama times with a live countdown, adhan and reminders. ISCJ iqama times near the masjid, your own times anywhere else.">
     <meta name="theme-color" content="#0B2A33">
     <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
     <link rel="manifest" href="manifest.webmanifest">
@@ -18,12 +18,29 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="sky-tint" aria-hidden="true"></div>
+    <canvas id="sky" aria-hidden="true"></canvas>
     <main class="wrap iqama">
         <header class="iq-head">
-            <a class="back-link" href="/">Back to portfolio</a>
-            <h1>Iqama Times</h1>
-            <p class="iq-date"><span id="date"></span> <span class="iq-place" id="place"></span></p>
+            <div class="iq-title">
+                <a class="back-link" id="back" href="/" hidden>Back to portfolio</a>
+                <h1>Iqama Times</h1>
+                <p class="iq-date"><span id="date"></span> <span class="iq-place"><span id="place"></span> <button class="link-btn" type="button" id="change-place">Change</button></span></p>
+            </div>
+            <div class="iq-now">
+                <p class="iq-clock" id="now"></p>
+                <p class="iq-weather" id="weather"></p>
+            </div>
         </header>
+
+        <section class="iq-ask" id="ask" aria-label="Choose your location" hidden>
+            <p>Showing times for ISCJ in Monmouth Junction, NJ. Somewhere else? Set your location for your own adhan times.</p>
+            <div class="iq-fields">
+                <button class="btn btn-small btn-primary" type="button" id="ask-here">Use my location</button>
+                <button class="btn btn-small" type="button" id="ask-search">Search for a city</button>
+                <button class="btn btn-small" type="button" id="ask-iscj">Keep ISCJ</button>
+            </div>
+        </section>
 
         <div class="iq-main">
             <div class="dial">
@@ -52,15 +69,45 @@
         </div>
         <p class="iq-status" id="status" role="status"></p>
 
-        <details class="iq-panel">
+        <details class="iq-panel" id="sound-panel">
+            <summary>Adhan and reminders</summary>
+            <p class="iq-note">Sounds and reminders work while this page or the installed app is open. Browsers need one tap on the page before they play sound.</p>
+            <div class="iq-fields">
+                <label for="adhan">Adhan</label>
+                <select id="adhan"></select>
+                <button class="btn btn-small" type="button" data-try="adhan">Play</button>
+            </div>
+            <div class="iq-fields">
+                <label for="fajr-adhan">Fajr adhan</label>
+                <select id="fajr-adhan"></select>
+                <button class="btn btn-small" type="button" data-try="fajr-adhan">Play</button>
+            </div>
+            <fieldset class="iq-reminders">
+                <legend>Reminders</legend>
+                <div id="reminders"></div>
+            </fieldset>
+            <div class="iq-fields">
+                <label for="chime">Reminder sound</label>
+                <select id="chime"></select>
+                <button class="btn btn-small" type="button" data-try="chime">Play</button>
+            </div>
+        </details>
+
+        <details class="iq-panel" id="iqama-panel">
             <summary>Set your own iqama times</summary>
-            <p class="iq-note">Each prayer can follow ISCJ, a fixed time, or a number of minutes after adhan. Your choices stay on this device.</p>
+            <p class="iq-note" id="iqama-note"></p>
             <form id="iqama-form" onsubmit="return false"></form>
         </details>
 
-        <details class="iq-panel">
+        <details class="iq-panel" id="loc-panel">
             <summary>Location and calculation</summary>
-            <p class="iq-note">Adhan times are calculated for <strong id="place-name"></strong>.</p>
+            <p class="iq-note">Adhan times are calculated for <strong id="place-name"></strong>. ISCJ iqama times are used within 40 km (25 miles) of the masjid; anywhere else you set your own.</p>
+            <form class="iq-fields" id="search-form" role="search">
+                <label for="search">City or town</label>
+                <input id="search" type="search" placeholder="For example, Edison" autocomplete="off">
+                <button class="btn btn-small" type="submit">Search</button>
+            </form>
+            <ul class="iq-results" id="results"></ul>
             <div class="iq-fields">
                 <button class="btn btn-small" type="button" id="use-here">Use my location</button>
                 <button class="btn btn-small" type="button" id="use-iscj">Use ISCJ</button>
@@ -75,7 +122,7 @@
 
         <details class="iq-panel" id="month-panel">
             <summary>This month</summary>
-            <p class="iq-note">Adhan times for the month. ISCJ publishes iqama times one day at a time, so those appear only for today.</p>
+            <p class="iq-note">Adhan times for the month. Iqama times are shown for today only.</p>
             <div class="table-scroll">
                 <table id="month">
                     <thead><tr><th scope="col">Day</th><th scope="col">Fajr</th><th scope="col">Sunrise</th><th scope="col">Dhuhr</th><th scope="col">Asr</th><th scope="col">Maghrib</th><th scope="col">Isha</th></tr></thead>
@@ -85,8 +132,8 @@
         </details>
 
         <footer class="iq-credits">
-            <p>Iqama times from <a href="https://iscj.org/#prayer-times">iscj.org</a>. Check with the masjid before relying on them.</p>
-            <p>Prayer times calculated with <a href="http://praytimes.org/">PrayTimes.org</a>. Calculator and adhan recordings from the open-source <a href="https://github.com/adhanclock/PWA">Adhan Clock</a>.</p>
+            <p>Iqama times near ISCJ come from <a href="https://iscj.org/#prayer-times">iscj.org</a>. Check with the masjid before relying on them.</p>
+            <p>Prayer times calculated with <a href="http://praytimes.org/">PrayTimes.org</a>. Calculator and recordings from the open-source <a href="https://github.com/adhanclock/PWA">Adhan Clock</a>. Weather and place search by <a href="https://open-meteo.com/">Open-Meteo</a>.</p>
         </footer>
     </main>
     <script type="module" src="app.js"></script>

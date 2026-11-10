@@ -18,4 +18,5 @@ https://sshafiuddin-dev.github.io
 ## Tech Stack
 - HTML, CSS, JavaScript
 - GitHub Pages (static hosting)
+- Open-Meteo (weather backdrop and city search for Iqama Times, no key needed)
 - GitHub Actions (copies ISCJ iqama times into `iqama/iqama.json` daily; test with `node scripts/selfcheck.mjs`)

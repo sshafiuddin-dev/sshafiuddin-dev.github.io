@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iqama Times</title>
+    <meta name="description" content="Prayer and iqama times for the Islamic Society of Central Jersey with a live countdown. Set your own iqama times, share them, and install it as an app.">
+    <meta name="theme-color" content="#0B2A33">
     <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+    <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -15,48 +19,76 @@
 </head>
 <body>
     <main class="wrap iqama">
-        <a class="back-link" href="/">Back to portfolio</a>
-        <h1>Iqama Times</h1>
-        <p class="iqama-date" id="todays-date"><span id="currentDate"></span></p>
-        <section id="todays-timings" aria-label="Today's iqama times">
-            <table id="today-timings">
-                <thead>
-                    <tr>
-                        <th scope="col">Fajr</th>
-                        <th scope="col">Dhuhr</th>
-                        <th scope="col">Asr</th>
-                        <th scope="col">Maghrib</th>
-                        <th scope="col">Isha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="5">No timings available for today.</td></tr>
-                </tbody>
-            </table>
-        </section>
-        <button class="btn btn-outline" id="toggleMonthlyView" type="button" aria-expanded="false" aria-controls="monthlyView">Show this month</button>
-        <div class="table-scroll" id="monthlyView" hidden>
-            <table id="timings">
-                <thead>
-                    <tr>
-                        <th>Date</th><th>Fajr</th><th>Dhuhr</th><th>Asr</th>
-                        <th>Maghrib</th><th>Isha</th>
-                        <th>Jummah - 1</th><th>Jummah - 2</th>
-                        <th>Jummah - 3</th><th>Jummah - 4</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <header class="iq-head">
+            <a class="back-link" href="/">Back to portfolio</a>
+            <h1>Iqama Times</h1>
+            <p class="iq-date"><span id="date"></span> <span class="iq-place" id="place"></span></p>
+        </header>
+
+        <div class="iq-main">
+            <div class="dial">
+                <svg id="dial" viewBox="0 0 360 360" aria-hidden="true"></svg>
+                <div class="dial-center" role="timer">
+                    <p id="next-label">Next prayer in</p>
+                    <p class="countdown" id="countdown">&nbsp;</p>
+                    <p id="next-at">&nbsp;</p>
+                </div>
+            </div>
+            <div class="iq-today">
+                <table id="today">
+                    <thead><tr><th scope="col">Prayer</th><th scope="col">Adhan</th><th scope="col">Iqama</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+                <p class="iq-note" id="source"></p>
+            </div>
         </div>
+
+        <div class="iq-actions">
+            <button class="btn btn-small" type="button" id="share-day">Share today</button>
+            <button class="btn btn-small" type="button" id="share-month">Share this month</button>
+            <button class="btn btn-small" type="button" id="share-app">Share the app</button>
+            <button class="btn btn-small" type="button" id="sound" aria-pressed="false">Adhan sound: off</button>
+            <button class="btn btn-small btn-primary" type="button" id="install" hidden>Install app</button>
+        </div>
+        <p class="iq-status" id="status" role="status"></p>
+
+        <details class="iq-panel">
+            <summary>Set your own iqama times</summary>
+            <p class="iq-note">Each prayer can follow ISCJ, a fixed time, or a number of minutes after adhan. Your choices stay on this device.</p>
+            <form id="iqama-form" onsubmit="return false"></form>
+        </details>
+
+        <details class="iq-panel">
+            <summary>Location and calculation</summary>
+            <p class="iq-note">Adhan times are calculated for <strong id="place-name"></strong>.</p>
+            <div class="iq-fields">
+                <button class="btn btn-small" type="button" id="use-here">Use my location</button>
+                <button class="btn btn-small" type="button" id="use-iscj">Use ISCJ</button>
+            </div>
+            <div class="iq-fields">
+                <label for="method">Method</label>
+                <select id="method"></select>
+                <label for="asr">Asr</label>
+                <select id="asr"><option value="Standard">Standard</option><option value="Hanafi">Hanafi (later Asr)</option></select>
+            </div>
+        </details>
+
+        <details class="iq-panel" id="month-panel">
+            <summary>This month</summary>
+            <p class="iq-note">Adhan times for the month. ISCJ publishes iqama times one day at a time, so those appear only for today.</p>
+            <div class="table-scroll">
+                <table id="month">
+                    <thead><tr><th scope="col">Day</th><th scope="col">Fajr</th><th scope="col">Sunrise</th><th scope="col">Dhuhr</th><th scope="col">Asr</th><th scope="col">Maghrib</th><th scope="col">Isha</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </details>
+
+        <footer class="iq-credits">
+            <p>Iqama times from <a href="https://iscj.org/#prayer-times">iscj.org</a>. Check with the masjid before relying on them.</p>
+            <p>Prayer times calculated with <a href="http://praytimes.org/">PrayTimes.org</a>. Calculator and adhan recordings from the open-source <a href="https://github.com/adhanclock/PWA">Adhan Clock</a>.</p>
+        </footer>
     </main>
-    <script src="script.js"></script>
-    <script>
-        const toggle = document.getElementById('toggleMonthlyView'), monthly = document.getElementById('monthlyView');
-        toggle.addEventListener('click', () => {
-            monthly.hidden = !monthly.hidden;
-            toggle.setAttribute('aria-expanded', !monthly.hidden);
-            toggle.textContent = monthly.hidden ? 'Show this month' : 'Hide this month';
-        });
-    </script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

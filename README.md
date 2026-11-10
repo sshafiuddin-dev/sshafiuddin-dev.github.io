@@ -18,4 +18,4 @@ https://sshafiuddin-dev.github.io
 ## Tech Stack
 - HTML, CSS, JavaScript
 - GitHub Pages (static hosting)
-- Airtable (public API for Iqama Times)
+- GitHub Actions (copies ISCJ iqama times into `iqama/iqama.json` daily; test with `node scripts/selfcheck.mjs`)

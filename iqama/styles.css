@@ -1,46 +1,72 @@
-/* Iqama Times: tokens, type and buttons come from ../style.css; this file is only the page's own layout. */
-.iqama { display: grid; gap: 1.5rem; justify-items: start; padding-block: clamp(2rem, 6vw, 4rem); }
+/* Iqama Times: tokens, type and buttons come from ../style.css; this file is only the page's own layout.
+   Layout: a 24-hour dial with the countdown in its centre beside today's adhan and iqama table. */
+.iqama { display: grid; gap: 1.5rem; padding-block: clamp(1.5rem, 5vw, 3.5rem); }
 .iqama > * { min-width: 0; }
-.iqama section { width: 100%; padding-block: 0; border-top: 0; }
-.back-link { color: var(--muted); font-size: .95rem; text-underline-offset: .25em; }
-.back-link:hover { color: var(--ink); }
-.iqama h1 { font-size: clamp(2.8rem, 9vw, 5.5rem); }
-.iqama-date { min-height: 1.2em; font: 500 1.35rem/1.2 var(--display); color: var(--clear); }
 [hidden] { display: none !important; }
 
-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-th, td { padding: .7rem .9rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--line); }
-th { font-size: .9rem; font-weight: 500; color: var(--muted); }
+.iq-head { display: grid; gap: .6rem; justify-items: start; }
+.back-link { color: var(--muted); font-size: .95rem; text-underline-offset: .25em; }
+.back-link:hover { color: var(--ink); }
+.iqama h1 { font-size: clamp(2.6rem, 8vw, 5rem); }
+.iq-date { font: 500 1.35rem/1.2 var(--display); color: var(--clear); }
+.iq-place { color: var(--muted); font: 400 1rem/1.2 var(--body); margin-left: .5rem; }
 
-#today-timings { border-collapse: separate; border-spacing: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
-#today-timings th { padding: 1.1rem 1.25rem .15rem; border-bottom: 0; }
-#today-timings td { padding: .15rem 1.25rem 1.2rem; border-bottom: 0; white-space: normal; font: 700 clamp(1.3rem, 2.6vw, 2rem)/1.15 var(--display); }
-#today-timings td[colspan] { font: 400 1rem/1.5 var(--body); color: var(--muted); }
+.iq-main { display: grid; grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); gap: clamp(1.5rem, 5vw, 4rem); align-items: center; }
 
-.table-scroll { width: 100%; overflow-x: auto; }
-#timings tbody tr:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
-#timings tr.today { font-weight: 600; background: color-mix(in srgb, var(--clear) 14%, transparent); }
-#timings tr.today td:first-child { box-shadow: inset 3px 0 var(--clear); }
+/* Dial */
+.dial { position: relative; width: 100%; max-width: 26rem; margin-inline: auto; }
+.dial svg { display: block; width: 100%; height: auto; }
+.d-ring { fill: none; stroke: var(--line); stroke-width: 10; }
+.d-day { fill: none; stroke: var(--muted); stroke-width: 10; opacity: .45; }
+.d-iqama { fill: none; stroke: var(--clear); stroke-width: 10; }
+.d-tick { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.dial text { fill: var(--muted); font: 500 13px var(--body); text-anchor: middle; dominant-baseline: middle; }
+.d-hand { fill: var(--risk); stroke: var(--paper); stroke-width: 3; }
+.dial-center { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: .15rem; text-align: center; pointer-events: none; }
+.dial-center p { color: var(--muted); font-size: clamp(.85rem, 2.4vw, 1rem); }
+.dial-center .countdown { color: var(--ink); font: 700 clamp(1.9rem, 7.5vw, 3.1rem)/1 var(--display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+
+/* Tables */
+.iqama table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.iqama th, .iqama td { padding: .7rem .75rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.iqama thead th { font-size: .88rem; font-weight: 500; color: var(--muted); }
+.iqama tbody th { font-weight: 500; }
+#today td { font: 600 clamp(1.1rem, 2.2vw, 1.4rem)/1.2 var(--display); }
+#today tbody th { font: 600 clamp(1.1rem, 2.2vw, 1.4rem)/1.2 var(--display); }
+#today tr.minor th, #today tr.minor td { font: 400 .95rem/1.3 var(--body); color: var(--muted); padding-block: .45rem; }
+#today tr.friday th, #today tr.friday td { color: var(--ink); font-weight: 600; }
+#today tr.next { background: color-mix(in srgb, var(--clear) 14%, transparent); }
+#today tr.next th { box-shadow: inset 3px 0 var(--clear); }
+.iq-note { margin-top: .75rem; font-size: .9rem; color: var(--muted); max-width: 60ch; }
+.table-scroll { width: 100%; overflow-x: auto; margin-top: .75rem; }
+#month tr.today { font-weight: 600; background: color-mix(in srgb, var(--clear) 14%, transparent); }
+#month tr.today th { box-shadow: inset 3px 0 var(--clear); }
+
+/* Actions and panels */
+.iq-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.btn[aria-pressed="true"] { background: var(--clear); border-color: var(--clear); color: var(--paper); }
+.iq-status { min-height: 1.5em; font-size: .95rem; color: var(--clear); }
+.iq-panel { border-top: 1px solid var(--line); padding-block: 1rem; }
+.iq-panel summary { cursor: pointer; font: 600 1.2rem/1.3 var(--display); }
+.iq-panel summary:hover { color: var(--clear); }
+.iq-rule, .iq-fields { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-top: .9rem; }
+.iq-rule label { width: 5.5rem; font-weight: 500; }
+.iqama select, .iqama input {
+  padding: .5rem .6rem; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--surface); color: var(--ink); font: inherit; max-width: 100%;
+}
+.iqama input[type="number"] { width: 6rem; }
+#iqama-reset { margin-top: 1.1rem; }
+.iq-credits { display: grid; gap: .3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--muted); }
 
 @media (prefers-reduced-motion: no-preference) {
-  #today-timings td { animation: fade .6s var(--ease) both; }
-  #today-timings td:nth-child(2) { animation-delay: .08s; }
-  #today-timings td:nth-child(3) { animation-delay: .16s; }
-  #today-timings td:nth-child(4) { animation-delay: .24s; }
-  #today-timings td:nth-child(5) { animation-delay: .32s; }
+  .dial { animation: fade .8s var(--ease) both; }
+  .d-iqama { animation: draw 1.2s var(--ease) both .3s; }
+  #today tr.next { transition: background .4s; }
 }
+@keyframes draw { from { opacity: 0; stroke-width: 2; } }
 
-/* Phones: today's five times stack as label and time rows */
-@media (max-width: 40rem) {
-  #today-timings thead { display: none; }
-  #today-timings tr { display: grid; }
-  #today-timings td { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: .85rem 1rem; border-bottom: 1px solid var(--line); font-size: 1.25rem; }
-  #today-timings td:last-child { border-bottom: 0; }
-  #today-timings td::before { font: 500 .95rem/1.2 var(--body); color: var(--muted); }
-  #today-timings td:nth-child(1)::before { content: "Fajr"; }
-  #today-timings td:nth-child(2)::before { content: "Dhuhr"; }
-  #today-timings td:nth-child(3)::before { content: "Asr"; }
-  #today-timings td:nth-child(4)::before { content: "Maghrib"; }
-  #today-timings td:nth-child(5)::before { content: "Isha"; }
-  #today-timings td[colspan]::before { content: none; }
+@media (max-width: 48rem) {
+  .iq-main { grid-template-columns: 1fr; }
+  .iq-place { display: block; margin: .3rem 0 0; }
 }

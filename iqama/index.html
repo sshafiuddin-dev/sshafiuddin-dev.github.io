@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iqama Times</title>
-    <meta name="description" content="Prayer and iqama times with a live countdown, adhan and reminders. ISCJ iqama times near the masjid, your own times anywhere else.">
+    <meta name="description" content="Prayer and iqama times with a live clock, adhan and alerts for each prayer, and local weather. ISCJ iqama times near the masjid, your own times anywhere else.">
     <meta name="theme-color" content="#0B2A33">
-    <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+    <!-- apply the saved theme and clock style before first paint -->
+    <script>try{var s=JSON.parse(localStorage.getItem('iqama-settings')||'{}'),d=document.documentElement,m=s.mode||'auto';d.dataset.palette=s.palette||'petrol';d.dataset.clock=s.clock||'board';d.dataset.theme=s.palette==='night'?'dark':m==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):m}catch(e){}</script>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="../favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -28,8 +29,8 @@
                 <p class="iq-date"><span id="date"></span> <span class="iq-place"><span id="place"></span> <button class="link-btn" type="button" id="change-place">Change</button></span></p>
             </div>
             <div class="iq-now">
-                <p class="iq-clock" id="now"></p>
-                <p class="iq-weather" id="weather"></p>
+                <p class="iq-time" id="now"></p>
+                <button class="link-btn iq-weather" type="button" id="weather" hidden></button>
             </div>
         </header>
 
@@ -43,14 +44,7 @@
         </section>
 
         <div class="iq-main">
-            <div class="dial">
-                <svg id="dial" viewBox="0 0 360 360" aria-hidden="true"></svg>
-                <div class="dial-center" role="timer">
-                    <p id="next-label">Next prayer in</p>
-                    <p class="countdown" id="countdown">&nbsp;</p>
-                    <p id="next-at">&nbsp;</p>
-                </div>
-            </div>
+            <div class="ck-area" id="clock" role="timer"></div>
             <div class="iq-today">
                 <table id="today">
                     <thead><tr><th scope="col">Prayer</th><th scope="col">Adhan</th><th scope="col">Iqama</th></tr></thead>
@@ -64,33 +58,40 @@
             <button class="btn btn-small" type="button" id="share-day">Share today</button>
             <button class="btn btn-small" type="button" id="share-month">Share this month</button>
             <button class="btn btn-small" type="button" id="share-app">Share the app</button>
-            <button class="btn btn-small" type="button" id="sound" aria-pressed="false">Adhan sound: off</button>
+            <button class="btn btn-small" type="button" id="alerts-toggle" aria-pressed="true">Alerts: on</button>
             <button class="btn btn-small btn-primary" type="button" id="install" hidden>Install app</button>
         </div>
         <p class="iq-status" id="status" role="status"></p>
 
+        <details class="iq-panel" id="weather-panel">
+            <summary>Weather</summary>
+            <div class="wx-units" role="group" aria-label="Temperature unit">
+                <button class="btn btn-small" type="button" data-unit="F" aria-pressed="false">°F</button>
+                <button class="btn btn-small" type="button" data-unit="C" aria-pressed="false">°C</button>
+            </div>
+            <div id="wx-body"></div>
+            <p class="iq-note" id="wx-updated"></p>
+        </details>
+
         <details class="iq-panel" id="sound-panel">
-            <summary>Adhan and reminders</summary>
-            <p class="iq-note">Sounds and reminders work while this page or the installed app is open. Browsers need one tap on the page before they play sound.</p>
+            <summary>Adhan and alerts</summary>
+            <p class="iq-note">Alerts work while this page or the installed app is open. Browsers need one tap on the page before they play sound.</p>
             <div class="iq-fields">
-                <label for="adhan">Adhan</label>
+                <label for="adhan">Adhan recording</label>
                 <select id="adhan"></select>
-                <button class="btn btn-small" type="button" data-try="adhan">Play</button>
             </div>
             <div class="iq-fields">
                 <label for="fajr-adhan">Fajr adhan</label>
                 <select id="fajr-adhan"></select>
-                <button class="btn btn-small" type="button" data-try="fajr-adhan">Play</button>
             </div>
-            <fieldset class="iq-reminders">
-                <legend>Reminders</legend>
-                <div id="reminders"></div>
-            </fieldset>
             <div class="iq-fields">
-                <label for="chime">Reminder sound</label>
-                <select id="chime"></select>
-                <button class="btn btn-small" type="button" data-try="chime">Play</button>
+                <span class="iq-label">Hear</span>
+                <button class="btn btn-small" type="button" data-try="adhan">Adhan</button>
+                <button class="btn btn-small" type="button" data-try="fajr-adhan">Fajr adhan</button>
+                <button class="btn btn-small" type="button" data-try="beep">Soft beep</button>
+                <button class="btn btn-small" type="button" data-try="bismillah">Bismillah</button>
             </div>
+            <div class="al-grid" id="alert-cards"></div>
         </details>
 
         <details class="iq-panel" id="iqama-panel">
@@ -120,6 +121,21 @@
             </div>
         </details>
 
+        <details class="iq-panel" id="display-panel">
+            <summary>Clock style and theme</summary>
+            <div class="iq-fields">
+                <label for="clock-style">Clock style</label>
+                <select id="clock-style"></select>
+            </div>
+            <div class="iq-fields">
+                <label for="palette">Theme</label>
+                <select id="palette"></select>
+                <label for="mode">Light or dark</label>
+                <select id="mode"><option value="auto">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select>
+            </div>
+            <p class="iq-note" id="mode-note"></p>
+        </details>
+
         <details class="iq-panel" id="month-panel">
             <summary>This month</summary>
             <p class="iq-note">Adhan times for the month. Iqama times are shown for today only.</p>
@@ -133,7 +149,7 @@
 
         <footer class="iq-credits">
             <p>Iqama times near ISCJ come from <a href="https://iscj.org/#prayer-times">iscj.org</a>. Check with the masjid before relying on them.</p>
-            <p>Prayer times calculated with <a href="http://praytimes.org/">PrayTimes.org</a>. Calculator and recordings from the open-source <a href="https://github.com/adhanclock/PWA">Adhan Clock</a>. Weather and place search by <a href="https://open-meteo.com/">Open-Meteo</a>.</p>
+            <p>Prayer times calculated with <a href="http://praytimes.org/">PrayTimes.org</a>. Calculator and recordings from the open-source <a href="https://github.com/adhanclock/PWA">Adhan Clock</a>. Weather, air quality and place search by <a href="https://open-meteo.com/">Open-Meteo</a>.</p>
         </footer>
     </main>
     <script type="module" src="app.js"></script>

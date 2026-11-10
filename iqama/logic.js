@@ -42,19 +42,28 @@ export function km(a, b) {
   return 12742 * Math.asin(Math.sqrt(h));
 }
 
-// Adhan and reminder moments that fall in (fromSec, toSec]; anything over 90 s late is dropped.
-// rem holds minutes for 'before' (adhan), 'after' (adhan) and 'iqama' (before iqama); missing means off.
-export function alertsBetween(rows, rem, fromSec, toSec) {
+// Alert moments that fall in (fromSec, toSec]; anything over 90 s late is dropped.
+// cfg[key] = { on, adhan: type, before: { type, min }, iqama: { type, min } }; type 'off' or a missing part is silent.
+export function alertsBetween(rows, cfg, fromSec, toSec) {
   const out = [];
-  const add = (min, kind, key) => { const s = min * 60; if (fromSec < s && s <= toSec && toSec - s < 90) out.push({ kind, key }); };
+  const add = (min, kind, key, type, mins) => {
+    const s = min * 60;
+    if (type && type !== 'off' && fromSec < s && s <= toSec && toSec - s < 90) out.push({ kind, key, type, min: mins });
+  };
   for (const r of rows) {
-    add(r.adhan, 'adhan', r.key);
-    if (rem.before) add(r.adhan - rem.before, 'before', r.key);
-    if (rem.after) add(r.adhan + rem.after, 'after', r.key);
-    if (rem.iqama && r.iqama != null) add(r.iqama - rem.iqama, 'iqama', r.key);
+    const c = cfg[r.key];
+    if (!c || !c.on) continue;
+    add(r.adhan, 'adhan', r.key, c.adhan);
+    if (c.before) add(r.adhan - c.before.min, 'before', r.key, c.before.type, c.before.min);
+    if (c.iqama && r.iqama != null) add(r.iqama - c.iqama.min, 'iqama', r.key, c.iqama.type, c.iqama.min);
   }
   return out;
 }
+
+export const uvLevel = (u) => u < 3 ? 'low' : u < 6 ? 'moderate' : u < 8 ? 'high' : u < 11 ? 'very high' : 'extreme';
+export const aqiLevel = (a) => a <= 50 ? 'good' : a <= 100 ? 'moderate' : a <= 150 ? 'unhealthy for sensitive groups' : a <= 200 ? 'unhealthy' : a <= 300 ? 'very unhealthy' : 'hazardous';
+const POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+export const compass = (deg) => POINTS[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16];
 
 // Open-Meteo weather code (WMO) to a backdrop kind and a label.
 const WEATHER = [

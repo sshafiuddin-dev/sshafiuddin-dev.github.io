@@ -1,20 +1,28 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind } from './logic.js';
-import { setSky } from './sky.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween } from './logic.js';
+import { setSky, redrawSky } from './sky.js';
+import { CLOCKS, renderClock } from './clocks.js';
+import { fetchWeather, weatherHtml } from './weather.js';
 
 const $ = (id) => document.getElementById(id);
+const root = document.documentElement;
 const validZone = (z) => { if (typeof z !== 'string') return false; try { new Intl.DateTimeFormat('en-US', { timeZone: z }); return true; } catch (e) { return false; } };
 const DEVICE_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 const ISCJ = { lat: 40.384, lng: -74.563, zone: 'America/New_York', name: 'ISCJ, Monmouth Junction NJ' };
 const NEAR_KM = 40;
 const ADHANS = { makkah: 'Makkah (3:44)', egypt: 'Egyptian style (3:25)', aqsa: 'Masjid Al-Aqsa (4:07)', ottoman: 'Ottoman style, Shaykh Nazim (2:38)', afasy: 'Mishary Al-Afasy (4:17)' };
 const FAJR_ADHANS = { 'fajr-zahrani': 'Mansoor Az-Zahrani (3:26)', 'fajr-afasy': 'Mishary Al-Afasy (3:24)' };
-const CHIMES = { beep: 'Soft beep', bismillah: 'Bismillah, spoken', none: 'No sound, message only' };
-const REMINDERS = [['before', 'Before adhan', 10], ['after', 'After adhan', 15], ['iqama', 'Before iqama', 5]];
-const DEFAULTS = { method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, sound: false, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', reminders: {}, chime: 'beep' };
+const ALERT_TYPES = { adhan: 'Adhan recording', beep: 'Soft beep', bismillah: 'Bismillah, spoken', message: 'Message only', off: 'Off' };
+const SHORT_TYPES = ['beep', 'bismillah', 'message', 'off'];
+const ALERT_KEYS = [...PRAYERS, 'jumuah'];
+const PALETTES = { petrol: 'Petrol', green: 'Masjid green', dusk: 'Dusk', night: 'Night', contrast: 'High contrast' };
+const MODES = ['auto', 'light', 'dark'];
+const DEFAULTS = {
+  method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
+  clock: 'board', palette: 'petrol', mode: 'auto', units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
+};
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const FAHRENHEIT = /-US$/i.test(navigator.language || '');
 
 // Settings stay on this device; anything malformed falls back to the defaults
 let settings = { ...DEFAULTS };
@@ -28,11 +36,48 @@ settings.place = p && typeof p === 'object' && Number.isFinite(p.lat) && Number.
 if (settings.place) settings.asked = true;
 if (!ADHANS[settings.adhan]) settings.adhan = DEFAULTS.adhan;
 if (!FAJR_ADHANS[settings.fajrAdhan]) settings.fajrAdhan = DEFAULTS.fajrAdhan;
-if (!CHIMES[settings.chime]) settings.chime = DEFAULTS.chime;
-const savedRem = settings.reminders && typeof settings.reminders === 'object' ? settings.reminders : {};
-settings.reminders = {};
-for (const [k] of REMINDERS) if (Number.isInteger(savedRem[k]) && savedRem[k] >= 1 && savedRem[k] <= 60) settings.reminders[k] = savedRem[k];
+if (!CLOCKS[settings.clock]) settings.clock = DEFAULTS.clock;
+if (!PALETTES[settings.palette]) settings.palette = DEFAULTS.palette;
+if (!MODES.includes(settings.mode)) settings.mode = DEFAULTS.mode;
+if (settings.units !== 'F' && settings.units !== 'C') settings.units = DEFAULTS.units;
+settings.muted = settings.muted === true;
+
+// Alerts for each prayer and for Jumu'ah
+const blankAlert = (key) => key === 'jumuah'
+  ? { on: false, before: { type: 'message', min: 15 }, time: null }
+  : { on: true, adhan: 'message', before: { type: 'off', min: 10 }, iqama: { type: 'off', min: 5 } };
+function cleanAlert(key, a) {
+  const d = blankAlert(key);
+  if (!a || typeof a !== 'object') return d;
+  const step = (s, def) => (s && SHORT_TYPES.includes(s.type) && Number.isInteger(s.min) && s.min >= 1 && s.min <= 60 ? { type: s.type, min: s.min } : def);
+  if (key === 'jumuah') return { on: a.on === true, before: step(a.before, d.before), time: parseHM(a.time) != null ? a.time : null };
+  return { on: a.on !== false, adhan: ALERT_TYPES[a.adhan] ? a.adhan : d.adhan, before: step(a.before, d.before), iqama: step(a.iqama, d.iqama) };
+}
+if (!settings.alerts || typeof settings.alerts !== 'object') {
+  // carry the earlier single set of reminders over to every prayer
+  const old = settings.reminders && typeof settings.reminders === 'object' ? settings.reminders : {};
+  const t = SHORT_TYPES.includes(settings.chime) ? settings.chime : settings.chime === 'none' ? 'message' : 'beep';
+  settings.alerts = Object.fromEntries(PRAYERS.map(k => [k, {
+    on: true, adhan: settings.sound ? 'adhan' : 'message',
+    before: { type: old.before ? t : 'off', min: old.before || 10 }, iqama: { type: old.iqama ? t : 'off', min: old.iqama || 5 },
+  }]));
+}
+settings.alerts = Object.fromEntries(ALERT_KEYS.map(k => [k, cleanAlert(k, settings.alerts[k])]));
+delete settings.sound; delete settings.reminders; delete settings.chime;
 const save = () => { try { localStorage.setItem('iqama-settings', JSON.stringify(settings)); } catch (e) {} };
+
+// Theme and clock style
+const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+function applyLook() {
+  root.dataset.palette = settings.palette;
+  root.dataset.theme = settings.palette === 'night' ? 'dark' : settings.mode === 'auto' ? (darkMQ.matches ? 'dark' : 'light') : settings.mode;
+  root.dataset.clock = settings.clock;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = getComputedStyle(root).getPropertyValue('--paper').trim() || '#0B2A33';
+  redrawSky();
+}
+darkMQ.addEventListener?.('change', applyLook);
+applyLook();
 
 let masjid = { iqama: {}, jumuah: [], updated: '', failed: false };
 const place = () => settings.place || ISCJ;
@@ -72,17 +117,20 @@ function dayTimes(y, m, d) {
   };
 }
 
-let today = null, day = null, tomorrowFajr = 0, lastSec = null, weather = null;
+let today = null, day = null, tomorrow = null, lastSec = null, weather = null;
 
 function loadDay(c) {
   today = c;
   day = dayTimes(c.y, c.m, c.d);
   const n = new Date(Date.UTC(c.y, c.m - 1, c.d + 1));
-  tomorrowFajr = dayTimes(n.getUTCFullYear(), n.getUTCMonth() + 1, n.getUTCDate()).rows[0].adhan;
+  tomorrow = dayTimes(n.getUTCFullYear(), n.getUTCMonth() + 1, n.getUTCDate());
+  today.long = new Intl.DateTimeFormat('en-US', { timeZone: place().zone, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
   renderDay();
+  renderWeather();
 }
 
-const jumuah = () => near() ? masjid.jumuah.map(parseHM).filter(v => v != null).map(fmt).join(', ') : '';
+const jumuahMins = () => (near() ? masjid.jumuah.map(parseHM).filter(v => v != null) : []);
+const jumuah = () => jumuahMins().map(fmt).join(', ');
 
 function renderDay() {
   $('date').textContent = `${today.weekday}, ${MONTHS[today.m - 1]} ${today.d}`;
@@ -105,41 +153,26 @@ function renderDay() {
       : masjid.failed ? `Could not load ISCJ iqama times. Set your own below.${mine}`
       : `Iqama times from ISCJ${uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
 
-  drawDial();
+  jumuahNote();
   if ($('month-panel').open) renderMonth();
   tick();
 }
 
-// 24-hour dial: midnight at the bottom, noon at the top
-const C = 180, R = 122;
-const at = (min, r = R) => { const a = min / 1440 * 2 * Math.PI; return [(C - r * Math.sin(a)).toFixed(1), (C + r * Math.cos(a)).toFixed(1)]; };
-const arc = (a, b) => `M${at(a)} A${R} ${R} 0 ${b - a > 720 ? 1 : 0} 1 ${at(b)}`;
-function drawDial() {
-  let svg = `<circle class="d-ring" cx="${C}" cy="${C}" r="${R}"/><path class="d-day" d="${arc(day.sunrise, day.rows[3].adhan)}"/>`;
-  for (const r of day.rows) {
-    if (r.iqama > r.adhan) svg += `<path class="d-iqama" d="${arc(r.adhan, r.iqama)}"/>`;
-    const [x1, y1] = at(r.adhan, R - 11), [x2, y2] = at(r.adhan, R + 11), [tx, ty] = at(r.adhan, R + 32);
-    svg += `<line class="d-tick" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><text x="${tx}" y="${ty}">${NAMES[r.key]}</text>`;
-  }
-  $('dial').innerHTML = svg + '<circle id="hand" class="d-hand" r="8"/>';
-}
+// Friday khutbah for the Jumu'ah alert: the visitor's own time, else ISCJ's first khutbah nearby
+const khutbah = () => parseHM(settings.alerts.jumuah.time) ?? jumuahMins()[0] ?? null;
+const alertRows = () => (today.weekday === 'Fri' && khutbah() != null ? [...day.rows, { key: 'jumuah', adhan: khutbah(), iqama: null }] : day.rows);
 
 function tick() {
   const c = clock(new Date(), place().zone);
   if (!today || c.d !== today.d) return loadDay(c);
-  const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrowFajr, nowMin);
-  $('next-label').textContent = `${NAMES[ev.key]} ${ev.kind} in`;
-  $('countdown').textContent = fmtSpan(ev.at * 60 - c.sec);
-  $('next-at').textContent = `at ${fmt(ev.at)}${ev.at >= 1440 ? ' tomorrow' : ''}`;
+  const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrow.rows[0].adhan, nowMin);
   $('now').textContent = fmt(Math.floor(nowMin));
+  $('clock').innerHTML = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
   for (const tr of $('today').tBodies[0].rows) tr.classList.toggle('next', tr.dataset.k === ev.key);
-  const [hx, hy] = at(nowMin);
-  $('hand').setAttribute('cx', hx);
-  $('hand').setAttribute('cy', hy);
   setSky(weather ? weather.kind : 'plain', nowMin >= day.sunrise && nowMin < day.rows[3].adhan);
 
-  // Adhan and reminders: only for moments crossed while the page is open
-  if (lastSec != null && c.sec > lastSec) for (const a of alertsBetween(day.rows, settings.reminders, lastSec, c.sec)) fire(a);
+  // Alerts: only for moments crossed while the page is open
+  if (lastSec != null && c.sec > lastSec) for (const a of alertsBetween(alertRows(), settings.alerts, lastSec, c.sec)) fire(a);
   lastSec = c.sec;
 }
 
@@ -178,14 +211,14 @@ $('share-month').addEventListener('click', () => share('Iqama Times', [
   'Day: Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha',
   ...monthRows().map(r => `${r.weekday} ${r.d}: ${r.times.map(fmt).join(', ')}`),
 ].join('\n')));
-$('share-app').addEventListener('click', () => share('Iqama Times', 'Prayer and iqama times with a live countdown.'));
+$('share-app').addEventListener('click', () => share('Iqama Times', 'Prayer and iqama times with a live clock, alerts and weather.'));
 
-// Sound: one player for adhan, reminders and previews
+// Sound: one player for the adhan, alert sounds and previews
 let audio = null;
 const playing = () => !!audio && !audio.paused && !audio.ended;
 function syncSound() {
-  $('sound').textContent = playing() ? 'Stop sound' : `Adhan sound: ${settings.sound ? 'on' : 'off'}`;
-  $('sound').setAttribute('aria-pressed', settings.sound);
+  $('alerts-toggle').textContent = playing() ? 'Stop sound' : `Alerts: ${settings.muted ? 'off' : 'on'}`;
+  $('alerts-toggle').setAttribute('aria-pressed', !settings.muted);
 }
 function play(file) {
   if (audio) audio.pause();
@@ -198,47 +231,67 @@ function play(file) {
     document.addEventListener('pointerdown', () => audio.play().then(syncSound, () => {}), { once: true });
   });
 }
-$('sound').addEventListener('click', () => {
+$('alerts-toggle').addEventListener('click', () => {
   if (playing()) return audio.pause();
-  settings.sound = !settings.sound;
+  settings.muted = !settings.muted;
   save();
   syncSound();
-  if (settings.sound) $('sound-panel').open = true;
-  say(settings.sound ? 'The adhan will play at each prayer time while this page is open. Pick the recording under Adhan and reminders.' : 'Adhan sound is off.');
+  say(settings.muted ? 'All alerts are off. Your settings for each prayer are kept.' : 'Alerts are on. Set them for each prayer under Adhan and alerts.');
 });
 
-const options = (map) => Object.entries(map).map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
-for (const [id, key, map] of [['adhan', 'adhan', ADHANS], ['fajr-adhan', 'fajrAdhan', FAJR_ADHANS], ['chime', 'chime', CHIMES]]) {
-  $(id).innerHTML = options(map);
-  $(id).value = settings[key];
-  $(id).addEventListener('change', () => { settings[key] = $(id).value; save(); });
-}
+const fillSelect = (id, map, value) => { $(id).innerHTML = Object.entries(map).map(([k, v]) => `<option value="${k}">${v}</option>`).join(''); $(id).value = value; };
+fillSelect('adhan', ADHANS, settings.adhan);
+fillSelect('fajr-adhan', FAJR_ADHANS, settings.fajrAdhan);
+$('adhan').addEventListener('change', () => { settings.adhan = $('adhan').value; save(); });
+$('fajr-adhan').addEventListener('change', () => { settings.fajrAdhan = $('fajr-adhan').value; save(); });
 document.querySelectorAll('[data-try]').forEach(b => b.addEventListener('click', () => {
   if (playing()) return audio.pause();
-  const file = $(b.dataset.try).value;
-  if (file === 'none') return say('Reminders will show a message without sound.');
-  play(file);
+  const t = b.dataset.try;
+  play(t === 'adhan' ? settings.adhan : t === 'fajr-adhan' ? settings.fajrAdhan : t);
 }));
 
-// Reminders
-$('reminders').innerHTML = REMINDERS.map(([k, label, n]) => `
-  <div class="iq-rem">
-    <input type="checkbox" id="rem-${k}" data-k="${k}">
-    <label for="rem-${k}">${label}</label>
-    <input type="number" id="rem-${k}-min" data-k="${k}" min="1" max="60" step="1" inputmode="numeric" value="${settings.reminders[k] || n}" aria-label="${label}, minutes">
-    <span>minutes</span>
-  </div>`).join('');
-for (const [k] of REMINDERS) $(`rem-${k}`).checked = !!settings.reminders[k];
-$('reminders').addEventListener('change', (e) => {
+// Alert cards, one per prayer plus Jumu'ah
+const typeOptions = (types, sel) => types.map(t => `<option value="${t}"${t === sel ? ' selected' : ''}>${ALERT_TYPES[t]}</option>`).join('');
+function alertCard(k) {
+  const a = settings.alerts[k], id = (part) => `al-${k}-${part}`, name = k === 'jumuah' ? 'Jumu’ah' : NAMES[k];
+  const step = (part, label) => `<div class="al-row"><label for="${id(`${part}-type`)}">${label}</label><select id="${id(`${part}-type`)}" data-k="${k}">${typeOptions(SHORT_TYPES, a[part].type)}</select>`
+    + `<span class="al-min"><input type="number" id="${id(`${part}-min`)}" data-k="${k}" min="1" max="60" step="1" inputmode="numeric" value="${a[part].min}" aria-label="${name}, ${label.toLowerCase()}, minutes"><span>min</span></span></div>`;
+  const body = k === 'jumuah'
+    ? `${step('before', 'Before khutbah')}<div class="al-row"><label for="${id('time')}">Khutbah time</label><input type="time" id="${id('time')}" data-k="${k}" value="${a.time ? a.time.padStart(5, '0') : ''}"></div><p class="al-note" id="al-jumuah-note"></p>`
+    : `<div class="al-row"><label for="${id('adhan')}">At adhan</label><select id="${id('adhan')}" data-k="${k}">${typeOptions(Object.keys(ALERT_TYPES), a.adhan)}</select></div>`
+      + `${step('before', 'Before adhan')}${step('iqama', 'Before iqama')}<button class="link-btn al-copy" type="button" data-copy="${k}">Use for all prayers</button>`;
+  return `<fieldset class="al-card" id="${id('card')}"${a.on ? '' : ' disabled'}><legend><input type="checkbox" id="${id('on')}" data-k="${k}"${a.on ? ' checked' : ''}><label for="${id('on')}">${name}</label></legend>${body}</fieldset>`;
+}
+function buildAlerts() { $('alert-cards').innerHTML = ALERT_KEYS.map(alertCard).join(''); jumuahNote(); }
+function jumuahNote() {
+  const el = $('al-jumuah-note');
+  if (!el) return;
+  const own = parseHM(settings.alerts.jumuah.time), first = jumuahMins()[0];
+  el.textContent = own != null ? `Fridays, before your khutbah time of ${fmt(own)}.`
+    : first != null ? `Uses ISCJ’s first khutbah, ${fmt(first)}, unless you set a time.` : 'Set your khutbah time to get this alert.';
+}
+$('alert-cards').addEventListener('change', (e) => {
   const k = e.target.dataset.k;
   if (!k) return;
-  const n = Math.round(+$(`rem-${k}-min`).value);
-  if ($(`rem-${k}`).checked) {
-    if (!(n >= 1 && n <= 60)) return say('Reminder minutes must be between 1 and 60.');
-    settings.reminders[k] = n;
-    try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (err) {}
-  } else delete settings.reminders[k];
+  const v = (part) => $(`al-${k}-${part}`), a = settings.alerts[k];
+  const mins = (part, old) => { const n = Math.round(+v(part).value); if (n >= 1 && n <= 60) return n; say('Alert minutes must be between 1 and 60.'); v(part).value = old; return old; };
+  a.on = v('on').checked;
+  v('card').disabled = !a.on;
+  a.before = { type: v('before-type').value, min: mins('before-min', a.before.min) };
+  if (k === 'jumuah') a.time = parseHM(v('time').value) != null ? v('time').value : null;
+  else { a.adhan = v('adhan').value; a.iqama = { type: v('iqama-type').value, min: mins('iqama-min', a.iqama.min) }; }
+  settings.alerts[k] = cleanAlert(k, a);
   save();
+  jumuahNote();
+  try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (err) {}
+});
+$('alert-cards').addEventListener('click', (e) => {
+  const k = e.target.dataset.copy;
+  if (!k) return;
+  for (const other of PRAYERS) if (other !== k) settings.alerts[other] = cleanAlert(other, JSON.parse(JSON.stringify(settings.alerts[k])));
+  save();
+  buildAlerts();
+  say(`All five prayers now use the ${NAMES[k]} alerts.`);
 });
 
 function notify(text) {
@@ -247,16 +300,16 @@ function notify(text) {
 }
 const MESSAGES = {
   adhan: (n) => `Time for ${n}.`,
-  before: (n, m) => `${n} adhan in ${m} minutes.`,
-  after: (n, m) => `${n} adhan was ${m} minutes ago.`,
+  before: (n, m, k) => `${n} ${k === 'jumuah' ? 'khutbah' : 'adhan'} in ${m} minutes.`,
   iqama: (n, m) => `${n} iqama in ${m} minutes.`,
 };
-function fire({ kind, key }) {
-  const text = MESSAGES[kind](NAMES[key], settings.reminders[kind]);
+function fire({ kind, key, type, min }) {
+  if (settings.muted) return;
+  const text = MESSAGES[kind](key === 'jumuah' ? 'Jumu’ah' : NAMES[key], min, key);
   say(text);
   if (document.hidden) notify(text);
-  if (kind === 'adhan') { if (settings.sound) play(key === 'fajr' ? settings.fajrAdhan : settings.adhan); }
-  else if (settings.chime !== 'none' && !playing()) play(settings.chime);
+  if (type === 'adhan') play(key === 'fajr' ? settings.fajrAdhan : settings.adhan);
+  else if ((type === 'beep' || type === 'bismillah') && !playing()) play(type);
 }
 
 // Your own iqama times; the first choice is ISCJ near the masjid and "Not set" elsewhere
@@ -309,8 +362,8 @@ $('iqama-form').addEventListener('change', (e) => {
 });
 
 // Location
-function setPlace(p) {
-  settings.place = p;
+function setPlace(pl) {
+  settings.place = pl;
   settings.asked = true;
   save();
   $('ask').hidden = true;
@@ -369,28 +422,51 @@ $('search-form').addEventListener('submit', async (e) => {
 });
 
 // Calculation method
-$('method').innerHTML = Object.entries(CalculationMethods).map(([id, m]) => `<option value="${id}">${m.name}</option>`).join('');
-$('method').value = settings.method;
+fillSelect('method', Object.fromEntries(Object.entries(CalculationMethods).map(([id, m]) => [id, m.name])), settings.method);
 $('asr').value = settings.asr === 'Hanafi' ? 'Hanafi' : 'Standard';
 const recalc = () => { save(); today = null; tick(); };
 $('method').addEventListener('change', () => { settings.method = $('method').value; recalc(); });
 $('asr').addEventListener('change', () => { settings.asr = $('asr').value; recalc(); });
 
-// Weather for the backdrop; the page works the same without it
+// Clock style and theme
+fillSelect('clock-style', CLOCKS, settings.clock);
+fillSelect('palette', PALETTES, settings.palette);
+$('mode').value = settings.mode;
+function syncMode() {
+  $('mode').disabled = settings.palette === 'night';
+  $('mode-note').textContent = settings.palette === 'night' ? 'Night is always dark, for low glare.' : '';
+}
+$('clock-style').addEventListener('change', () => { settings.clock = $('clock-style').value; save(); applyLook(); tick(); });
+$('palette').addEventListener('change', () => { settings.palette = $('palette').value; save(); applyLook(); syncMode(); });
+$('mode').addEventListener('change', () => { settings.mode = $('mode').value; save(); applyLook(); });
+
+// Weather, for the header, the backdrop and the Weather panel; the page works the same without it
 async function loadWeather() {
   const { lat, lng } = place();
-  try {
-    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&temperature_unit=${FAHRENHEIT ? 'fahrenheit' : 'celsius'}`);
-    if (!r.ok) throw new Error(r.status);
-    const c = (await r.json()).current;
-    if (!Number.isFinite(c.temperature_2m)) throw new Error('no reading');
-    weather = { temp: Math.round(c.temperature_2m), ...weatherKind(c.weather_code) };
-  } catch (e) {
-    weather = null;
-  }
-  $('weather').textContent = weather ? `${weather.temp}°${FAHRENHEIT ? 'F' : 'C'}${weather.label ? `, ${weather.label.toLowerCase()}` : ''}` : '';
+  try { weather = await fetchWeather(lat, lng, settings.units); } catch (e) { weather = null; }
+  renderWeather();
   tick();
 }
+function prayerMarks() {
+  if (!day) return [];
+  const nowMin = clock(new Date(), place().zone).sec / 60;
+  return day.rows.map((r, i) => (r.adhan >= nowMin ? { name: NAMES[r.key], min: r.adhan, today: true } : { name: NAMES[r.key], min: tomorrow.rows[i].adhan, today: false }));
+}
+function renderWeather() {
+  const u = settings.units, w = weather;
+  $('weather').hidden = !w;
+  $('weather').textContent = w ? `${Math.round(w.temp)}°${u}${w.label ? `, ${w.label.toLowerCase()}` : ''}` : '';
+  $('wx-body').innerHTML = w ? weatherHtml(w, u, prayerMarks()) : '<p class="iq-note">Weather is not available right now. The page tries again every 30 minutes.</p>';
+  $('wx-updated').textContent = w && w.at != null ? `Updated ${fmt(w.at)} local time. Weather and air quality from Open-Meteo.` : '';
+  document.querySelectorAll('[data-unit]').forEach(b => b.setAttribute('aria-pressed', b.dataset.unit === u));
+}
+$('weather').addEventListener('click', () => { $('weather-panel').open = true; $('weather-panel').scrollIntoView({ block: 'start' }); });
+document.querySelectorAll('[data-unit]').forEach(b => b.addEventListener('click', () => {
+  if (settings.units === b.dataset.unit) return;
+  settings.units = b.dataset.unit;
+  save();
+  loadWeather();
+}));
 
 // Install and offline
 let installEvent = null;
@@ -399,8 +475,11 @@ $('install').addEventListener('click', async () => { installEvent.prompt(); awai
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 // Start with calculated times at once, then fill in ISCJ's iqama times and the weather when they arrive
+save();
 buildForm();
+buildAlerts();
 syncSound();
+syncMode();
 tick();
 setInterval(tick, 1000);
 loadWeather();

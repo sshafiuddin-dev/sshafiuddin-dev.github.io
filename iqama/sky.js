@@ -29,9 +29,13 @@ size();
 // Particle colours are "r,g,b,a" tokens in styles.css so both themes stay readable
 const rgba = (name, k = 1) => { const [r, g, b, a] = colors[name] || [0, 0, 0, 0]; return `rgba(${r},${g},${b},${a * k})`; };
 
+// After a theme change: re-read the colour tokens and redraw (also restarts a layer that was hidden)
+export function redrawSky() { frames = 0; draw(); }
+
 function draw() {
   cancelAnimationFrame(raf);
   raf = 0;
+  if (!canvas.getClientRects().length) return; // hidden by the theme, so no drawing at all
   if (frames++ % 60 === 0) for (const n of ['rain', 'flake', 'cloud', 'star', 'sun']) colors[n] = getComputedStyle(root).getPropertyValue(`--sky-${n}`).split(',').map(Number);
   const d = devicePixelRatio || 1, W = innerWidth, H = innerHeight;
   ctx.setTransform(d, 0, 0, d, 0, 0);

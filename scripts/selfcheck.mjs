@@ -1,7 +1,7 @@
 // Run with: node scripts/selfcheck.mjs
 import assert from 'node:assert/strict';
 import { parse } from './fetch-iqama.mjs';
-import { parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind } from '../iqama/logic.js';
+import { parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -34,14 +34,25 @@ assert.ok(km(iscj, { lat: 40.518, lng: -74.412 }) < 40, 'Edison is near ISCJ');
 assert.ok(km(iscj, { lat: 40.713, lng: -74.006 }) > 40, 'Manhattan is not near ISCJ');
 assert.ok(Math.abs(km({ lat: 0, lng: 0 }, { lat: 0, lng: 1 }) - 111.2) < 0.5);
 
-// Reminders: Dhuhr adhan 11:40, iqama 12:00; 10 min before adhan, 15 after adhan, 5 before iqama
-const dhuhr = [{ key: 'dhuhr', adhan: 700, iqama: 720 }], rem = { before: 10, after: 15, iqama: 5 };
-assert.deepEqual(alertsBetween(dhuhr, rem, 689 * 60 + 59, 690 * 60), [{ kind: 'before', key: 'dhuhr' }]);
-assert.deepEqual(alertsBetween(dhuhr, rem, 699 * 60 + 59, 700 * 60), [{ kind: 'adhan', key: 'dhuhr' }]);
-assert.deepEqual(alertsBetween(dhuhr, rem, 714 * 60 + 59, 715 * 60), [{ kind: 'after', key: 'dhuhr' }, { kind: 'iqama', key: 'dhuhr' }]);
-assert.deepEqual(alertsBetween(dhuhr, rem, 0, 700 * 60 + 100), [], 'stale alerts are dropped');
-assert.deepEqual(alertsBetween([{ key: 'isha', adhan: 1100, iqama: null }], rem, 1100 * 60 + 299, 1100 * 60 + 300), [], 'no iqama reminder without an iqama time');
-assert.deepEqual(alertsBetween(dhuhr, {}, 689 * 60 + 59, 690 * 60), [], 'reminders off');
+// Per-prayer alerts: Dhuhr adhan 11:40, iqama 12:00; adhan recording, beep 10 min before adhan, message 5 min before iqama
+const dhuhr = [{ key: 'dhuhr', adhan: 700, iqama: 720 }];
+const cfg = { dhuhr: { on: true, adhan: 'adhan', before: { type: 'beep', min: 10 }, iqama: { type: 'message', min: 5 } } };
+const tick = (rows, c, min) => alertsBetween(rows, c, min * 60 - 1, min * 60);
+assert.deepEqual(tick(dhuhr, cfg, 690), [{ kind: 'before', key: 'dhuhr', type: 'beep', min: 10 }]);
+assert.deepEqual(tick(dhuhr, cfg, 700), [{ kind: 'adhan', key: 'dhuhr', type: 'adhan', min: undefined }]);
+assert.deepEqual(tick(dhuhr, cfg, 715), [{ kind: 'iqama', key: 'dhuhr', type: 'message', min: 5 }]);
+assert.deepEqual(alertsBetween(dhuhr, cfg, 0, 700 * 60 + 100), [], 'stale alerts are dropped');
+assert.deepEqual(tick(dhuhr, { dhuhr: { ...cfg.dhuhr, on: false } }, 700), [], 'prayer switched off');
+assert.deepEqual(tick(dhuhr, { dhuhr: { ...cfg.dhuhr, adhan: 'off' } }, 700), [], 'alert type off');
+assert.deepEqual(tick([{ key: 'isha', adhan: 1100, iqama: null }], { isha: cfg.dhuhr }, 1095), [], 'no iqama alert without an iqama time');
+assert.deepEqual(tick(dhuhr, {}, 690), [], 'no settings for the prayer');
+// Jumu'ah: only a "before" alert, keyed like any other row
+assert.deepEqual(tick([{ key: 'jumuah', adhan: 720, iqama: null }], { jumuah: { on: true, before: { type: 'message', min: 15 } } }, 705), [{ kind: 'before', key: 'jumuah', type: 'message', min: 15 }]);
+
+// Weather labels
+assert.deepEqual([0, 2.9, 3, 7.9, 10, 11].map(uvLevel), ['low', 'low', 'moderate', 'high', 'very high', 'extreme']);
+assert.deepEqual([42, 51, 101, 151, 201, 301].map(aqiLevel), ['good', 'moderate', 'unhealthy for sensitive groups', 'unhealthy', 'very unhealthy', 'hazardous']);
+assert.deepEqual([0, 44, 90, 200, 315, 359, -45].map(compass), ['N', 'NE', 'E', 'SSW', 'NW', 'N', 'NW']);
 
 // Weather codes
 assert.deepEqual(weatherKind(63), { kind: 'rain', label: 'Rain' });

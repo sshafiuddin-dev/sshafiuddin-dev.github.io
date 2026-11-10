@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -14,327 +14,294 @@
   <meta name="twitter:title" content="Shafiuddin Syed | SAP Architect & Enterprise Security Leader" />
   <meta name="twitter:description" content="20+ years designing enterprise SAP security programs, access governance, and automation." />
   <title>Shafiuddin Syed | SAP Architect & Enterprise Security Leader</title>
+  <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<!--site-->
   <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="progress" aria-hidden="true"></div>
 
-  <nav id="navbar">
-    <div class="nav-inner">
-      <span class="nav-logo" aria-label="Shafiuddin Syed">SS</span>
-      <ul class="nav-links" role="navigation" aria-label="Main navigation">
+  <nav class="nav" aria-label="Main navigation">
+    <div class="wrap nav-inner">
+      <a href="#top" class="nav-logo" aria-label="Shafiuddin Syed, back to top">SS</a>
+      <ul class="nav-links">
         <li><a href="#about">About</a></li>
         <li><a href="#skills">Skills</a></li>
         <li><a href="#timeline">Experience</a></li>
         <li><a href="#projects">Projects</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
-      <div class="nav-right">
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle theme">&#9790;</button>
-        <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false">&#9776;</button>
-      </div>
+      <form class="tcode" id="tcode-form" autocomplete="off">
+        <label class="sr-only" for="tcode">Jump to a section by SAP transaction code</label>
+        <input id="tcode" list="tcodes" placeholder="t-code, try /nSM37" spellcheck="false" />
+        <datalist id="tcodes">
+          <option value="/nSU01">About</option>
+          <option value="/nPFCG">Skills</option>
+          <option value="/nSM37">Experience</option>
+          <option value="/nSE80">Projects</option>
+          <option value="/nSO01">Contact</option>
+        </datalist>
+        <p class="tcode-msg" id="tcode-msg" role="status"></p>
+      </form>
+      <button class="theme-toggle" id="theme-toggle" type="button">Dark</button>
     </div>
-    <ul class="nav-mobile" id="nav-mobile" role="navigation" aria-label="Mobile navigation">
-      <li><a href="#about">About</a></li>
-      <li><a href="#skills">Skills</a></li>
-      <li><a href="#timeline">Experience</a></li>
-      <li><a href="#projects">Projects</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
   </nav>
 
-  <header id="hero">
-    <div class="hero-content">
-      <div class="hero-badge">20+ Years of Enterprise IT Architecture &amp; Security Leadership</div>
-      <h1>Shafiuddin Syed</h1>
-      <p class="hero-title"><span id="typed-title"></span></p>
-      <p class="hero-sub">SAP Architecture &bull; Access Governance &bull; Azure Cloud &bull; Automation &bull; CMMC &amp; SOX Compliance</p>
-      <div class="hero-cta">
-        <a href="#contact" class="btn btn-primary">Get in Touch</a>
-        <a href="#projects" class="btn btn-outline">View Projects</a>
+  <header class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1 id="hero-name">Shafiuddin Syed</h1>
+        <p class="hero-lede">Twenty years deciding who gets access to what across global SAP landscapes, and proving it to the auditors.</p>
+        <p class="hero-sub">SAP architecture, access governance, Azure cloud, automation, and CMMC and SOX compliance.</p>
+        <div class="hero-cta">
+          <a href="#contact" class="btn btn-primary">Get in touch</a>
+          <a href="#projects" class="btn btn-outline">See the projects</a>
+        </div>
       </div>
+
+      <figure class="sod" aria-labelledby="sod-title">
+        <div class="sod-head">
+          <figcaption id="sod-title">Segregation of duties check</figcaption>
+          <span class="sod-count" id="sod-count">0 conflicts</span>
+        </div>
+        <div class="sod-scroll"><table class="sod-table" id="sod-table"></table></div>
+        <p class="sod-status" id="sod-status" role="status">Every duty has one owner.</p>
+        <div class="sod-foot">
+          <button class="btn btn-small" id="sod-review" type="button">Run access review</button>
+          <span>Click any square to grant or revoke. Sample roles, not a client system.</span>
+        </div>
+      </figure>
     </div>
-    <div class="hero-metrics" role="region" aria-label="Career highlights">
-      <div class="metric"><span class="metric-num">20+</span><span class="metric-label">Years Experience</span></div>
-      <div class="metric-divider" aria-hidden="true"></div>
-      <div class="metric"><span class="metric-num">90%</span><span class="metric-label">Provisioning Time Saved</span></div>
-      <div class="metric-divider" aria-hidden="true"></div>
-      <div class="metric"><span class="metric-num">35%</span><span class="metric-label">SOX Violations Reduced</span></div>
-      <div class="metric-divider" aria-hidden="true"></div>
-      <div class="metric"><span class="metric-num">1000+</span><span class="metric-label">Redwood Jobs Governed</span></div>
-    </div>
+
+    <dl class="wrap stats" aria-label="Career highlights">
+      <div><dt>Years of experience</dt><dd><span data-count="20">20</span>+</dd></div>
+      <div><dt>Provisioning time saved</dt><dd><span data-count="90">90</span>%</dd></div>
+      <div><dt>SOX violations reduced</dt><dd><span data-count="35">35</span>%</dd></div>
+      <div><dt>Redwood jobs governed</dt><dd><span data-count="1000">1,000</span>+</dd></div>
+    </dl>
   </header>
 
-  <div class="quick-facts" role="region" aria-label="Quick overview" id="main-content">
-    <div class="qf-item"><span class="qf-label">Specialty</span><span class="qf-value">SAP Security &amp; GRC</span></div>
-    <div class="qf-dot" aria-hidden="true"></div>
-    <div class="qf-item"><span class="qf-label">Cloud</span><span class="qf-value">Microsoft Azure</span></div>
-    <div class="qf-dot" aria-hidden="true"></div>
-    <div class="qf-item"><span class="qf-label">Compliance</span><span class="qf-value">SOX &amp; CMMC Level 2</span></div>
-    <div class="qf-dot" aria-hidden="true"></div>
-    <div class="qf-item"><span class="qf-label">Automation</span><span class="qf-value">Python &bull; Streamlit &bull; pyrfc</span></div>
-    <div class="qf-dot" aria-hidden="true"></div>
-    <div class="qf-item"><span class="qf-label">Location</span><span class="qf-value">New York / New Jersey</span></div>
+  <div class="marquee" aria-hidden="true">
+    <ul class="marquee-track" id="marquee">
+      <li>SAP S/4HANA</li><li>SAP GRC 12.0</li><li>Microsoft Azure</li><li>SOX</li><li>CMMC Level 2</li><li>Dynamics 365</li><li>SAP BTP</li><li>Redwood</li><li>Python</li><li>FastAPI</li><li>SuccessFactors</li><li>Vertex O-Series</li><li>SAP HANA</li><li>Kerberos SSO</li>
+    </ul>
   </div>
 
-  <hr class="section-sep" aria-hidden="true">
+  <main id="main-content">
 
   <section id="about">
-    <div class="container">
-      <div class="section-label" data-aos="fade-up">About Me</div>
-      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Building Security Programs That Actually Reduce Risk</h2>
-      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">Enterprise SAP architect and security leader with 20+ years owning access governance, SOX compliance, cloud migration, and automation across global systems.</p>
+    <div class="wrap">
+      <h2 data-reveal>Building security programs that actually reduce risk</h2>
       <div class="about-grid">
-        <div class="about-text" data-aos="fade-right" data-aos-delay="100">
-          <p>I've spent more than 20 years designing, securing, and modernizing enterprise SAP and non-SAP ecosystems. In my current role, I serve as the architect of record across SAP Basis &amp; Infrastructure, SAP Security &amp; GRC, Enterprise Job Scheduling, and non-SAP application security &mdash; owning SOX audit relationships, CMMC compliance initiatives, and organization-wide data privacy governance.</p>
-          <p>Recent programs I've led include a full SAP server migration to Microsoft Azure cloud, end-to-end SAP ECC production DR testing, a Vertex O-Series SR17&rarr;SR20 tax engine upgrade, Leena AI integration with SAP SuccessFactors, CMMC-compliant role design for Microsoft Dynamics 365 CE &amp; F&amp;O, and building a UAR Governance &amp; Compliance application from the ground up using Python, FastAPI, Streamlit, and pyrfc. I lead teams, own audit relationships, and build tools that make security operations measurably better.</p>
+        <div class="prose" data-reveal>
+          <p>I've spent more than 20 years designing, securing, and modernizing enterprise SAP and non-SAP ecosystems. In my current role, I serve as the architect of record across SAP Basis &amp; Infrastructure, SAP Security &amp; GRC, Enterprise Job Scheduling, and non-SAP application security, owning SOX audit relationships, CMMC compliance initiatives, and organization-wide data privacy governance.</p>
+          <p>Recent programs I've led include a full SAP server migration to Microsoft Azure cloud, end-to-end SAP ECC production DR testing, a Vertex O-Series SR17 to SR20 tax engine upgrade, Leena AI integration with SAP SuccessFactors, CMMC-compliant role design for Microsoft Dynamics 365 CE &amp; F&amp;O, and building a UAR Governance &amp; Compliance application from the ground up using Python, FastAPI, Streamlit, and pyrfc. I lead teams, own audit relationships, and build tools that make security operations measurably better.</p>
+          <p class="facts">Based in the New York / New Jersey area.</p>
         </div>
-        <div class="about-highlights" data-aos="fade-left" data-aos-delay="150">
-          <div class="highlight-card"><div class="highlight-icon">&#128274;</div><div class="highlight-text"><strong>Access Governance</strong><span>SAP GRC, RBAC, SoD, PAM, IGA, UAR</span></div></div>
-          <div class="highlight-card"><div class="highlight-icon">&#9989;</div><div class="highlight-text"><strong>Compliance &amp; Audit</strong><span>SOX, CMMC Level 2, FDA, Data Privacy Steward</span></div></div>
-          <div class="highlight-card"><div class="highlight-icon">&#9729;</div><div class="highlight-text"><strong>SAP Architecture &amp; Cloud</strong><span>Azure Migration, SAP Basis, S/4HANA, BTP, HANA</span></div></div>
-          <div class="highlight-card"><div class="highlight-icon">&#128187;</div><div class="highlight-text"><strong>Automation &amp; Development</strong><span>Python, FastAPI, Streamlit, pyrfc, AppSheet, VBA</span></div></div>
-        </div>
+        <dl class="domains" data-reveal>
+          <div><dt>Access governance</dt><dd>SAP GRC, RBAC, SoD, PAM, IGA, UAR</dd></div>
+          <div><dt>Compliance and audit</dt><dd>SOX, CMMC Level 2, FDA, Data Privacy Steward</dd></div>
+          <div><dt>SAP architecture and cloud</dt><dd>Azure Migration, SAP Basis, S/4HANA, BTP, HANA</dd></div>
+          <div><dt>Automation and development</dt><dd>Python, FastAPI, Streamlit, pyrfc, AppSheet, VBA</dd></div>
+        </dl>
       </div>
     </div>
   </section>
 
-  <hr class="section-sep" aria-hidden="true">
-
-  <section id="skills" class="bg-alt">
-    <div class="container">
-      <div class="section-label" data-aos="fade-up">Technical Skills</div>
-      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Core Expertise</h2>
-      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">20 years across SAP security, identity governance, cloud infrastructure, and enterprise automation.</p>
-      <div class="skills-grid skills-grid-2">
-        <div class="skill-card" data-aos="fade-up" data-aos-delay="100">
-          <h3>&#128274; Security &amp; Access Governance</h3>
-          <div class="skill-tags">
-            <span>SAP GRC Access Control 10.1/12.0</span><span>SoD Governance</span><span>SOX Compliance</span>
-            <span>Identity &amp; Access Management</span><span>CMMC Level 2</span><span>Least-Privilege Design</span>
-            <span>Audit Liaison</span><span>Data Privacy (PIA)</span><span>UAR Governance</span><span>Emergency Access Management</span>
-          </div>
+  <section id="skills">
+    <div class="wrap">
+      <h2 data-reveal>Core expertise</h2>
+      <p class="section-desc" data-reveal>20 years across SAP security, identity governance, cloud infrastructure, and enterprise automation.</p>
+      <div class="skill-rows">
+        <div class="skill-row" data-reveal>
+          <h3>Security and access governance</h3>
+          <ul class="grants">
+            <li>SAP GRC Access Control 10.1/12.0</li><li>SoD Governance</li><li>SOX Compliance</li><li>Identity &amp; Access Management</li><li>CMMC Level 2</li><li>Least-Privilege Design</li><li>Audit Liaison</li><li>Data Privacy (PIA)</li><li>UAR Governance</li><li>Emergency Access Management</li>
+          </ul>
         </div>
-        <div class="skill-card" data-aos="fade-up" data-aos-delay="150">
-          <h3>&#9729; SAP &amp; Cloud Platforms</h3>
-          <div class="skill-tags">
-            <span>SAP S/4HANA</span><span>SAP ECC</span><span>SAP BTP</span><span>SAP SuccessFactors</span>
-            <span>SAP Analytics Cloud</span><span>SAP Master Data Governance</span><span>Microsoft Azure</span>
-            <span>Dynamics 365 CE &amp; F&amp;O</span><span>SAP Fiori</span><span>Vertex O-Series</span><span>Leena AI</span>
-          </div>
+        <div class="skill-row" data-reveal>
+          <h3>SAP and cloud platforms</h3>
+          <ul class="grants">
+            <li>SAP S/4HANA</li><li>SAP ECC</li><li>SAP BTP</li><li>SAP SuccessFactors</li><li>SAP Analytics Cloud</li><li>SAP Master Data Governance</li><li>Microsoft Azure</li><li>Dynamics 365 CE &amp; F&amp;O</li><li>SAP Fiori</li><li>Vertex O-Series</li><li>Leena AI</li>
+          </ul>
         </div>
-        <div class="skill-card" data-aos="fade-up" data-aos-delay="200">
-          <h3>&#128187; Automation &amp; Development</h3>
-          <div class="skill-tags">
-            <span>Python 3.12</span><span>FastAPI</span><span>Streamlit</span><span>Jinja2</span><span>pyrfc</span>
-            <span>Excel VBA</span><span>Google AppSheet</span><span>ABAP</span><span>Power Automate</span>
-          </div>
+        <div class="skill-row" data-reveal>
+          <h3>Automation and development</h3>
+          <ul class="grants">
+            <li>Python 3.12</li><li>FastAPI</li><li>Streamlit</li><li>Jinja2</li><li>pyrfc</li><li>Excel VBA</li><li>Google AppSheet</li><li>ABAP</li><li>Power Automate</li>
+          </ul>
         </div>
-        <div class="skill-card" data-aos="fade-up" data-aos-delay="250">
-          <h3>&#128295; Infrastructure &amp; Operations</h3>
-          <div class="skill-tags">
-            <span>SAP Basis Administration</span><span>SAP HANA &amp; Oracle DB</span><span>Azure Cloud Migration</span>
-            <span>Redwood Job Scheduling</span><span>Disaster Recovery Testing</span><span>Kerberos SSO</span>
-            <span>SAP Enterprise Portal</span><span>DR Testing (RTO/RPO)</span>
-          </div>
+        <div class="skill-row" data-reveal>
+          <h3>Infrastructure and operations</h3>
+          <ul class="grants">
+            <li>SAP Basis Administration</li><li>SAP HANA &amp; Oracle DB</li><li>Azure Cloud Migration</li><li>Redwood Job Scheduling</li><li>Disaster Recovery Testing</li><li>Kerberos SSO</li><li>SAP Enterprise Portal</li><li>DR Testing (RTO/RPO)</li>
+          </ul>
         </div>
       </div>
     </div>
   </section>
-
-  <hr class="section-sep" aria-hidden="true">
 
   <section id="timeline">
-    <div class="container">
-      <div class="section-label" data-aos="fade-up">Career Journey</div>
-      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Experience &amp; Key Milestones</h2>
-      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">20+ years of progressive SAP and enterprise IT leadership across security, infrastructure, and cloud.</p>
+    <div class="wrap">
+      <h2 data-reveal>Experience and key milestones</h2>
+      <p class="section-desc" data-reveal>20+ years of progressive SAP and enterprise IT leadership across security, infrastructure, and cloud.</p>
       <div class="timeline">
 
-        <div class="timeline-item" data-aos="fade-right" data-aos-delay="100">
-          <div class="timeline-dot"></div>
-          <div class="timeline-date">2014 &mdash; Present</div>
-          <div class="timeline-card">
-            <h3>Sr. Manager, Global Operations</h3>
-            <p class="timeline-sub">SAP Basis &amp; Architecture &nbsp;&bull;&nbsp; SAP Security &amp; GRC &nbsp;&bull;&nbsp; Enterprise Job Scheduling &nbsp;&bull;&nbsp; Non-SAP Application Security</p>
-            <div class="impact-badge"><span>&#9889;</span> 35% SOX violations reduced &nbsp;&bull;&nbsp; 90% provisioning time saved &nbsp;&bull;&nbsp; 100% Azure cloud migration</div>
-            <ul class="timeline-bullets">
-              <li>Architected full SAP server migration to Microsoft Azure cloud &mdash; ECC, GRC, PPM, and Enterprise Portal</li>
-              <li>Upgraded SAP GRC 10.1 &rarr; 12.0 on HANA with simultaneous Oracle-to-HANA DB migration</li>
-              <li>Led end-to-end production DR testing validating RTO/RPO across the full SAP landscape</li>
-              <li>Upgraded Vertex O-Series Tax Engine SR17 &rarr; SR20, resolving a critical enterprise tax reporting issue</li>
-              <li>Designed and implemented CMMC Level 2 role permissions for Dynamics 365 CE &amp; F&amp;O</li>
-              <li>Built UAR Governance &amp; Compliance app using Python 3.12, FastAPI, Jinja2, Streamlit &amp; pyrfc</li>
-              <li>Implemented Leena AI integration with SAP SuccessFactors</li>
-              <li>Reduced SOX violations by 35% through RBAC role redesign; cut provisioning time by 90% via automation</li>
-              <li>Govern 1,000+ Redwood job scheduling landscape migrated to Azure cloud infrastructure</li>
-            </ul>
-            <div class="timeline-tags"><span>SAP Basis</span><span>GRC 12.0</span><span>Azure</span><span>CMMC</span><span>SOX</span><span>Python</span><span>Redwood</span></div>
-          </div>
-        </div>
+        <article class="job" data-reveal>
+          <p class="job-date">2014 to present</p>
+          <h3>Sr. Manager, Global Operations</h3>
+          <p class="job-sub">SAP Basis &amp; Architecture, SAP Security &amp; GRC, Enterprise Job Scheduling, Non-SAP Application Security</p>
+          <ul class="impact">
+            <li><strong>35%</strong> SOX violations reduced</li>
+            <li><strong>90%</strong> provisioning time saved</li>
+            <li><strong>100%</strong> Azure cloud migration</li>
+          </ul>
+          <ul class="job-bullets">
+            <li>Architected full SAP server migration to Microsoft Azure cloud: ECC, GRC, PPM, and Enterprise Portal</li>
+            <li>Upgraded SAP GRC 10.1 to 12.0 on HANA with simultaneous Oracle-to-HANA DB migration</li>
+            <li>Led end-to-end production DR testing validating RTO/RPO across the full SAP landscape</li>
+            <li>Upgraded Vertex O-Series Tax Engine SR17 to SR20, resolving a critical enterprise tax reporting issue</li>
+            <li>Designed and implemented CMMC Level 2 role permissions for Dynamics 365 CE &amp; F&amp;O</li>
+            <li>Built UAR Governance &amp; Compliance app using Python 3.12, FastAPI, Jinja2, Streamlit &amp; pyrfc</li>
+            <li>Implemented Leena AI integration with SAP SuccessFactors</li>
+            <li>Reduced SOX violations by 35% through RBAC role redesign; cut provisioning time by 90% via automation</li>
+            <li>Govern 1,000+ Redwood job scheduling landscape migrated to Azure cloud infrastructure</li>
+          </ul>
+          <ul class="grants grants-small"><li>SAP Basis</li><li>GRC 12.0</li><li>Azure</li><li>CMMC</li><li>SOX</li><li>Python</li><li>Redwood</li></ul>
+        </article>
 
-        <div class="timeline-item" data-aos="fade-right" data-aos-delay="150">
-          <div class="timeline-dot"></div>
-          <div class="timeline-date">2005 &mdash; 2014</div>
-          <div class="timeline-card">
-            <h3>Sr. SAP Basis &amp; Security Consultant</h3>
-            <p class="timeline-sub">SAP Basis Administration &nbsp;&bull;&nbsp; Security Architecture &nbsp;&bull;&nbsp; GRC &amp; SoD &nbsp;&bull;&nbsp; Multi-industry Client Delivery</p>
-            <div class="impact-badge"><span>&#9889;</span> 50% SoD violations reduced &nbsp;&bull;&nbsp; Clean external audit compliance across all clients</div>
-            <ul class="timeline-bullets">
-              <li>Led full end-to-end SAP ECC6 security implementations across pharmaceutical, manufacturing, and technology clients</li>
-              <li>Redesigned SoD rulesets achieving 50% reduction in violations and clean external audit compliance</li>
-              <li>Implemented SOX and FDA-mandated security controls across multiple regulated environments</li>
-              <li>Executed SAP GRC upgrades, OS migrations, and production DR testing for enterprise clients</li>
-              <li>Delivered SAP ECC, CRM, SRM, and Solution Manager installations for multi-client landscapes</li>
-            </ul>
-            <div class="timeline-tags"><span>SAP ECC</span><span>GRC</span><span>SoD</span><span>SOX</span><span>FDA</span><span>Basis Admin</span><span>Redwood CPS</span></div>
-          </div>
-        </div>
+        <article class="job" data-reveal>
+          <p class="job-date">2005 to 2014</p>
+          <h3>Sr. SAP Basis &amp; Security Consultant</h3>
+          <p class="job-sub">SAP Basis Administration, Security Architecture, GRC &amp; SoD, Multi-industry Client Delivery</p>
+          <ul class="impact">
+            <li><strong>50%</strong> SoD violations reduced</li>
+            <li>Clean external audit compliance across all clients</li>
+          </ul>
+          <ul class="job-bullets">
+            <li>Led full end-to-end SAP ECC6 security implementations across pharmaceutical, manufacturing, and technology clients</li>
+            <li>Redesigned SoD rulesets achieving 50% reduction in violations and clean external audit compliance</li>
+            <li>Implemented SOX and FDA-mandated security controls across multiple regulated environments</li>
+            <li>Executed SAP GRC upgrades, OS migrations, and production DR testing for enterprise clients</li>
+            <li>Delivered SAP ECC, CRM, SRM, and Solution Manager installations for multi-client landscapes</li>
+          </ul>
+          <ul class="grants grants-small"><li>SAP ECC</li><li>GRC</li><li>SoD</li><li>SOX</li><li>FDA</li><li>Basis Admin</li><li>Redwood CPS</li></ul>
+        </article>
 
-        <div class="timeline-item" data-aos="fade-right" data-aos-delay="200">
-          <div class="timeline-dot timeline-dot-edu"></div>
-          <div class="timeline-date">Education</div>
-          <div class="timeline-card timeline-card-edu">
-            <div class="edu-card-inner">
-              <div class="edu-icon">&#127891;</div>
-              <div class="edu-body">
-                <h3>Bachelor of Technology &mdash; Computer Science &amp; Engineering</h3>
-                <p class="timeline-sub">Jawaharlal Nehru Technological University</p>
-                <div class="timeline-tags"><span>B.Tech</span><span>Computer Science</span><span>Engineering</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <article class="job" data-reveal>
+          <p class="job-date">Education</p>
+          <h3>Bachelor of Technology, Computer Science &amp; Engineering</h3>
+          <p class="job-sub">Jawaharlal Nehru Technological University</p>
+        </article>
 
       </div>
     </div>
   </section>
 
-  <hr class="section-sep" aria-hidden="true">
-
-  <section id="projects" class="bg-alt">
-    <div class="container">
-      <div class="section-label" data-aos="fade-up">Built &amp; Deployed</div>
-      <h2 class="section-title" data-aos="fade-up" data-aos-delay="50">Projects</h2>
-      <p class="section-desc" data-aos="fade-up" data-aos-delay="80">Enterprise tools and side projects &mdash; from SAP automation to AI-powered trivia games.</p>
-      <div class="projects-featured">
-        <div class="project-card project-featured" data-aos="fade-up" data-aos-delay="80">
-          <div class="featured-badge">&#11088; Featured</div>
-          <div class="project-icon">&#128203;</div>
-          <div class="project-body">
-            <h3>UAR Governance &amp; Compliance Application</h3>
-            <div class="project-impact"><span>&#9889;</span> Replaced manual spreadsheet UAR process &bull; Full audit trail</div>
-            <p>Designed and developed a full-stack User Access Review (UAR) governance platform replacing fragmented spreadsheet and email-based compliance processes with a fully auditable, governed workflow. Built with Python 3.12, FastAPI, Jinja2, Streamlit, and pyrfc for live SAP RFC integration &mdash; enabling real-time role reviews, approval chains, and audit-ready reporting.</p>
-            <div class="project-tags"><span>Python 3.12</span><span>FastAPI</span><span>Jinja2</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Governance</span><span>Audit</span></div>
-          </div>
-        </div>
-        <div class="project-card project-featured" data-aos="fade-up" data-aos-delay="130">
-          <div class="featured-badge">&#11088; Featured</div>
-          <div class="project-icon">&#128204;</div>
-          <div class="project-body">
-            <h3>SAP User Provisioning Automation</h3>
-            <div class="project-impact"><span>&#9889;</span> &#8595; 90% provisioning turnaround time</div>
-            <p>Streamlit web application using Python and pyrfc for SAP RFC connectivity to fully automate SAP user provisioning workflows &mdash; replacing a manual SU01-based process and reducing turnaround time by up to 90%. Supports bulk provisioning, role assignment, and real-time status tracking through a clean browser interface.</p>
-            <div class="project-tags"><span>Python</span><span>Streamlit</span><span>pyrfc</span><span>SAP RFC</span><span>Automation</span><span>SU01</span></div>
-          </div>
-        </div>
+  <section id="projects">
+    <div class="wrap">
+      <h2 data-reveal>Projects</h2>
+      <p class="section-desc" data-reveal>Enterprise tools and side projects, from SAP automation to AI-powered trivia games.</p>
+      <div class="projects projects-featured">
+        <article class="project" data-reveal>
+          <p class="project-flag">Featured</p>
+          <h3>UAR Governance &amp; Compliance Application</h3>
+          <p class="project-impact">Replaced manual spreadsheet UAR process. Full audit trail.</p>
+          <p>Designed and developed a full-stack User Access Review (UAR) governance platform replacing fragmented spreadsheet and email-based compliance processes with a fully auditable, governed workflow. Built with Python 3.12, FastAPI, Jinja2, Streamlit, and pyrfc for live SAP RFC integration, enabling real-time role reviews, approval chains, and audit-ready reporting.</p>
+          <ul class="grants grants-small"><li>Python 3.12</li><li>FastAPI</li><li>Jinja2</li><li>Streamlit</li><li>pyrfc</li><li>SAP RFC</li><li>Governance</li><li>Audit</li></ul>
+        </article>
+        <article class="project" data-reveal>
+          <p class="project-flag">Featured</p>
+          <h3>SAP User Provisioning Automation</h3>
+          <p class="project-impact">90% less provisioning turnaround time.</p>
+          <p>Streamlit web application using Python and pyrfc for SAP RFC connectivity to fully automate SAP user provisioning workflows, replacing a manual SU01-based process and reducing turnaround time by up to 90%. Supports bulk provisioning, role assignment, and real-time status tracking through a clean browser interface.</p>
+          <ul class="grants grants-small"><li>Python</li><li>Streamlit</li><li>pyrfc</li><li>SAP RFC</li><li>Automation</li><li>SU01</li></ul>
+        </article>
       </div>
-      <div class="projects-grid" style="margin-top: 24px;">
-        <div class="project-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="project-icon">&#128196;</div>
-          <div class="project-body">
-            <h3>Data Privacy Review Automation</h3>
-            <div class="project-impact"><span>&#9889;</span> Replaced manual PIA process &bull; Governed &amp; trackable</div>
-            <p>Built a Google AppSheet workflow application to automate Data Privacy Impact Assessment (PIA) review processes for the Project Management organization, replacing a manual spreadsheet process with a governed, trackable, and auditable solution.</p>
-            <div class="project-tags"><span>Google AppSheet</span><span>Google Workspace</span><span>Data Privacy</span><span>Automation</span></div>
-          </div>
-        </div>
-        <div class="project-card" data-aos="fade-up" data-aos-delay="150">
-          <div class="project-icon">&#129302;</div>
-          <div class="project-body">
-            <h3>Jeopardy Unleashed</h3>
-            <div class="project-impact"><span>&#9889;</span> AI-generated questions &bull; Every board is unique</div>
-            <p>A free, PWA-installable Jeopardy-style multiplayer trivia game built with HTML, CSS, and JavaScript. Questions are generated in real time by Llama 3.3 70B via the Groq API through a Cloudflare Worker proxy &mdash; no static question banks, every board is unique.</p>
-            <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Groq API</span><span>Llama 3.3 70B</span><span>Cloudflare Worker</span><span>PWA</span></div>
-            <a href="https://sshafiuddin-dev.github.io/jeopardy/" target="_blank" class="project-link" aria-label="Live demo of Jeopardy Unleashed">Live Demo &rarr;</a>
-          </div>
-        </div>
-        <div class="project-card" data-aos="fade-up" data-aos-delay="200">
-          <div class="project-icon">&#128205;</div>
-          <div class="project-body">
-            <h3>Iqama Times</h3>
-            <div class="project-impact"><span>&#9889;</span> Live Airtable data &bull; Daily &amp; monthly view</div>
-            <p>A prayer schedule web app displaying daily and monthly Iqama times pulled live from Airtable. Features today&rsquo;s timings at a glance, monthly table view, and Jummah prayer columns for Fridays.</p>
-            <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span><span>Airtable API</span></div>
-            <a href="/iqama/" class="project-link" aria-label="View Iqama Times app">View App &rarr;</a>
-          </div>
-        </div>
+      <div class="projects projects-more">
+        <article class="project" data-reveal>
+          <h3>Data Privacy Review Automation</h3>
+          <p class="project-impact">Replaced manual PIA process. Governed and trackable.</p>
+          <p>Built a Google AppSheet workflow application to automate Data Privacy Impact Assessment (PIA) review processes for the Project Management organization, replacing a manual spreadsheet process with a governed, trackable, and auditable solution.</p>
+          <ul class="grants grants-small"><li>Google AppSheet</li><li>Google Workspace</li><li>Data Privacy</li><li>Automation</li></ul>
+        </article>
+        <article class="project" data-reveal>
+          <h3>Jeopardy Unleashed</h3>
+          <p class="project-impact">AI-generated questions. Every board is unique.</p>
+          <p>A free, PWA-installable Jeopardy-style multiplayer trivia game built with HTML, CSS, and JavaScript. Questions are generated in real time by Llama 3.3 70B via the Groq API through a Cloudflare Worker proxy. No static question banks, every board is unique.</p>
+          <ul class="grants grants-small"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>Groq API</li><li>Llama 3.3 70B</li><li>Cloudflare Worker</li><li>PWA</li></ul>
+          <a href="https://sshafiuddin-dev.github.io/jeopardy/" target="_blank" rel="noopener" class="project-link">Play the live demo</a>
+        </article>
+        <article class="project" data-reveal>
+          <h3>Iqama Times</h3>
+          <p class="project-impact">Live Airtable data. Daily and monthly view.</p>
+          <p>A prayer schedule web app displaying daily and monthly Iqama times pulled live from Airtable. Features today&rsquo;s timings at a glance, monthly table view, and Jummah prayer columns for Fridays.</p>
+          <ul class="grants grants-small"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>Airtable API</li></ul>
+          <a href="https://sshafiuddin-dev.github.io/iqama/" class="project-link">Open the app</a>
+        </article>
       </div>
     </div>
   </section>
 
-  <hr class="section-sep" aria-hidden="true">
-
-  <section id="contact" style="background: var(--contact-bg) !important;">
-    <div class="container">
-      <div class="section-label contact-label">Get In Touch</div>
-      <h2 class="section-title contact-title">Let&rsquo;s Connect</h2>
-      <p class="contact-sub">Have a question about SAP architecture, enterprise security, access governance, compliance, or just want to connect? Fill out the form and I&rsquo;ll get back to you.</p>
-      <div class="contact-wrapper">
-        <div class="contact-info">
-          <div class="contact-info-card"><span class="ci-icon">&#128101;</span><div><p class="ci-label">LinkedIn</p><a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" class="ci-value" aria-label="Connect on LinkedIn">Connect with me &rarr;</a></div></div>
-          <div class="contact-info-card"><span class="ci-icon">&#128196;</span><div><p class="ci-label">GitHub</p><a href="https://github.com/sshafiuddin-dev" target="_blank" class="ci-value" aria-label="View GitHub profile">sshafiuddin-dev &rarr;</a></div></div>
-          <div class="contact-info-card"><span class="ci-icon">&#127758;</span><div><p class="ci-label">Location</p><p class="ci-value">New York / New Jersey Area</p></div></div>
-          <div class="contact-info-card"><span class="ci-icon">&#9201;</span><div><p class="ci-label">Response Time</p><p class="ci-value">Usually within 24 hours</p></div></div>
-        </div>
-        <div class="contact-form">
-          <div data-fs-success class="form-success">&#10003;&nbsp; Message sent! I&rsquo;ll get back to you within 24 hours.</div>
-          <div data-fs-error class="form-error"></div>
-          <form id="contact-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="name">Your Name <span class="required" aria-label="required">*</span></label>
-                <input type="text" id="name" name="name" placeholder="John Smith" data-fs-field required autocomplete="name" />
-                <span data-fs-error="name" class="field-error" role="alert"></span>
-              </div>
-              <div class="form-group">
-                <label for="email">Your Email <span class="required" aria-label="required">*</span></label>
-                <input type="email" id="email" name="email" placeholder="john@company.com" data-fs-field required autocomplete="email" />
-                <span data-fs-error="email" class="field-error" role="alert"></span>
-              </div>
+  <section id="contact" class="contact">
+    <div class="wrap contact-grid">
+      <div>
+        <h2 data-reveal>Let&rsquo;s connect</h2>
+        <p class="section-desc">Have a question about SAP architecture, enterprise security, access governance, compliance, or just want to connect? Fill out the form and I&rsquo;ll get back to you.</p>
+        <dl class="contact-info">
+          <div><dt>LinkedIn</dt><dd><a href="https://linkedin.com/in/shafiuddinsyed" target="_blank" rel="noopener">linkedin.com/in/shafiuddinsyed</a></dd></div>
+          <div><dt>GitHub</dt><dd><a href="https://github.com/sshafiuddin-dev" target="_blank" rel="noopener">github.com/sshafiuddin-dev</a></dd></div>
+          <div><dt>Location</dt><dd>New York / New Jersey Area</dd></div>
+          <div><dt>Response time</dt><dd>Usually within 24 hours</dd></div>
+        </dl>
+      </div>
+      <div class="contact-form">
+        <div data-fs-success class="form-success">Message sent. I&rsquo;ll get back to you within 24 hours.</div>
+        <div data-fs-error class="form-error"></div>
+        <form id="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Your name <span aria-label="required">*</span></label>
+              <input type="text" id="name" name="name" placeholder="John Smith" data-fs-field required autocomplete="name" />
+              <span data-fs-error="name" class="field-error" role="alert"></span>
             </div>
             <div class="form-group">
-              <label for="subject">Subject <span class="required" aria-label="required">*</span></label>
-              <input type="text" id="subject" name="subject" placeholder="Security consultation, job opportunity, general inquiry..." data-fs-field required />
-              <span data-fs-error="subject" class="field-error" role="alert"></span>
+              <label for="email">Your email <span aria-label="required">*</span></label>
+              <input type="email" id="email" name="email" placeholder="john@company.com" data-fs-field required autocomplete="email" />
+              <span data-fs-error="email" class="field-error" role="alert"></span>
             </div>
-            <div class="form-group">
-              <label for="message">Message <span class="required" aria-label="required">*</span></label>
-              <textarea id="message" name="message" rows="5" placeholder="Tell me about your project, role, or question..." data-fs-field required></textarea>
-              <span data-fs-error="message" class="field-error" role="alert"></span>
-            </div>
-            <input type="text" name="_gotcha" style="display:none" aria-hidden="true" />
-            <button type="submit" data-fs-submit-btn class="btn-submit">Send Message &#10148;</button>
-            <p class="form-note">* Required fields. Your details are used only to reply to you.</p>
-          </form>
-        </div>
+          </div>
+          <div class="form-group">
+            <label for="subject">Subject <span aria-label="required">*</span></label>
+            <input type="text" id="subject" name="subject" placeholder="Security consultation, job opportunity, general inquiry..." data-fs-field required />
+            <span data-fs-error="subject" class="field-error" role="alert"></span>
+          </div>
+          <div class="form-group">
+            <label for="message">Message <span aria-label="required">*</span></label>
+            <textarea id="message" name="message" rows="5" placeholder="Tell me about your project, role, or question..." data-fs-field required></textarea>
+            <span data-fs-error="message" class="field-error" role="alert"></span>
+          </div>
+          <input type="text" name="_gotcha" hidden aria-hidden="true" tabindex="-1" />
+          <button type="submit" data-fs-submit-btn class="btn btn-send">Send message</button>
+          <p class="form-note">* Required fields. Your details are used only to reply to you.</p>
+        </form>
       </div>
     </div>
   </section>
 
-  <footer>
-    <p>&copy; 2026 Shafiuddin Syed &mdash; All rights reserved.</p>
-    <p class="footer-sub">Built with HTML, CSS &amp; hosted on GitHub Pages</p>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>&copy; 2026 Shafiuddin Syed. All rights reserved.</p>
+      <p>Built with HTML, CSS &amp; hosted on GitHub Pages</p>
+    </div>
   </footer>
-
-  <button id="back-to-top" aria-label="Back to top" title="Back to top">&#8679;</button>
-
-  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-  <script>AOS.init({ duration: 600, once: true, offset: 60 });</script>
+<!--/site-->
   <script>
     window.formspree = window.formspree || function () {
       (formspree.q = formspree.q || []).push(arguments);

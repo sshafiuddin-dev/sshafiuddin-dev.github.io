@@ -58,4 +58,21 @@ assert.deepEqual([0, 44, 90, 200, 315, 359, -45].map(compass), ['N', 'NE', 'E', 
 assert.deepEqual(weatherKind(63), { kind: 'rain', label: 'Rain' });
 assert.equal(weatherKind(75).kind, 'snow');
 assert.equal(weatherKind(999).kind, 'plain');
+// Adhkar set for the time of day (ISCJ, Nov 10): Fajr 5:21/5:45, sunrise 6:39, Dhuhr 11:42/12:30, Asr 2:24/2:45, Maghrib 4:45, Isha 6:03/8:00
+const { SETS, pickSet } = await import('../iqama/adhkar.js');
+const day = [{ adhan: 321, iqama: 345 }, { adhan: 702, iqama: 750 }, { adhan: 864, iqama: 885 }, { adhan: 1005, iqama: 1005 }, { adhan: 1083, iqama: 1200 }];
+const at = (h, m, wd = 'Tue') => pickSet(h * 60 + m, day, 399, wd).key;
+assert.equal(at(5, 30), 'adhan', 'between Fajr adhan and iqama');
+assert.equal(at(5, 50), 'prayer', 'just after Fajr iqama');
+assert.equal(at(6, 10), 'morning');
+assert.equal(at(9, 0), 'general');
+assert.equal(at(9, 0, 'Fri'), 'friday');
+assert.equal(at(14, 30), 'adhan', 'between Asr adhan and iqama');
+assert.equal(at(15, 30), 'evening');
+assert.equal(at(16, 50), 'prayer', 'Maghrib iqama is on time');
+assert.equal(at(18, 30), 'adhan', 'between Isha adhan and iqama');
+assert.equal(at(21, 0), 'sleep');
+assert.equal(at(3, 0), 'sleep');
+assert.equal(pickSet(600, day.map(r => ({ ...r, iqama: null })), 399, 'Tue').key, 'general', 'no iqama times set');
+for (const [k, s] of Object.entries(SETS)) for (const it of s.items) assert.ok(it.en && it.src && Number.isInteger(it.n), `adhkar entry in ${k} is complete`);
 console.log('selfcheck ok');

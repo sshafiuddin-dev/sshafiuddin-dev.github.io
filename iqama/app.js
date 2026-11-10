@@ -4,6 +4,7 @@ import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween } f
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
+import { SETS, pickSet } from './adhkar.js';
 
 const $ = (id) => document.getElementById(id);
 const root = document.documentElement;
@@ -21,6 +22,7 @@ const MODES = ['auto', 'light', 'dark'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
   clock: 'board', palette: 'petrol', mode: 'auto', units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
+  adhkar: true, translit: true, arSize: 'm', awake: false,
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -41,6 +43,10 @@ if (!PALETTES[settings.palette]) settings.palette = DEFAULTS.palette;
 if (!MODES.includes(settings.mode)) settings.mode = DEFAULTS.mode;
 if (settings.units !== 'F' && settings.units !== 'C') settings.units = DEFAULTS.units;
 settings.muted = settings.muted === true;
+settings.adhkar = settings.adhkar !== false;
+settings.translit = settings.translit !== false;
+if (!['s', 'm', 'l'].includes(settings.arSize)) settings.arSize = DEFAULTS.arSize;
+settings.awake = settings.awake === true;
 
 // Alerts for each prayer and for Jumu'ah
 const blankAlert = (key) => key === 'jumuah'
@@ -82,7 +88,14 @@ applyLook();
 let masjid = { iqama: {}, jumuah: [], updated: '', failed: false };
 const place = () => settings.place || ISCJ;
 const near = () => km(place(), ISCJ) <= NEAR_KM;
-const say = (text) => { $('status').textContent = text; };
+// Messages show as a toast above the tab bar and fade after a few seconds
+let toastTimer = 0;
+const say = (text) => {
+  $('status').textContent = text;
+  $('status').classList.toggle('show', !!text);
+  clearTimeout(toastTimer);
+  if (text) toastTimer = setTimeout(() => $('status').classList.remove('show'), 5000);
+};
 
 // Back link only for visitors who came from the portfolio, never in the installed app
 try {
@@ -154,7 +167,9 @@ function renderDay() {
       : `Iqama times from ISCJ${uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
 
   jumuahNote();
-  if ($('month-panel').open) renderMonth();
+  $('dx-date').textContent = today.long;
+  $('dx-place').textContent = place().name;
+  if (tab === 'month') { renderMonth(); $('tab-title').textContent = monthTitle(); }
   tick();
 }
 
@@ -167,7 +182,13 @@ function tick() {
   if (!today || c.d !== today.d) return loadDay(c);
   const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrow.rows[0].adhan, nowMin);
   $('now').textContent = fmt(Math.floor(nowMin));
-  $('clock').innerHTML = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
+  const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
+  $('clock').innerHTML = html;
+  if (displayOpen) {
+    $('dx-clock').innerHTML = html;
+    if (c.sec % 10 === 0) fitDisplay(); // re-fit after late font loads or a change in what the clock shows
+  }
+  renderAdhkar(nowMin);
   for (const tr of $('today').tBodies[0].rows) tr.classList.toggle('next', tr.dataset.k === ev.key);
   setSky(weather ? weather.kind : 'plain', nowMin >= day.sunrise && nowMin < day.rows[3].adhan);
 
@@ -188,7 +209,30 @@ function renderMonth() {
   $('month').tBodies[0].innerHTML = monthRows().map(r =>
     `<tr${r.d === today.d ? ' class="today"' : ''}><th scope="row">${r.weekday} ${r.d}</th>${r.times.map(t => `<td>${fmt(t)}</td>`).join('')}</tr>`).join('');
 }
-$('month-panel').addEventListener('toggle', () => { if ($('month-panel').open) renderMonth(); });
+const monthTitle = () => (today ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(Date.UTC(today.y, today.m - 1, 15))) : 'This month');
+
+// Tabs: one screen each, chosen by the address (#weather), so the back button moves between them
+const TAB_IDS = ['today', 'weather', 'alerts', 'month', 'settings'];
+const TITLES = { today: 'Today', weather: 'Weather', alerts: 'Adhan and alerts', settings: 'Settings' };
+let tab = 'today', sub = 'location';
+function go(t, s) {
+  if (s) sub = s;
+  if (location.hash.slice(1) === t) route(); else location.hash = t;
+}
+function route() {
+  const h = location.hash.slice(1);
+  tab = TAB_IDS.includes(h) ? h : 'today';
+  for (const id of TAB_IDS) $(`tab-${id}`).hidden = id !== tab;
+  document.querySelectorAll('.tabbar a').forEach(a => {
+    if (a.getAttribute('href') === `#${tab}`) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
+  $('tab-title').textContent = tab === 'month' ? monthTitle() : TITLES[tab];
+  document.querySelectorAll('[data-sub]').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === sub));
+  document.querySelectorAll('.sub-pane').forEach(p => { p.hidden = p.id !== `sub-${sub}`; });
+  if (tab === 'month' && today) renderMonth();
+}
+addEventListener('hashchange', route);
+document.querySelectorAll('[data-sub]').forEach(b => b.addEventListener('click', () => { sub = b.dataset.sub; route(); }));
 
 // Sharing: the system share sheet where there is one, otherwise the clipboard
 const appUrl = location.href.split(/[?#]/)[0];
@@ -373,8 +417,9 @@ function setPlace(pl) {
   buildForm();
   tick();
   loadWeather();
-  if (!near() && !Object.keys(settings.iqama).length) $('iqama-panel').open = true;
-  say(`Times are now for ${place().name}.`);
+  const needIqama = !near() && !Object.keys(settings.iqama).length;
+  if (needIqama) go('settings', 'iqama');
+  say(`Times are now for ${place().name}.${needIqama ? ' Set your masjid’s iqama times here.' : ''}`);
 }
 function locateMe() {
   if (!navigator.geolocation) return say('This browser cannot share a location. Search for your city instead.');
@@ -382,7 +427,7 @@ function locateMe() {
     (pos) => setPlace({ lat: +pos.coords.latitude.toFixed(3), lng: +pos.coords.longitude.toFixed(3), zone: DEVICE_ZONE, name: 'Your location' }),
     () => say('Location was not shared, so nothing changed. Search for your city instead.'));
 }
-const openLocation = () => { $('loc-panel').open = true; $('search').focus(); };
+const openLocation = () => { go('settings', 'location'); $('search').focus(); };
 $('use-here').addEventListener('click', locateMe);
 $('ask-here').addEventListener('click', locateMe);
 $('use-iscj').addEventListener('click', () => setPlace(null));
@@ -460,13 +505,156 @@ function renderWeather() {
   $('wx-updated').textContent = w && w.at != null ? `Updated ${fmt(w.at)} local time. Weather and air quality from Open-Meteo.` : '';
   document.querySelectorAll('[data-unit]').forEach(b => b.setAttribute('aria-pressed', b.dataset.unit === u));
 }
-$('weather').addEventListener('click', () => { $('weather-panel').open = true; $('weather-panel').scrollIntoView({ block: 'start' }); });
+$('weather').addEventListener('click', () => go('weather'));
 document.querySelectorAll('[data-unit]').forEach(b => b.addEventListener('click', () => {
   if (settings.units === b.dataset.unit) return;
   settings.units = b.dataset.unit;
   save();
   loadWeather();
 }));
+
+// Duas and adhkar: the set follows the time of day; counts reset each day and stay on this device
+let dk = { key: null, i: 0, until: null }, dkSig = '';
+let dkStore = {};
+try { dkStore = JSON.parse(localStorage.getItem('iqama-adhkar') || '{}') || {}; } catch (e) {}
+function dkCounts() {
+  const date = `${today.y}-${today.m}-${today.d}`;
+  if (dkStore.date !== date || !dkStore.c || typeof dkStore.c !== 'object') dkStore = { date, c: {} };
+  return dkStore.c;
+}
+const dkItem = () => SETS[dk.key].items[dk.i];
+function renderAdhkar(nowMin) {
+  const pick = pickSet(nowMin, day.rows, day.sunrise, today.weekday), set = SETS[pick.key];
+  if (pick.key !== dk.key) dk = { key: pick.key, i: pick.key === 'general' ? Math.floor(Date.UTC(today.y, today.m - 1, today.d) / 864e5) % set.items.length : 0 };
+  dk.until = pick.until;
+  const it = dkItem(), c = dkCounts()[`${dk.key}.${dk.i}`] || 0, done = it.n > 0 && c >= it.n;
+  const sig = [dk.key, dk.i, dk.until, c, settings.adhkar, settings.translit, settings.arSize].join('|');
+  if (sig === dkSig) return;
+  dkSig = sig;
+  $('adhkar').hidden = !settings.adhkar;
+  $('adhkar').dataset.size = settings.arSize;
+  $('dk-title').textContent = set.title;
+  $('dk-when').textContent = dk.until != null ? `${set.when}, until ${fmt(dk.until)}` : set.when;
+  $('dk-pos').textContent = `${dk.i + 1} of ${set.items.length}`;
+  $('dk-ar').textContent = it.ar;
+  $('dk-ar').hidden = !it.ar;
+  $('dk-tr').textContent = it.tr;
+  $('dk-tr').hidden = !settings.translit || !it.tr;
+  $('dk-en').textContent = it.en;
+  $('dk-src').textContent = it.src;
+  $('dk-count').hidden = !it.n;
+  $('dk-count').classList.toggle('done', done);
+  $('dk-count-big').textContent = done ? 'Done' : String(c);
+  $('dk-count-small').textContent = `of ${it.n}`;
+  $('dk-count').setAttribute('aria-label', done ? `Done, ${it.n} of ${it.n}` : `Count, ${c} of ${it.n}`);
+  $('dk-tr-toggle').textContent = settings.translit ? 'Hide transliteration' : 'Show transliteration';
+  $('dk-tr-toggle').hidden = !it.tr;
+  $('dx-dhikr').hidden = !settings.adhkar;
+  $('dx-ar').textContent = it.ar;
+  $('dx-ar').hidden = !it.ar;
+  $('dx-en').textContent = it.en;
+  $('dx-pos').textContent = `${dk.i + 1} of ${set.items.length}`;
+}
+const stepAdhkar = (by) => { const n = SETS[dk.key].items.length; dk.i = (dk.i + by + n) % n; renderAdhkar(clock(new Date(), place().zone).sec / 60); };
+$('dk-prev').addEventListener('click', () => stepAdhkar(-1));
+$('dk-next').addEventListener('click', () => stepAdhkar(1));
+$('dx-next').addEventListener('click', () => stepAdhkar(1));
+$('dk-count').addEventListener('click', () => {
+  const it = dkItem(), counts = dkCounts(), k = `${dk.key}.${dk.i}`, c = counts[k] || 0;
+  if (c >= it.n) return;
+  counts[k] = c + 1;
+  try { localStorage.setItem('iqama-adhkar', JSON.stringify(dkStore)); } catch (e) {}
+  try { navigator.vibrate?.(c + 1 === it.n ? [30, 60, 30] : 12); } catch (e) {}
+  renderAdhkar(clock(new Date(), place().zone).sec / 60);
+});
+$('dk-tr-toggle').addEventListener('click', () => { settings.translit = !settings.translit; $('set-translit').checked = settings.translit; save(); tick(); });
+$('dk-share').addEventListener('click', () => { const it = dkItem(); share(SETS[dk.key].title, [it.ar, it.tr, it.en, it.src].filter(Boolean).join('\n')); });
+$('set-adhkar').checked = settings.adhkar;
+$('set-translit').checked = settings.translit;
+$('set-arsize').value = settings.arSize;
+$('set-adhkar').addEventListener('change', () => { settings.adhkar = $('set-adhkar').checked; save(); tick(); });
+$('set-translit').addEventListener('change', () => { settings.translit = $('set-translit').checked; save(); tick(); });
+$('set-arsize').addEventListener('change', () => { settings.arSize = $('set-arsize').value; save(); tick(); });
+
+// Keep screen on (Screen Wake Lock); also held while full screen is open. The browser drops it when the app is hidden.
+let lock = null, locking = false, displayOpen = false;
+const wantAwake = () => settings.awake || displayOpen;
+async function updateLock() {
+  if (wantAwake() && !lock && !locking && document.visibilityState === 'visible' && 'wakeLock' in navigator) {
+    locking = true;
+    try {
+      lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', () => { lock = null; syncAwake(); });
+    } catch (e) {
+      say('The screen could not be kept on, for example while battery saver is on.');
+    }
+    locking = false;
+  } else if (!wantAwake() && lock) {
+    lock.release().catch(() => {});
+    lock = null;
+  }
+  syncAwake();
+}
+function syncAwake() {
+  $('awake').setAttribute('aria-pressed', settings.awake);
+  $('awake-label').textContent = settings.awake ? 'Screen stays on' : 'Keep screen on';
+  $('awake-switch').checked = settings.awake;
+  $('dx-awake').hidden = !lock;
+}
+function setAwake(on) {
+  settings.awake = on;
+  save();
+  if (on && !('wakeLock' in navigator)) say('This browser cannot keep the screen on. Try a current Chrome, Edge, Safari or Firefox.');
+  else say(on ? 'The screen stays on while this app is open.' : 'The screen can sleep again.');
+  updateLock();
+}
+$('awake').addEventListener('click', () => setAwake(!settings.awake));
+$('awake-switch').addEventListener('change', () => setAwake($('awake-switch').checked));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') updateLock(); });
+
+// Full screen: the chosen clock scaled to fill the screen, with the adhkar line. iPhone has no full screen for web pages, so it opens in the page.
+function fitDisplay() {
+  const el = $('dx-clock'), box = $('dx-main');
+  el.style.zoom = 1;
+  const r = el.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  let z = Math.max(0.5, Math.min(3, 0.96 * Math.min(box.clientWidth / r.width, box.clientHeight / r.height)));
+  el.style.zoom = z.toFixed(3);
+  // second pass: some clocks (text sized in vw) do not scale exactly with zoom
+  const after = el.getBoundingClientRect(), over = Math.max(after.width / box.clientWidth, after.height / box.clientHeight);
+  if (over > 1) el.style.zoom = Math.max(0.5, z / over * 0.97).toFixed(3);
+}
+let cursorTimer = 0;
+function wakeCursor() {
+  $('display').classList.remove('idle');
+  clearTimeout(cursorTimer);
+  cursorTimer = setTimeout(() => $('display').classList.add('idle'), 3000);
+}
+async function openDisplay() {
+  displayOpen = true;
+  $('display').hidden = false;
+  dkSig = '';
+  tick();
+  requestAnimationFrame(fitDisplay);
+  wakeCursor();
+  try { if ($('display').requestFullscreen && !document.fullscreenElement) await $('display').requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
+  updateLock();
+  $('dx-exit').focus();
+}
+function closeDisplay() {
+  if (!displayOpen) return;
+  displayOpen = false;
+  $('display').hidden = true;
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  updateLock();
+  $('fullscreen').focus();
+}
+$('fullscreen').addEventListener('click', openDisplay);
+$('dx-exit').addEventListener('click', closeDisplay);
+document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) requestAnimationFrame(fitDisplay); else closeDisplay(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && displayOpen) closeDisplay(); });
+addEventListener('resize', () => { if (displayOpen) fitDisplay(); });
+$('display').addEventListener('pointermove', wakeCursor);
 
 // Install and offline
 let installEvent = null;
@@ -476,11 +664,13 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 
 // Start with calculated times at once, then fill in ISCJ's iqama times and the weather when they arrive
 save();
+route();
 buildForm();
 buildAlerts();
 syncSound();
 syncMode();
 tick();
+updateLock();
 setInterval(tick, 1000);
 loadWeather();
 setInterval(loadWeather, 30 * 60 * 1000);

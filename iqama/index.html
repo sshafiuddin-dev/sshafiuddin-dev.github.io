@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
     <!-- shares the portfolio's tokens, type and buttons -->
     <link rel="stylesheet" href="../style.css">
+    <!-- daisyUI components, built once (see ../scripts/daisy) and committed, so the site needs no build step -->
+    <link rel="stylesheet" href="daisy.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -25,12 +27,9 @@
     <div class="app iqama">
         <nav class="tabbar" aria-label="Sections">
             <svg class="brand" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" class="brand-bg"/><rect x="5" y="5" width="6" height="6" rx="1" class="brand-sq"/><rect x="13" y="13" width="6" height="6" rx="1" class="brand-sq"/><rect x="21" y="21" width="6" height="6" rx="1" class="brand-accent"/></svg>
-            <a href="#today"><span class="tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"/></svg></span>Today</a>
-            <a href="#weather"><span class="tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z"/></svg></span>Weather</a>
-            <a href="#alerts"><span class="tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>Alerts</a>
-            <a href="#month"><span class="tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 10h16M8 3v4M16 3v4"/></svg></span>Month</a>
-            <a href="#settings"><span class="tab-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4"/></svg></span>Settings</a>
+            <ul class="d-menu"><li><a href="#today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"/></svg><span>Today</span></a></li><li><a href="#weather"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z"/></svg><span>Weather</span></a></li><li><a href="#alerts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Alerts</span></a></li><li><a href="#month"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 10h16M8 3v4M16 3v4"/></svg><span>Month</span></a></li><li><a href="#settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4"/></svg><span>Settings</span></a></li></ul>
         </nav>
+        <nav class="dockbar d-dock d-dock-sm" aria-label="Sections"><a href="#today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"/></svg><span class="d-dock-label">Today</span></a><a href="#weather"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z"/></svg><span class="d-dock-label">Weather</span></a><a href="#alerts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="d-dock-label">Alerts</span></a><a href="#month"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 10h16M8 3v4M16 3v4"/></svg><span class="d-dock-label">Month</span></a><a href="#settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4"/></svg><span class="d-dock-label">Settings</span></a></nav>
 
         <div class="view">
             <header class="topbar">
@@ -44,12 +43,12 @@
                     </p>
                 </div>
                 <div class="topbar-actions">
-                    <button class="pill" type="button" id="install" hidden>Install app</button>
-                    <button class="pill" type="button" id="awake" aria-pressed="false">
+                    <button class="d-btn d-btn-sm tb-btn" type="button" id="install" hidden>Install app</button>
+                    <button class="d-btn d-btn-sm d-btn-outline tb-btn" type="button" id="awake" aria-pressed="false">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>
                         <span id="awake-label">Keep screen on</span>
                     </button>
-                    <button class="pill pill-strong" type="button" id="fullscreen">
+                    <button class="d-btn d-btn-sm d-btn-primary tb-btn" type="button" id="fullscreen">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
                         <span>Full screen</span>
                     </button>
@@ -60,9 +59,9 @@
                 <section class="iq-ask" id="ask" aria-label="Choose your location" hidden>
                     <p>Showing times for ISCJ in Monmouth Junction, NJ. Somewhere else? Set your location for your own adhan times.</p>
                     <div class="iq-fields">
-                        <button class="btn btn-small btn-primary" type="button" id="ask-here">Use my location</button>
-                        <button class="btn btn-small" type="button" id="ask-search">Search for a city</button>
-                        <button class="btn btn-small" type="button" id="ask-iscj">Keep ISCJ</button>
+                        <button class="d-btn d-btn-sm d-btn-primary" type="button" id="ask-here">Use my location</button>
+                        <button class="d-btn d-btn-sm" type="button" id="ask-search">Search for a city</button>
+                        <button class="d-btn d-btn-sm" type="button" id="ask-iscj">Keep ISCJ</button>
                     </div>
                 </section>
                 <div class="today-grid">
@@ -83,10 +82,9 @@
                         <p class="dk-tr" id="dk-tr"></p>
                         <p class="dk-en" id="dk-en"></p>
                         <div class="dk-foot">
-                            <button class="dk-count" type="button" id="dk-count"><strong id="dk-count-big"></strong><span id="dk-count-small"></span></button>
+                            <button class="dk-count d-radial-progress" type="button" id="dk-count" style="--value:0"><strong id="dk-count-big"></strong><span id="dk-count-small"></span></button>
                             <span class="dk-src" id="dk-src"></span>
-                            <button class="btn btn-small" type="button" id="dk-prev">Previous</button>
-                            <button class="btn btn-small btn-primary" type="button" id="dk-next">Next</button>
+                            <div class="d-join"><button class="d-btn d-btn-sm d-join-item" type="button" id="dk-prev">Previous</button><button class="d-btn d-btn-sm d-btn-primary d-join-item" type="button" id="dk-next">Next</button></div>
                         </div>
                         <div class="dk-links">
                             <button class="link-btn" type="button" id="dk-tr-toggle"></button>
@@ -94,15 +92,15 @@
                         </div>
                     </section>
                     <div class="iq-actions">
-                        <button class="btn btn-small" type="button" id="share-day">Share today’s times</button>
+                        <button class="d-btn d-btn-sm" type="button" id="share-day">Share today’s times</button>
                     </div>
                 </div>
             </main>
 
             <main class="tab" id="tab-weather" aria-labelledby="tab-title" hidden>
-                <div class="wx-units" role="group" aria-label="Temperature unit">
-                    <button class="btn btn-small" type="button" data-unit="F" aria-pressed="false">°F</button>
-                    <button class="btn btn-small" type="button" data-unit="C" aria-pressed="false">°C</button>
+                <div class="wx-units d-join" role="group" aria-label="Temperature unit">
+                    <button class="d-btn d-btn-sm d-join-item" type="button" data-unit="F" aria-pressed="false">°F</button>
+                    <button class="d-btn d-btn-sm d-join-item" type="button" data-unit="C" aria-pressed="false">°C</button>
                 </div>
                 <div id="wx-body"></div>
                 <p class="iq-note" id="wx-updated"></p>
@@ -110,21 +108,21 @@
 
             <main class="tab" id="tab-alerts" aria-labelledby="tab-title" hidden>
                 <div class="iq-fields al-top">
-                    <button class="btn btn-small" type="button" id="alerts-toggle" aria-pressed="true">Alerts: on</button>
+                    <label class="al-switch"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="alerts-toggle" checked><span id="alerts-label">Alerts: on</span></label>
                     <p class="iq-note">Alerts work while this app is open. Browsers need one tap on the page before they play sound.</p>
                 </div>
                 <div class="iq-fields">
                     <label for="adhan">Adhan recording</label>
-                    <select id="adhan"></select>
+                    <select class="d-select" id="adhan"></select>
                     <label for="fajr-adhan">Fajr adhan</label>
-                    <select id="fajr-adhan"></select>
+                    <select class="d-select" id="fajr-adhan"></select>
                 </div>
                 <div class="iq-fields">
-                    <span class="iq-label">Hear</span>
-                    <button class="btn btn-small" type="button" data-try="adhan">Adhan</button>
-                    <button class="btn btn-small" type="button" data-try="fajr-adhan">Fajr adhan</button>
-                    <button class="btn btn-small" type="button" data-try="beep">Soft beep</button>
-                    <button class="btn btn-small" type="button" data-try="bismillah">Bismillah</button>
+                    <span class="iq-label">Hear a sample</span>
+                    <button class="d-btn d-btn-sm d-btn-soft d-btn-primary" type="button" data-try="adhan">Adhan</button>
+                    <button class="d-btn d-btn-sm d-btn-soft d-btn-primary" type="button" data-try="fajr-adhan">Fajr adhan</button>
+                    <button class="d-btn d-btn-sm d-btn-soft d-btn-primary" type="button" data-try="beep">Soft beep</button>
+                    <button class="d-btn d-btn-sm d-btn-soft d-btn-primary" type="button" data-try="bismillah">Bismillah</button>
                 </div>
                 <div class="al-grid" id="alert-cards"></div>
             </main>
@@ -132,7 +130,7 @@
             <main class="tab tab-fill" id="tab-month" aria-labelledby="tab-title" hidden>
                 <div class="iq-fields month-top">
                     <p class="iq-note">Adhan times for the month. Iqama times are shown for today only.</p>
-                    <button class="btn btn-small" type="button" id="share-month">Share this month</button>
+                    <button class="d-btn d-btn-sm" type="button" id="share-month">Share this month</button>
                 </div>
                 <div class="table-scroll month-scroll">
                     <table id="month">
@@ -143,30 +141,30 @@
             </main>
 
             <main class="tab" id="tab-settings" aria-labelledby="tab-title" hidden>
-                <div class="segmented" role="tablist" aria-label="Settings">
-                    <button type="button" role="tab" data-sub="location" id="st-location" aria-controls="sub-location">Location</button>
-                    <button type="button" role="tab" data-sub="iqama" id="st-iqama" aria-controls="sub-iqama">Iqama times</button>
-                    <button type="button" role="tab" data-sub="display" id="st-display" aria-controls="sub-display">Display</button>
-                    <button type="button" role="tab" data-sub="about" id="st-about" aria-controls="sub-about">About</button>
+                <div class="seg d-tabs d-tabs-box" role="tablist" aria-label="Settings">
+                    <button type="button" role="tab" class="d-tab" data-sub="location" id="st-location" aria-controls="sub-location">Location</button>
+                    <button type="button" role="tab" class="d-tab" data-sub="iqama" id="st-iqama" aria-controls="sub-iqama">Iqama times</button>
+                    <button type="button" role="tab" class="d-tab" data-sub="display" id="st-display" aria-controls="sub-display">Display</button>
+                    <button type="button" role="tab" class="d-tab" data-sub="about" id="st-about" aria-controls="sub-about">About</button>
                 </div>
 
                 <section class="sub-pane" id="sub-location" role="tabpanel" aria-labelledby="st-location">
                     <p class="iq-note">Adhan times are calculated for <strong id="place-name"></strong>. ISCJ iqama times are used within 40 km (25 miles) of the masjid; anywhere else you set your own.</p>
                     <form class="iq-fields" id="search-form" role="search">
                         <label for="search">City or town</label>
-                        <input id="search" type="search" placeholder="For example, Edison" autocomplete="off">
-                        <button class="btn btn-small" type="submit">Search</button>
+                        <input class="d-input" id="search" type="search" placeholder="For example, Edison" autocomplete="off">
+                        <button class="d-btn d-btn-sm" type="submit">Search</button>
                     </form>
                     <ul class="iq-results" id="results"></ul>
                     <div class="iq-fields">
-                        <button class="btn btn-small" type="button" id="use-here">Use my location</button>
-                        <button class="btn btn-small" type="button" id="use-iscj">Use ISCJ</button>
+                        <button class="d-btn d-btn-sm" type="button" id="use-here">Use my location</button>
+                        <button class="d-btn d-btn-sm" type="button" id="use-iscj">Use ISCJ</button>
                     </div>
                     <div class="iq-fields">
                         <label for="method">Method</label>
-                        <select id="method"></select>
+                        <select class="d-select" id="method"></select>
                         <label for="asr">Asr</label>
-                        <select id="asr"><option value="Standard">Standard</option><option value="Hanafi">Hanafi (later Asr)</option></select>
+                        <select class="d-select" id="asr"><option value="Standard">Standard</option><option value="Hanafi">Hanafi (later Asr)</option></select>
                     </div>
                 </section>
 
@@ -176,27 +174,34 @@
                 </section>
 
                 <section class="sub-pane" id="sub-display" role="tabpanel" aria-labelledby="st-display" hidden>
-                    <div class="iq-fields">
-                        <label for="clock-style">Clock style</label>
-                        <select id="clock-style"></select>
+                    <div class="set-group" role="radiogroup" aria-labelledby="lbl-clock">
+                        <span class="iq-label" id="lbl-clock">Clock style</span>
+                        <div class="ck-picker" id="clock-style"></div>
                     </div>
-                    <div class="iq-fields">
-                        <label for="palette">Theme</label>
-                        <select id="palette"></select>
-                        <label for="mode">Light or dark</label>
-                        <select id="mode"><option value="auto">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select>
+                    <div class="set-group" role="radiogroup" aria-labelledby="lbl-theme">
+                        <span class="iq-label" id="lbl-theme">Theme</span>
+                        <div class="sw-picker" id="palette"></div>
                     </div>
+                    <fieldset class="set-group" id="mode">
+                        <legend class="iq-label">Light or dark</legend>
+                        <div class="d-join">
+                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="mode" value="auto" aria-label="Match my device">
+                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="mode" value="light" aria-label="Light">
+                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="mode" value="dark" aria-label="Dark">
+                        </div>
+                    </fieldset>
                     <p class="iq-note" id="mode-note"></p>
                     <div class="iq-fields">
-                        <label class="check"><input type="checkbox" id="set-adhkar"> Show duas and adhkar</label>
-                        <label class="check"><input type="checkbox" id="set-translit"> Show transliteration</label>
+                        <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="set-adhkar"> Show duas and adhkar</label>
+                        <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="set-translit"> Show transliteration</label>
+                    </div>
+                    <div class="set-group">
+                        <label class="iq-label" for="set-arsize">Arabic text size</label>
+                        <input class="d-range d-range-success d-range-sm" id="set-arsize" type="range" min="0" max="2" step="1" aria-valuetext="Medium">
+                        <div class="range-ends" aria-hidden="true"><span>Small</span><span>Medium</span><span>Large</span></div>
                     </div>
                     <div class="iq-fields">
-                        <label for="set-arsize">Arabic text size</label>
-                        <select id="set-arsize"><option value="s">Small</option><option value="m">Medium</option><option value="l">Large</option></select>
-                    </div>
-                    <div class="iq-fields">
-                        <label class="check"><input type="checkbox" role="switch" id="awake-switch"> Keep screen on while the app is open</label>
+                        <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="awake-switch"> Keep screen on while the app is open</label>
                     </div>
                 </section>
 
@@ -204,7 +209,7 @@
                     <a class="back-link" id="back" href="/" hidden>Back to portfolio</a>
                     <p>Iqama Times shows prayer and iqama times with a live clock, adhkar, alerts and weather. Your settings stay on this device.</p>
                     <div class="iq-fields">
-                        <button class="btn btn-small" type="button" id="share-app">Share the app</button>
+                        <button class="d-btn d-btn-sm" type="button" id="share-app">Share the app</button>
                     </div>
                     <div class="iq-credits">
                         <p>Iqama times near ISCJ come from <a href="https://iscj.org/#prayer-times">iscj.org</a>. Check with the masjid before relying on them.</p>
@@ -223,14 +228,14 @@
             <p class="dx-meta"><span id="dx-date"></span> <span id="dx-place"></span></p>
             <div class="dx-actions">
                 <span class="dx-awake" id="dx-awake" hidden><span class="dx-dot"></span>Screen stays on</span>
-                <button class="pill" type="button" id="dx-exit">Exit full screen</button>
+                <button class="d-btn d-btn-sm d-btn-outline" type="button" id="dx-exit">Exit full screen</button>
             </div>
         </div>
         <div class="dx-main" id="dx-main"><div class="ck-area dx-clock" id="dx-clock" role="timer"></div></div>
         <div class="dx-dhikr" id="dx-dhikr">
             <p class="dx-ar" lang="ar" dir="rtl" id="dx-ar"></p>
             <p class="dx-en" id="dx-en"></p>
-            <button class="pill" type="button" id="dx-next">Next <span id="dx-pos"></span></button>
+            <button class="d-btn d-btn-sm d-btn-outline" type="button" id="dx-next">Next <span id="dx-pos"></span></button>
         </div>
     </div>
 

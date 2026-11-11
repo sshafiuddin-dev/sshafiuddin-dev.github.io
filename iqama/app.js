@@ -223,8 +223,11 @@ function route() {
   const h = location.hash.slice(1);
   tab = TAB_IDS.includes(h) ? h : 'today';
   for (const id of TAB_IDS) $(`tab-${id}`).hidden = id !== tab;
-  document.querySelectorAll('.tabbar a').forEach(a => {
-    if (a.getAttribute('href') === `#${tab}`) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  document.querySelectorAll('.tabbar a, .dockbar a').forEach(a => {
+    const on = a.getAttribute('href') === `#${tab}`;
+    if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    a.classList.toggle('d-menu-active', on && !!a.closest('.tabbar'));
+    a.classList.toggle('d-dock-active', on && !!a.closest('.dockbar'));
   });
   $('tab-title').textContent = tab === 'month' ? monthTitle() : TITLES[tab];
   document.querySelectorAll('[data-sub]').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === sub));
@@ -261,8 +264,8 @@ $('share-app').addEventListener('click', () => share('Iqama Times', 'Prayer and 
 let audio = null;
 const playing = () => !!audio && !audio.paused && !audio.ended;
 function syncSound() {
-  $('alerts-toggle').textContent = playing() ? 'Stop sound' : `Alerts: ${settings.muted ? 'off' : 'on'}`;
-  $('alerts-toggle').setAttribute('aria-pressed', !settings.muted);
+  $('alerts-label').textContent = playing() ? 'Stop sound' : `Alerts: ${settings.muted ? 'off' : 'on'}`;
+  $('alerts-toggle').checked = !settings.muted;
 }
 function play(file) {
   if (audio) audio.pause();
@@ -275,8 +278,8 @@ function play(file) {
     document.addEventListener('pointerdown', () => audio.play().then(syncSound, () => {}), { once: true });
   });
 }
-$('alerts-toggle').addEventListener('click', () => {
-  if (playing()) return audio.pause();
+$('alerts-toggle').addEventListener('click', (e) => {
+  if (playing()) { e.preventDefault(); return audio.pause(); }
   settings.muted = !settings.muted;
   save();
   syncSound();
@@ -298,15 +301,31 @@ document.querySelectorAll('[data-try]').forEach(b => b.addEventListener('click',
 const typeOptions = (types, sel) => types.map(t => `<option value="${t}"${t === sel ? ' selected' : ''}>${ALERT_TYPES[t]}</option>`).join('');
 function alertCard(k) {
   const a = settings.alerts[k], id = (part) => `al-${k}-${part}`, name = k === 'jumuah' ? 'Jumu’ah' : NAMES[k];
-  const step = (part, label) => `<div class="al-row"><label for="${id(`${part}-type`)}">${label}</label><select id="${id(`${part}-type`)}" data-k="${k}">${typeOptions(SHORT_TYPES, a[part].type)}</select>`
-    + `<span class="al-min"><input type="number" id="${id(`${part}-min`)}" data-k="${k}" min="1" max="60" step="1" inputmode="numeric" value="${a[part].min}" aria-label="${name}, ${label.toLowerCase()}, minutes"><span>min</span></span></div>`;
+  const step = (part, label) => `<div class="al-row"><label for="${id(`${part}-type`)}">${label}</label><select class="d-select d-select-sm" id="${id(`${part}-type`)}" data-k="${k}">${typeOptions(SHORT_TYPES, a[part].type)}</select>`
+    + `<span class="al-min"><input class="d-input d-input-sm" type="number" id="${id(`${part}-min`)}" data-k="${k}" min="1" max="60" step="1" inputmode="numeric" value="${a[part].min}" aria-label="${name}, ${label.toLowerCase()}, minutes"><span>min</span></span></div>`;
   const body = k === 'jumuah'
-    ? `${step('before', 'Before khutbah')}<div class="al-row"><label for="${id('time')}">Khutbah time</label><input type="time" id="${id('time')}" data-k="${k}" value="${a.time ? a.time.padStart(5, '0') : ''}"></div><p class="al-note" id="al-jumuah-note"></p>`
-    : `<div class="al-row"><label for="${id('adhan')}">At adhan</label><select id="${id('adhan')}" data-k="${k}">${typeOptions(Object.keys(ALERT_TYPES), a.adhan)}</select></div>`
-      + `${step('before', 'Before adhan')}${step('iqama', 'Before iqama')}<button class="link-btn al-copy" type="button" data-copy="${k}">Use for all prayers</button>`;
-  return `<fieldset class="al-card" id="${id('card')}"${a.on ? '' : ' disabled'}><legend><input type="checkbox" id="${id('on')}" data-k="${k}"${a.on ? ' checked' : ''}><label for="${id('on')}">${name}</label></legend>${body}</fieldset>`;
+    ? `${step('before', 'Before khutbah')}<div class="al-row"><label for="${id('time')}">Khutbah time</label><input class="d-input d-input-sm" type="time" id="${id('time')}" data-k="${k}" value="${a.time ? a.time.padStart(5, '0') : ''}"></div><p class="al-note" id="al-jumuah-note"></p>`
+    : `<div class="al-row"><label for="${id('adhan')}">At adhan</label><select class="d-select d-select-sm" id="${id('adhan')}" data-k="${k}">${typeOptions(Object.keys(ALERT_TYPES), a.adhan)}</select></div>`
+      + `${step('before', 'Before adhan')}${step('iqama', 'Before iqama')}<button class="d-btn d-btn-sm d-btn-ghost al-copy" type="button" data-copy="${k}">Use for all prayers</button>`;
+  return `<div class="al-card d-collapse d-collapse-arrow" id="${id('card')}"><input type="checkbox" class="al-open" aria-label="Show ${name} settings">`
+    + `<div class="d-collapse-title al-title"><input class="d-toggle d-toggle-success d-toggle-sm" type="checkbox" role="switch" id="${id('on')}" data-k="${k}" aria-label="${name} alerts"${a.on ? ' checked' : ''}><span class="al-name">${name}</span><span class="al-sum" id="${id('sum')}">${alertSummary(k, a)}</span></div>`
+    + `<div class="d-collapse-content al-body">${body}</div></div>`;
 }
-function buildAlerts() { $('alert-cards').innerHTML = ALERT_KEYS.map(alertCard).join(''); jumuahNote(); }
+// A short line that sums up a card, so it is readable while folded
+function alertSummary(k, a) {
+  if (!a.on) return 'Off';
+  const parts = k === 'jumuah' ? [] : [ALERT_TYPES[a.adhan]];
+  if (a.before.type !== 'off') parts.push(`${a.before.min} min before ${k === 'jumuah' ? 'khutbah' : 'adhan'}`);
+  if (k !== 'jumuah' && a.iqama.type !== 'off') parts.push(`${a.iqama.min} min before iqama`);
+  return parts.join(', ') || 'No alerts';
+}
+function syncCard(k) {
+  const a = settings.alerts[k], card = $(`al-${k}-card`);
+  card.classList.toggle('is-off', !a.on);
+  card.querySelectorAll('.al-body select, .al-body input, .al-body button').forEach(el => { el.disabled = !a.on; });
+  $(`al-${k}-sum`).textContent = alertSummary(k, a);
+}
+function buildAlerts() { $('alert-cards').innerHTML = ALERT_KEYS.map(alertCard).join(''); ALERT_KEYS.forEach(syncCard); jumuahNote(); }
 function jumuahNote() {
   const el = $('al-jumuah-note');
   if (!el) return;
@@ -320,12 +339,12 @@ $('alert-cards').addEventListener('change', (e) => {
   const v = (part) => $(`al-${k}-${part}`), a = settings.alerts[k];
   const mins = (part, old) => { const n = Math.round(+v(part).value); if (n >= 1 && n <= 60) return n; say('Alert minutes must be between 1 and 60.'); v(part).value = old; return old; };
   a.on = v('on').checked;
-  v('card').disabled = !a.on;
   a.before = { type: v('before-type').value, min: mins('before-min', a.before.min) };
   if (k === 'jumuah') a.time = parseHM(v('time').value) != null ? v('time').value : null;
   else { a.adhan = v('adhan').value; a.iqama = { type: v('iqama-type').value, min: mins('iqama-min', a.iqama.min) }; }
   settings.alerts[k] = cleanAlert(k, a);
   save();
+  syncCard(k);
   jumuahNote();
   try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (err) {}
 });
@@ -365,12 +384,12 @@ function buildForm() {
   $('iqama-form').innerHTML = PRAYERS.map(k => `
     <div class="iq-rule">
       <label for="mode-${k}">${NAMES[k]}</label>
-      <select id="mode-${k}" data-k="${k}">
+      <select class="d-select d-select-sm" id="mode-${k}" data-k="${k}">
         <option value="masjid">${nearby ? 'ISCJ time' : 'Not set'}</option><option value="time">Fixed time</option><option value="offset">Minutes after adhan</option>
       </select>
-      <input type="time" id="time-${k}" data-k="${k}" aria-label="${NAMES[k]} iqama time" hidden>
-      <input type="number" id="offset-${k}" data-k="${k}" min="0" max="180" step="1" inputmode="numeric" aria-label="${NAMES[k]} iqama, minutes after adhan" hidden>
-    </div>`).join('') + `<button class="btn btn-small" type="button" id="iqama-reset">${nearby ? 'Use ISCJ times for all' : 'Clear all'}</button>`;
+      <input class="d-input d-input-sm" type="time" id="time-${k}" data-k="${k}" aria-label="${NAMES[k]} iqama time" hidden>
+      <input class="d-input d-input-sm" type="number" id="offset-${k}" data-k="${k}" min="0" max="180" step="1" inputmode="numeric" aria-label="${NAMES[k]} iqama, minutes after adhan" hidden>
+    </div>`).join('') + `<button class="d-btn d-btn-sm" type="button" id="iqama-reset">${nearby ? 'Use ISCJ times for all' : 'Clear all'}</button>`;
   $('iqama-reset').addEventListener('click', () => { settings.iqama = {}; save(); fillForm(); loadDay(today); });
   fillForm();
 }
@@ -450,7 +469,7 @@ $('search-form').addEventListener('submit', async (e) => {
     for (const h of hits) {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'btn btn-small';
+      b.className = 'd-btn d-btn-sm';
       b.textContent = [h.name, h.admin1, h.country].filter(v => typeof v === 'string' && v).join(', ');
       b.addEventListener('click', () => setPlace({
         lat: +h.latitude.toFixed(3), lng: +h.longitude.toFixed(3),
@@ -474,16 +493,26 @@ $('method').addEventListener('change', () => { settings.method = $('method').val
 $('asr').addEventListener('change', () => { settings.asr = $('asr').value; recalc(); });
 
 // Clock style and theme
-fillSelect('clock-style', CLOCKS, settings.clock);
-fillSelect('palette', PALETTES, settings.palette);
-$('mode').value = settings.mode;
+// decorative swatches: the theme's dark paper beside its accent
+const SWATCH = { petrol: ['#0B2A33', '#5BD6B8'], green: ['#0B2219', '#D9B657'], dusk: ['#1A1830', '#5ED6D0'], night: ['#000000', '#E8A33D'], contrast: ['#000000', '#FFFFFF'] };
+function fillPicker(id, map, current, label, onPick) {
+  const box = $(id);
+  box.innerHTML = Object.entries(map).map(([k, name]) => `<button type="button" role="radio" data-v="${k}" aria-checked="${k === current}" ${label(k, name)}</button>`).join('');
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    box.querySelectorAll('button').forEach(x => x.setAttribute('aria-checked', x === b));
+    onPick(b.dataset.v);
+  });
+}
+fillPicker('clock-style', CLOCKS, settings.clock, (k, name) => `class="d-btn d-btn-sm">${name}`, (v) => { settings.clock = v; save(); applyLook(); tick(); });
+fillPicker('palette', PALETTES, settings.palette, (k, name) => `class="swatch" style="--a:${SWATCH[k][0]};--b:${SWATCH[k][1]}" aria-label="${name}" title="${name}">`, (v) => { settings.palette = v; save(); applyLook(); syncMode(); });
+const modeInputs = document.querySelectorAll('input[name="mode"]');
 function syncMode() {
-  $('mode').disabled = settings.palette === 'night';
+  modeInputs.forEach(r => { r.checked = r.value === settings.mode; r.disabled = settings.palette === 'night'; });
   $('mode-note').textContent = settings.palette === 'night' ? 'Night is always dark, for low glare.' : '';
 }
-$('clock-style').addEventListener('change', () => { settings.clock = $('clock-style').value; save(); applyLook(); tick(); });
-$('palette').addEventListener('change', () => { settings.palette = $('palette').value; save(); applyLook(); syncMode(); });
-$('mode').addEventListener('change', () => { settings.mode = $('mode').value; save(); applyLook(); });
+modeInputs.forEach(r => r.addEventListener('change', () => { settings.mode = r.value; save(); applyLook(); }));
 
 // Weather, for the header, the backdrop and the Weather panel; the page works the same without it
 async function loadWeather() {
@@ -544,6 +573,7 @@ function renderAdhkar(nowMin) {
   $('dk-src').textContent = it.src;
   $('dk-count').hidden = !it.n;
   $('dk-count').classList.toggle('done', done);
+  $('dk-count').style.setProperty('--value', it.n ? Math.round(100 * Math.min(c, it.n) / it.n) : 0);
   $('dk-count-big').textContent = done ? 'Done' : String(c);
   $('dk-count-small').textContent = `of ${it.n}`;
   $('dk-count').setAttribute('aria-label', done ? `Done, ${it.n} of ${it.n}` : `Count, ${c} of ${it.n}`);
@@ -571,10 +601,12 @@ $('dk-tr-toggle').addEventListener('click', () => { settings.translit = !setting
 $('dk-share').addEventListener('click', () => { const it = dkItem(); share(SETS[dk.key].title, [it.ar, it.tr, it.en, it.src].filter(Boolean).join('\n')); });
 $('set-adhkar').checked = settings.adhkar;
 $('set-translit').checked = settings.translit;
-$('set-arsize').value = settings.arSize;
+const AR_SIZES = ['s', 'm', 'l'], AR_NAMES = ['Small', 'Medium', 'Large'];
+$('set-arsize').value = AR_SIZES.indexOf(settings.arSize);
+$('set-arsize').setAttribute('aria-valuetext', AR_NAMES[AR_SIZES.indexOf(settings.arSize)]);
 $('set-adhkar').addEventListener('change', () => { settings.adhkar = $('set-adhkar').checked; save(); tick(); });
 $('set-translit').addEventListener('change', () => { settings.translit = $('set-translit').checked; save(); tick(); });
-$('set-arsize').addEventListener('change', () => { settings.arSize = $('set-arsize').value; save(); tick(); });
+$('set-arsize').addEventListener('input', () => { const i = +$('set-arsize').value; settings.arSize = AR_SIZES[i]; $('set-arsize').setAttribute('aria-valuetext', AR_NAMES[i]); save(); tick(); });
 
 // Keep screen on (Screen Wake Lock); also held while full screen is open. The browser drops it when the app is hidden.
 let lock = null, locking = false, displayOpen = false;

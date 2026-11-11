@@ -22,7 +22,7 @@ const MODES = ['auto', 'light', 'dark'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
   clock: 'board', palette: 'petrol', mode: 'auto', units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
-  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto',
+  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxNight: false,
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -47,6 +47,7 @@ settings.adhkar = settings.adhkar !== false;
 settings.translit = settings.translit !== false;
 if (!['s', 'm', 'l'].includes(settings.arSize)) settings.arSize = DEFAULTS.arSize;
 settings.awake = settings.awake === true;
+settings.dxNight = settings.dxNight === true;
 if (!['auto', 'times', 'full'].includes(settings.dxLayout)) settings.dxLayout = DEFAULTS.dxLayout;
 
 // Alerts for each prayer and for Jumu'ah
@@ -703,6 +704,12 @@ function closeDisplay() {
 }
 $('fullscreen').addEventListener('click', openDisplay);
 $('dx-exit').addEventListener('click', closeDisplay);
+function applyNight() {
+  $('display').dataset.night = settings.dxNight ? 'on' : 'off';
+  $('dx-night').setAttribute('aria-pressed', String(settings.dxNight));
+}
+$('dx-night').addEventListener('click', () => { settings.dxNight = !settings.dxNight; save(); applyNight(); });
+applyNight();
 document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) requestAnimationFrame(fitDisplay); else closeDisplay(); });
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && displayOpen) closeDisplay(); });
 addEventListener('resize', () => { if (displayOpen) { applyLayout(); fitDisplay(); } });

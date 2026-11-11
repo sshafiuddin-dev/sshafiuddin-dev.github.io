@@ -445,3 +445,6 @@ body { overflow: hidden; }
   .tm-time { justify-content: center; }
   .tm-hm { font-size: calc(var(--u) * 24); }
 }
+
+/* Full screen night mode: dim amber on black, whatever look is chosen for the day */
+.display[data-night="on"] { --paper: #000; --surface: #0C0905; --ink: #C48A3A; --muted: #9A8057; --line: #2A2216; --clear: #D9973A; }

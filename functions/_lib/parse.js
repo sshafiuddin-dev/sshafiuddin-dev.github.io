@@ -11,7 +11,7 @@ const PRAYERS = [
 const two = (n) => String(n).padStart(2, '0');
 
 export function parse(html) {
-  const text = html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/\s+/g, ' ');
+  const text = html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&(?:rsquo|lsquo|apos|#8217|#8216|#0*39|#x27);/gi, "'").replace(/\s+/g, ' ');
   const iqama = {};
   for (const [key, name, afternoon, min, max] of PRAYERS) {
     // the page reads "<prayer> <start time> Iqama <time>", with "On Time" for Maghrib

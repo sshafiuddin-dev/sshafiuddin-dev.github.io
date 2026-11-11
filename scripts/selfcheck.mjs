@@ -28,6 +28,7 @@ assert.deepEqual(parse(page), { iqama: { fajr: '05:45', dhuhr: '12:30', asr: '14
   const [s3] = await handle('https://x.test/api/iqama', { match: async () => undefined, put: async () => {} }, get, 1e6).then(async r => [r.status]);
   assert.equal(s3, 502, 'no copy and no iscj.org is an error');
 }
+for (const q of ['&#8217;', '&rsquo;', '&#039;']) assert.deepEqual(parse(page.replace("Jumu'ah", `Jumu${q}ah`)).jumuah, ['12:00', '13:10'], `apostrophe written as ${q}`);
 assert.deepEqual(parse(`<a>Jumu'ah</a><p>Friday Jumu&rsquo;ah prayer with a weekly khutbah</p>` + page).jumuah, ['12:00', '13:10'], 'menu mentions of Jumuah come first');
 assert.equal(parse(page.replace('Iqama</i>&nbsp;12:30', 'Iqama</i> 11:45')).iqama.dhuhr, '11:45');
 assert.throws(() => parse(page.replace('Iqama 8:00', '')), /isha/);

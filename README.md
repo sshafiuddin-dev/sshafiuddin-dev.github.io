@@ -3,7 +3,7 @@
 Personal portfolio and project hub hosted on GitHub Pages.
 
 ## Live Site
-https://sshafiuddin-dev.github.io
+https://sshafiuddin.pages.dev (the old github.io address redirects here)
 
 ## Structure
 

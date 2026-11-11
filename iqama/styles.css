@@ -416,12 +416,10 @@ body { overflow: hidden; }
 }
 
 /* Full screen, times only (small screens): time, weather, current prayer, iqama and the countdown */
-.dx-small, .dx-wx { display: none; }
+.dx-small { display: none; }
 .display[data-layout="times"] { grid-template-rows: auto minmax(0, 1fr); }
 .display[data-layout="times"] .dx-main, .display[data-layout="times"] .dx-dhikr { display: none; }
 .display[data-layout="times"] .dx-small { display: block; container-type: size; min-height: 0; }
-.display[data-layout="times"] .dx-wx { display: block; color: var(--ink); font-size: max(1.1rem, 1.6vw); font-weight: 600; margin: 0; }
-.display[data-layout="times"] .dx-wx[hidden] { display: none; }
 .display[data-layout="times"] .dx-meta { font-size: max(1rem, 1.3vw); }
 .tm { --u: min(1cqw, 2cqh); height: 100cqh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: calc(var(--u) * 3); }
 .tm p { margin: 0; }
@@ -441,10 +439,16 @@ body { overflow: hidden; }
 .tm-bar { height: calc(var(--u) * 1.2); min-height: .5rem; background: var(--line); border-radius: 99px; overflow: hidden; }
 .tm-bar span { display: block; height: 100%; background: var(--clear); border-radius: inherit; }
 @media (orientation: portrait) {
-  .tm { --u: min(1cqw, .65cqh); grid-template-columns: minmax(0, 1fr); align-content: center; justify-items: stretch; gap: calc(var(--u) * 4); }
+  .tm { --u: min(1cqw, .65cqh); grid-template-columns: minmax(0, 1fr); align-content: center; justify-items: stretch; gap: calc(var(--u) * 3); }
   .tm-time { justify-content: center; }
   .tm-hm { font-size: calc(var(--u) * 24); }
 }
 
 /* Full screen night mode: dim amber on black, whatever look is chosen for the day */
 .display[data-night="on"] { --paper: #000; --surface: #0C0905; --ink: #C48A3A; --muted: #9A8057; --line: #2A2216; --clear: #D9973A; }
+.tm-left { display: grid; gap: calc(var(--u) * 3); min-width: 0; }
+.tm-wx { display: grid; gap: calc(var(--u) * 1.5); }
+.tm-temp { display: flex; align-items: baseline; gap: calc(var(--u) * 1.5); font-size: max(2rem, calc(var(--u) * 6)); font-weight: 700; line-height: 1; }
+.tm-temp span { font-size: max(1.25rem, calc(var(--u) * 3)); font-weight: 500; color: var(--muted); }
+.tm-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 1.2) calc(var(--u) * 2); }
+.tm-st { display: grid; font-size: max(1.125rem, calc(var(--u) * 3)); }

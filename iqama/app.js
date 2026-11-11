@@ -22,7 +22,7 @@ const MODES = ['auto', 'light', 'dark'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
   clock: 'board', palette: 'petrol', mode: 'auto', units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
-  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxNight: false,
+  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxNight: false, dxAuto: false,
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -48,6 +48,7 @@ settings.translit = settings.translit !== false;
 if (!['s', 'm', 'l'].includes(settings.arSize)) settings.arSize = DEFAULTS.arSize;
 settings.awake = settings.awake === true;
 settings.dxNight = settings.dxNight === true;
+settings.dxAuto = settings.dxAuto === true;
 if (!['auto', 'times', 'full'].includes(settings.dxLayout)) settings.dxLayout = DEFAULTS.dxLayout;
 
 // Alerts for each prayer and for Jumu'ah
@@ -186,8 +187,10 @@ function tick() {
   $('now').textContent = fmt(Math.floor(nowMin));
   const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
   $('clock').innerHTML = html;
+  nowMinute = nowMin;
   if (displayOpen) {
-    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, next: ev, tomorrowFajr: tomorrow.rows[0] });
+    applyNight();
+    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats() });
     else {
       $('dx-clock').innerHTML = html;
       if (c.sec % 10 === 0) fitDisplay(); // re-fit after late font loads or a change in what the clock shows
@@ -531,12 +534,20 @@ function prayerMarks() {
   const nowMin = clock(new Date(), place().zone).sec / 60;
   return day.rows.map((r, i) => (r.adhan >= nowMin ? { name: NAMES[r.key], min: r.adhan, today: true } : { name: NAMES[r.key], min: tomorrow.rows[i].adhan, today: false }));
 }
+// Under the time in the times-only full screen: temperature, then high/low, feels like, humidity and wind.
+function wxStats() {
+  const w = weather;
+  if (!w) return '';
+  const u = settings.units, r = v => (v == null ? '–' : Math.round(v));
+  const item = (k, v) => `<span class="tm-st"><span class="tm-k">${k}</span><b>${v}</b></span>`;
+  return `<div class="tm-wx"><p class="tm-temp">${r(w.temp)}°${u}<span>${w.label ? w.label.toLowerCase() : ''}</span></p><div class="tm-stats">`
+    + item('High / low', `${r(w.today.max)}° / ${r(w.today.min)}°`) + item('Feels like', `${r(w.feels)}°`)
+    + item('Humidity', w.humidity == null ? '–' : `${r(w.humidity)}%`) + item('Wind', `${r(w.wind)} ${u === 'F' ? 'mph' : 'km/h'}`) + '</div></div>';
+}
 function renderWeather() {
   const u = settings.units, w = weather;
   $('weather').hidden = !w;
   $('weather').textContent = w ? `${Math.round(w.temp)}°${u}${w.label ? `, ${w.label.toLowerCase()}` : ''}` : '';
-  $('dx-wx').textContent = $('weather').textContent;
-  $('dx-wx').hidden = !w;
   $('wx-body').innerHTML = w ? weatherHtml(w, u, prayerMarks()) : '<p class="iq-note">Weather is not available right now. The page tries again every 30 minutes.</p>';
   $('wx-updated').textContent = w && w.at != null ? `Updated ${fmt(w.at)} local time. Weather and air quality from Open-Meteo.` : '';
   document.querySelectorAll('[data-unit]').forEach(b => b.setAttribute('aria-pressed', b.dataset.unit === u));
@@ -684,6 +695,7 @@ function applyLayout() {
 }
 async function openDisplay() {
   displayOpen = true;
+  autoPaused = false;
   applyLayout();
   $('display').hidden = false;
   dkSig = '';
@@ -704,11 +716,23 @@ function closeDisplay() {
 }
 $('fullscreen').addEventListener('click', openDisplay);
 $('dx-exit').addEventListener('click', closeDisplay);
+// Night mode is on by hand, or from sunset to sunrise when the setting is on.
+// shortcut: without weather data sunset is taken as the Maghrib adhan, which is a few minutes later, fine for dimming.
+let nowMinute = 0, autoPaused = false;
+const isDark = () => !!day && (nowMinute < day.sunrise || nowMinute >= (weather?.today?.sunset ?? day.rows[3].adhan));
+const nightOn = () => settings.dxNight || (settings.dxAuto && !autoPaused && isDark());
 function applyNight() {
-  $('display').dataset.night = settings.dxNight ? 'on' : 'off';
-  $('dx-night').setAttribute('aria-pressed', String(settings.dxNight));
+  const on = nightOn();
+  $('display').dataset.night = on ? 'on' : 'off';
+  $('dx-night').setAttribute('aria-pressed', String(on));
 }
-$('dx-night').addEventListener('click', () => { settings.dxNight = !settings.dxNight; save(); applyNight(); });
+$('dx-night').addEventListener('click', () => {
+  // switching off while the sunset timer is dimming pauses the timer until full screen is opened again
+  if (nightOn()) { settings.dxNight = false; autoPaused = true; } else settings.dxNight = true;
+  save(); applyNight();
+});
+$('set-dxauto').checked = settings.dxAuto;
+$('set-dxauto').addEventListener('change', () => { settings.dxAuto = $('set-dxauto').checked; autoPaused = false; save(); applyNight(); });
 applyNight();
 document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) requestAnimationFrame(fitDisplay); else closeDisplay(); });
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && displayOpen) closeDisplay(); });

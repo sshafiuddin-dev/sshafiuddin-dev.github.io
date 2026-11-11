@@ -67,12 +67,16 @@ function sun(d) {
     + `<circle class="${isDay ? 'ck-sunball' : 'ck-moon'}" cx="${bx}" cy="${by}" r="13"/></svg>${stack('ck-below', d)}</div>`;
 }
 
-function board(d) {
-  const m = Math.floor(d.now);
-  // the bar runs from the previous adhan or iqama to the next one
+// How full the bar is: from the previous adhan, iqama or sunrise to the next event, in percent.
+function barPct(d) {
   const marks = [...d.rows.flatMap(r => (r.iqama == null ? [r.adhan] : [r.adhan, r.iqama])), ...(d.sunrise == null ? [] : [d.sunrise])].sort((a, b) => a - b);
   const prev = [...marks].reverse().find(v => v <= d.now) ?? marks[marks.length - 1] - 1440;
-  const pct = Math.max(0, Math.min(100, (d.now - prev) / (d.next.at - prev) * 100));
+  return Math.max(0, Math.min(100, (d.now - prev) / (d.next.at - prev) * 100));
+}
+
+function board(d) {
+  const m = Math.floor(d.now);
+  const pct = barPct(d);
   const tiles = d.rows.map(r => `<li${r.key === d.next.key ? ' class="is-next"' : ''}><span>${NAMES[r.key]}</span><strong>${hm(r.adhan)}</strong><small>Iqama</small><em>${r.iqama == null ? 'Not set' : hm(r.iqama)}</em></li>`).join('');
   const jum = d.jumuah.length ? `<span>Jumu’ah ${d.jumuah.map(fmt).join(' and ')}</span>` : '';
   return `<div class="ck-board"><p class="ck-board-time"><span class="ck-board-hm">${hm(m)}</span><span class="ck-board-side"><span>:${String(Math.floor(d.sec % 60)).padStart(2, '0')}</span><span>${ampm(m)}</span></span></p>`
@@ -118,9 +122,7 @@ export function renderTimes(d) {
   const m = Math.floor(d.now);
   // shortcut: before Fajr the current prayer is last night's Isha, shown with today's times (they differ by a minute or two)
   const cur = [...d.rows].reverse().find(r => r.adhan <= d.now) ?? d.rows[d.rows.length - 1];
-  const marks = [...d.rows.flatMap(r => (r.iqama == null ? [r.adhan] : [r.adhan, r.iqama])), ...(d.sunrise == null ? [] : [d.sunrise])].sort((a, b) => a - b);
-  const prev = [...marks].reverse().find(v => v <= d.now) ?? marks[marks.length - 1] - 1440;
-  const pct = Math.max(0, Math.min(100, (d.now - prev) / (d.next.at - prev) * 100));
+  const pct = barPct(d);
   const row = d.next.at >= 1440 ? d.tomorrowFajr : d.rows.find(r => r.key === d.next.key);
   const sub = d.next.kind === 'adhan' ? `<p class="tm-sub">${NAMES[row.key]} ${fmt(row.adhan)}, iqama ${row.iqama == null ? 'not set' : fmt(row.iqama)}</p>`
     : d.next.kind === 'iqama' ? `<p class="tm-sub">Iqama at ${fmt(d.next.at)}</p>` : '';

@@ -1,7 +1,7 @@
 // Run with: node scripts/selfcheck.mjs
 import assert from 'node:assert/strict';
 import { parse } from './fetch-iqama.mjs';
-import { outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
+import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -32,6 +32,12 @@ assert.equal(outlook([dy('2026-11-11', 55, 10), dy('2026-11-12', 48, 70, 'rain')
 assert.equal(outlook([dy('2026-11-11', 55, 10), dy('2026-11-12', 56, 10), dy('2026-11-13', 58, 60, 'rain')], 'F'), 'Next two days: staying mild, rain Friday.');
 assert.equal(outlook([dy('2026-11-11', 20, 0), dy('2026-11-12', 24, 0), dy('2026-11-13', 25, 0)], 'C'), 'Next two days: turning warmer, mostly dry.');
 assert.equal(outlook([dy('2026-11-11', 20, 0)], 'C'), '');
+const five = [312, 700, 860, 1000, 1090].map((adhan, i) => ({ key: PRAYERS[i], adhan, iqama: adhan + 20 }));
+assert.deepEqual([399, 400, 699, 700, 999, 1000, 1089, 1090].map(n => cardWindow(n, five, 400)), [null, 'morning', 'morning', null, null, 'evening', 'evening', null]);
+const { renderTimes } = await import('../iqama/clocks.js');
+const tm = (now, sec) => renderTimes({ sec, now, rows: five, sunrise: 400, next: nextEvent(five, 313, now, 400), tomorrowFajr: five[0], card: null });
+assert.ok(tm(340, 340 * 60).includes('Sunrise in'), 'sunrise countdown after the Fajr iqama');
+assert.ok(tm(390, 390 * 60).includes('ck-blink') && !tm(340, 340 * 60).includes('ck-blink'), 'countdown blinks only in the last 15 minutes');
 assert.deepEqual(nextEvent(rows, 313, 350, 400), { key: 'sunrise', kind: '', at: 400 });
 assert.deepEqual(nextEvent(rows, 313, 320, 400), { key: 'fajr', kind: 'iqama', at: 345 });
 assert.deepEqual(nextEvent(rows, 313, 400, 400), { key: 'isha', kind: 'adhan', at: 1090 });

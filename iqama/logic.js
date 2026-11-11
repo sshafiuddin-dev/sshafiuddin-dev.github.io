@@ -37,6 +37,15 @@ export function nextEvent(rows, tomorrowFajrAdhan, nowMin, sunrise) {
   return { key: 'fajr', kind: 'adhan', at: tomorrowFajrAdhan + 1440 };
 }
 
+// Which extra card the small full screen shows: 'morning' from sunrise to the Dhuhr adhan, 'evening' from the Maghrib adhan to the Isha adhan, else null.
+// rows: today's Fajr to Isha rows.
+export function cardWindow(nowMin, rows, sunrise) {
+  const [, dhuhr, , maghrib, isha] = rows;
+  if (nowMin >= sunrise && nowMin < dhuhr.adhan) return 'morning';
+  if (nowMin >= maghrib.adhan && nowMin < isha.adhan) return 'evening';
+  return null;
+}
+
 // Great-circle distance in km between two { lat, lng } points.
 export function km(a, b) {
   const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;

@@ -1,3 +1,25 @@
+/* Base for this page: fonts, reset and headings. The page no longer borrows the portfolio's stylesheet. */
+:root {
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --paper: #E7EDF0; --surface: #F5F8F9; --ink: #0B2A33; --muted: #48626C; --line: #BFCCD2; --risk: #BE1E5A; --clear: #0B7F69;
+}
+/* Petrol, the default look; the other palettes below override these */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --paper: #07212A; --surface: #0D2E38; --ink: #E3EDEF; --muted: #9BB3BA; --line: #235058; --risk: #FF7AA5; --clear: #55D3B7; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --paper: #07212A; --surface: #0D2E38; --ink: #E3EDEF; --muted: #9BB3BA; --line: #235058; --risk: #FF7AA5; --clear: #55D3B7; color-scheme: dark; }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.6 var(--body); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul, dl, dd, figure { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+h2 { font: 650 clamp(2rem, 4.6vw, 3.5rem)/1.02 var(--display); font-stretch: 82%; letter-spacing: -.02em; text-wrap: balance; max-width: 20ch; }
+h3 { font: 600 1.3rem/1.2 var(--display); letter-spacing: -.01em; text-wrap: balance; }
+section { padding-block: clamp(4rem, 9vw, 7.5rem); border-top: 1px solid var(--line); }
+
 /* Iqama Times: tokens, type and buttons come from ../style.css; this file is only the page's own layout.
    Layout: a one-screen app. Tabs sit in a side rail on desktop and a bottom bar on phones; only a tab's own content scrolls. */
 [hidden] { display: none !important; }

@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, outlook } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, outlook, cardWindow } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -63,17 +63,8 @@ function cleanAlert(key, a) {
   if (key === 'jumuah') return { on: a.on === true, before: step(a.before, d.before), time: parseHM(a.time) != null ? a.time : null };
   return { on: a.on !== false, adhan: ALERT_TYPES[a.adhan] ? a.adhan : d.adhan, before: step(a.before, d.before), iqama: step(a.iqama, d.iqama) };
 }
-if (!settings.alerts || typeof settings.alerts !== 'object') {
-  // carry the earlier single set of reminders over to every prayer
-  const old = settings.reminders && typeof settings.reminders === 'object' ? settings.reminders : {};
-  const t = SHORT_TYPES.includes(settings.chime) ? settings.chime : settings.chime === 'none' ? 'message' : 'beep';
-  settings.alerts = Object.fromEntries(PRAYERS.map(k => [k, {
-    on: true, adhan: settings.sound ? 'adhan' : 'message',
-    before: { type: old.before ? t : 'off', min: old.before || 10 }, iqama: { type: old.iqama ? t : 'off', min: old.iqama || 5 },
-  }]));
-}
-settings.alerts = Object.fromEntries(ALERT_KEYS.map(k => [k, cleanAlert(k, settings.alerts[k])]));
-delete settings.sound; delete settings.reminders; delete settings.chime;
+const savedAlerts = settings.alerts && typeof settings.alerts === 'object' ? settings.alerts : {};
+settings.alerts = Object.fromEntries(ALERT_KEYS.map(k => [k, cleanAlert(k, savedAlerts[k])]));
 const save = () => { try { localStorage.setItem('iqama-settings', JSON.stringify(settings)); } catch (e) {} };
 
 // Theme and clock style
@@ -550,14 +541,13 @@ function wxStats() {
 // shortcut: the dua changes every 3 minutes by itself and by one more on each tap on the card.
 let duaTap = 0;
 function dxCardFor(nowMin) {
-  const [, dhuhr, , maghrib, isha] = day.rows;
-  const morning = nowMin >= day.sunrise && nowMin < dhuhr.adhan, evening = nowMin >= maghrib.adhan && nowMin < isha.adhan;
-  if (!morning && !evening) return null;
+  const w = cardWindow(nowMin, day.rows, day.sunrise);
+  if (!w) return null;
   if (settings.dxCard === 'duas' && settings.adhkar) {
-    const set = SETS[morning ? 'morning' : 'evening'], i = (Math.floor(nowMin / 3) + duaTap) % set.items.length;
+    const set = SETS[w], i = (Math.floor(nowMin / 3) + duaTap) % set.items.length;
     return { kind: 'dua', title: set.title, item: set.items[i], pos: `${i + 1} / ${set.items.length}` };
   }
-  return morning ? { kind: 'rest' } : null;
+  return w === 'morning' ? { kind: 'rest' } : null;
 }
 $('dx-small').addEventListener('click', (e) => { if (e.target.closest('[data-dua]')) { duaTap++; tick(); } });
 function renderWeather() {

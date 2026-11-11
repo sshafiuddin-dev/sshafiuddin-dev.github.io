@@ -17,6 +17,8 @@
   <title>Shafiuddin Syed | SAP Architect & Enterprise Security Leader</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+  <!-- hides the entrance targets until motion.js takes over; the timer shows everything if it never does -->
+  <script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('js-motion');setTimeout(function(){document.documentElement.classList.remove('js-motion')},4000)}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -30,25 +32,19 @@
   <nav class="nav" aria-label="Main navigation">
     <div class="wrap nav-inner">
       <a href="#top" class="nav-logo" aria-label="Shafiuddin Syed, back to top">SS</a>
-      <ul class="nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#skills">Skills</a></li>
-        <li><a href="#timeline">Experience</a></li>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
       <form class="tcode" id="tcode-form" autocomplete="off">
         <label class="sr-only" for="tcode">Jump to a section by SAP transaction code</label>
         <input id="tcode" list="tcodes" placeholder="t-code, try /nSM37" spellcheck="false" />
-        <datalist id="tcodes">
-          <option value="/nSU01">About</option>
-          <option value="/nPFCG">Skills</option>
-          <option value="/nSM37">Experience</option>
-          <option value="/nSE80">Projects</option>
-          <option value="/nSO01">Contact</option>
-        </datalist>
+        <datalist id="tcodes"></datalist>
         <p class="tcode-msg" id="tcode-msg" role="status"></p>
       </form>
+      <ul class="nav-links">
+        <li><a href="#about" data-tcode="SU01" title="SU01: user maintenance">About</a></li>
+        <li><a href="#skills" data-tcode="PFCG" title="PFCG: role maintenance">Skills</a></li>
+        <li><a href="#timeline" data-tcode="SM37" title="SM37: job overview">Experience</a></li>
+        <li><a href="#projects" data-tcode="SE80" title="SE80: object navigator">Projects</a></li>
+        <li><a href="#contact" data-tcode="SO01" title="SO01: SAP inbox">Contact</a></li>
+      </ul>
       <button class="theme-toggle" id="theme-toggle" type="button">Dark</button>
     </div>
   </nav>
@@ -70,8 +66,15 @@
           <figcaption id="sod-title">Segregation of duties check</figcaption>
           <span class="sod-count" id="sod-count">0 conflicts</span>
         </div>
+        <div class="sod-presets" role="group" aria-label="Scenarios">
+          <button class="chip" type="button" data-s="clean">Well controlled</button>
+          <button class="chip" type="button" data-s="small">Small team</button>
+          <button class="chip" type="button" data-s="messy">Post-merger</button>
+        </div>
         <div class="sod-scroll"><table class="sod-table" id="sod-table"></table></div>
         <p class="sod-status" id="sod-status" role="status">Every duty has one owner.</p>
+        <div class="sod-risk"><span>Residual risk</span><span class="sod-bar" aria-hidden="true"><i id="sod-bar"></i></span><span id="sod-level">Low</span></div>
+        <div class="sod-finding" id="sod-finding"></div>
         <div class="sod-foot">
           <button class="btn btn-small" id="sod-review" type="button">Run access review</button>
           <span>Click any square to grant or revoke. Sample roles, not a client system.</span>
@@ -333,6 +336,8 @@
     formspree('initForm', { formElement: '#contact-form', formId: 'mrernorw' });
   </script>
   <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
+  <script src="vendor/motion.min.js"></script>
   <script src="app.js"></script>
+  <script src="motion.js"></script>
 </body>
 </html>

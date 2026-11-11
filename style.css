@@ -88,13 +88,17 @@ section { padding-block: clamp(4rem, 9vw, 7.5rem); border-top: 1px solid var(--l
 }
 .nav-inner { display: flex; align-items: center; gap: 1.5rem; min-height: 3.75rem; }
 .nav-logo { font: 800 1.35rem/1 var(--display); text-decoration: none; letter-spacing: -.04em; }
-.nav-links { display: flex; gap: 1.4rem; margin-right: auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-.nav-links a {
-  text-decoration: none; font-size: .95rem; color: var(--muted); white-space: nowrap;
-  padding-block: .4rem; background: linear-gradient(var(--clear), var(--clear)) 0 100% / 0 2px no-repeat;
-  transition: background-size .3s var(--ease), color .2s;
+.nav-links { position: relative; display: flex; gap: 1.4rem; margin-right: auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.nav-links a { text-decoration: none; font-size: .95rem; color: var(--muted); white-space: nowrap; padding-block: .4rem; transition: color .2s; }
+.nav-links a:hover, .nav-links a.active { color: var(--ink); }
+/* With Motion, .nav-ind springs between links (motion.js). Without it, the original underline. */
+:root:not(.has-ind) .nav-links a { background: linear-gradient(var(--clear), var(--clear)) 0 100% / 0 2px no-repeat; transition: background-size .3s var(--ease), color .2s; }
+:root:not(.has-ind) .nav-links a:hover, :root:not(.has-ind) .nav-links a.active { background-size: 100% 2px; }
+.nav-ind { position: absolute; left: 0; bottom: 0; width: 100%; height: 2px; background: var(--clear); transform-origin: 0 50%; transform: scaleX(0); pointer-events: none; }
+.nav-links a[data-tcode]::after { /* the SAP transaction code that jumps here */
+  content: attr(data-tcode); margin-left: .45rem; font: 400 .68rem/1 var(--code); letter-spacing: .02em; color: var(--muted); opacity: .8;
 }
-.nav-links a:hover, .nav-links a.active { color: var(--ink); background-size: 100% 2px; }
+@media (max-width: 70rem) { .nav-links a[data-tcode]::after { display: none; } }
 .tcode { position: relative; flex: none; }
 .tcode input {
   width: 11.5rem; padding: .4rem .65rem; border: 1px solid var(--line); border-radius: 4px;
@@ -103,7 +107,7 @@ section { padding-block: clamp(4rem, 9vw, 7.5rem); border-top: 1px solid var(--l
 .tcode input::placeholder { color: var(--muted); }
 .tcode.bad input { border-color: var(--risk); animation: shake .3s; }
 .tcode-msg {
-  position: absolute; top: calc(100% + .4rem); right: 0; white-space: nowrap;
+  position: absolute; top: calc(100% + .4rem); left: 0; white-space: nowrap;
   font-size: .8rem; color: var(--risk); background: var(--surface); padding: .25rem .6rem; border-radius: 4px;
 }
 .tcode-msg:empty { display: none; }
@@ -155,6 +159,50 @@ h1 .ch { display: inline-block; }
 @keyframes alarm { 50% { transform: scale(.78) rotate(45deg); } }
 .sod-status { margin-top: .6rem; min-height: 3.1em; font-size: .95rem; }
 .sod-foot { display: flex; gap: .9rem; align-items: center; margin-top: .4rem; font-size: .8rem; line-height: 1.35; color: var(--muted); }
+
+/* SoD: scenarios, conflict lines, risk meter, finding panel */
+.sod-presets { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .7rem; }
+.chip {
+  font: 500 .78rem/1 var(--body); color: var(--muted); background: transparent; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 99px; padding: .4rem .7rem; transition: color .2s, border-color .2s;
+}
+.chip:hover { color: var(--ink); border-color: var(--muted); }
+.chip[aria-pressed="true"] { color: var(--ink); border-color: var(--clear); }
+.sod-table td { position: relative; }
+.cell { position: relative; z-index: 1; }
+.sod-table td::before, .sod-table td::after { content: ""; position: absolute; top: 50%; height: 2px; margin-top: -1px; pointer-events: none; opacity: 0; }
+.sod-table td::before { left: 0; right: 50%; }
+.sod-table td::after { left: 50%; right: 0; }
+.sod-table td.lk-l::before, .sod-table td.lk-r::after {
+  opacity: .9; background: repeating-linear-gradient(90deg, var(--clear) 0 4px, transparent 4px 8px);
+}
+.sod-table td.lk-l-open::before, .sod-table td.lk-r-open::after { opacity: .6; background: var(--risk); }
+.cell.controlled::before { background: var(--ink); box-shadow: 0 0 0 2px var(--clear); }
+.cell.sel { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+.sod-risk { display: flex; align-items: center; gap: .6rem; font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+.sod-risk span:last-child { min-width: 4.2rem; text-align: right; color: var(--ink); font-weight: 500; }
+.sod-bar { flex: 1; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 10%, transparent); overflow: hidden; }
+.sod-bar i { display: block; height: 100%; width: 0; background: var(--clear); transition: width .4s var(--ease), background .3s; }
+.sod-bar i.has-risk { background: var(--risk); }
+.sod-finding { margin-top: .9rem; padding: .85rem .9rem; border: 1px solid var(--line); border-radius: 6px; min-height: 5.5rem; font-size: .9rem; }
+.finding-hint { color: var(--muted); }
+.finding-top { display: flex; align-items: baseline; gap: .6rem; }
+.finding-top strong { font: 600 1rem/1.2 var(--display); }
+.finding-n { margin-left: auto; font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sev { font-size: .7rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--risk); }
+.sev-med { color: var(--muted); }
+.finding-who { color: var(--muted); margin-top: .2rem; }
+.finding-acts { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .7rem; }
+.finding-acts .btn-small { padding: .35rem .7rem; font-size: .82rem; }
+.finding-acts select {
+  font: 400 .82rem/1.2 var(--body); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 4px; padding: .38rem .5rem;
+}
+.story { display: grid; gap: .4rem; margin: .8rem 0 0; padding: 0; list-style: none; font-size: .85rem; color: var(--muted); }
+.story li { display: flex; gap: .6rem; opacity: 0; transform: translateY(4px); transition: opacity .4s, transform .4s; }
+.story li.show { opacity: 1; transform: none; color: var(--ink); }
+.story li b { flex: none; display: grid; place-items: center; width: 1.15rem; height: 1.15rem; border-radius: 50%; background: var(--line); font: 600 .7rem/1 var(--body); }
+.story li.last.show b { background: var(--risk); color: var(--surface); }
 
 /* Stats */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: clamp(2.5rem, 6vw, 4.5rem); }
@@ -227,6 +275,8 @@ h4 { margin: .4rem 0 0; font: 600 .95rem/1.2 var(--body); color: var(--muted); }
 }
 .project:hover { border-color: var(--clear); transform: translateY(-3px); }
 .project:hover::before { opacity: 1; }
+.has-tilt .project { transition: border-color .25s; } /* motion.js drives the lift and tilt with a spring instead */
+.has-tilt .project:hover { transform: none; }
 .project > * { position: relative; }
 .project-flag { font-size: .8rem; font-weight: 500; padding: .2rem .55rem; border: 1px solid var(--clear); color: var(--clear); border-radius: 99px; }
 .project-impact { font-weight: 500; color: var(--clear); }
@@ -268,25 +318,37 @@ h4 { margin: .4rem 0 0; font: 600 .95rem/1.2 var(--body); color: var(--muted); }
 .footer { background: var(--band); color: var(--band-muted); font-size: .88rem; }
 .footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 2rem; padding-block: 1.5rem; border-top: 1px solid var(--band-line); }
 
-/* Motion: everything is visible at rest; .in replays an entrance when a block scrolls into view */
+/* Motion layer (motion.js). Everything is visible at rest: .js-motion only hides entrance targets
+   until motion.js takes over (index.html removes it after 4s if it never does), and reduced-motion
+   visitors never get the class. */
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
-  h1 .ch { animation: rise .7s var(--ease) both; animation-delay: calc(var(--i) * 35ms); }
-  .hero-lede, .hero-sub, .hero-cta { animation: fade .7s var(--ease) both; animation-delay: .55s; }
-  .sod { animation: fade .8s var(--ease) both; animation-delay: .35s; }
-  h2.in { animation: wipe .9s var(--ease) both; }
-  .in:not(h2) { animation: fade .7s var(--ease) both; }
-  .in .grants li { animation: pop .45s var(--ease) both; animation-delay: calc(var(--i, 0) * 35ms); }
-  .in .job-log li { animation: pop .5s var(--ease) both; animation-delay: calc(.25s + var(--i, 0) * 90ms); }
 }
-@keyframes rise { from { transform: translateY(105%) rotate(6deg); opacity: 0; } }
-@keyframes fade { from { opacity: 0; transform: translateY(14px); } }
-@keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes pop { from { opacity: 0; transform: translateX(-8px); } }
+.js-motion h1 .ch, .js-motion .hero-lede, .js-motion .hero-sub, .js-motion .hero-cta, .js-motion .sod, .js-motion [data-reveal] { opacity: 0; }
+h2 { position: relative; isolation: isolate; }
+h2 .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
+h2 .wi { display: inline-block; }
+section { position: relative; }
+.rule { position: absolute; top: -1px; left: 0; width: 100%; height: 2px; background: var(--clear); transform-origin: 0 50%; transform: scaleX(0); pointer-events: none; }
+.sweep { position: absolute; inset: .06em -.18em; z-index: -1; border-radius: 4px; pointer-events: none; transform-origin: 0 50%; transform: scaleX(0); background: color-mix(in srgb, var(--clear) 24%, transparent); }
+
+/* Page to page: cross-document view transitions (iqama/styles.css opts in too). The theme toggle borrows
+   the same API for a circular reveal, so it switches the page crossfade off while it runs. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root) { animation: vt-out .22s ease both; }
+  ::view-transition-new(root) { animation: vt-in .45s var(--ease) both; }
+  .vt-theme::view-transition-old(root), .vt-theme::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  .vt-theme::view-transition-old(root) { z-index: 1; }
+  .vt-theme::view-transition-new(root) { z-index: 2; }
+}
+@keyframes vt-out { to { opacity: 0; transform: translateY(-10px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; flex-wrap: wrap; width: auto; row-gap: 1rem; }
   .marquee-track li[data-dup] { display: none; }
   .cell.conflict::before { animation: none; }
+  .story li, .sod-bar i { transition: none; }
   .progress { display: none; }
   .status-active::before { animation: none; }
 }
@@ -303,7 +365,7 @@ h4 { margin: .4rem 0 0; font: 600 .95rem/1.2 var(--body); color: var(--muted); }
   .nav-inner { gap: 1rem; }
   .nav-links { gap: 1.1rem; }
   .sod { padding: 1rem .75rem; }
-  .cell { width: 1.9rem; height: 1.9rem; }
+  .cell { width: 1.75rem; height: 1.75rem; }
   .sod-foot { flex-direction: column; align-items: flex-start; }
   .contact-info > div { grid-template-columns: 1fr; gap: .1rem; }
   .joblog-head { display: none; }

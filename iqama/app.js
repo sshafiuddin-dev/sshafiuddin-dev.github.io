@@ -80,7 +80,7 @@ function applyLook() {
 darkMQ.addEventListener?.('change', applyLook);
 applyLook();
 
-let masjid = { iqama: {}, jumuah: [], updated: '', failed: false };
+let masjid = { iqama: {}, jumuah: [], updated: '', checked: 0, stale: false, failed: false };
 const place = () => settings.place || ISCJ;
 const near = () => km(place(), ISCJ) <= NEAR_KM;
 // Messages show as a toast above the tab bar and fade after a few seconds
@@ -159,7 +159,7 @@ function renderDay() {
     own.length === 5 ? 'All iqama times set by you.'
       : !near() ? (own.length ? `${mine.trim()} Set the rest under Set your own iqama times.` : 'ISCJ iqama times only show near the masjid. Set your masjid’s times under Set your own iqama times.')
       : masjid.failed ? `Could not load ISCJ iqama times. Set your own below.${mine}`
-      : `Iqama times from ISCJ${uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
+      : `Iqama times from ISCJ${masjid.checked ? `, checked ${new Date(masjid.checked).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${masjid.stale ? ' (ISCJ did not answer, so this is the last copy)' : ''}` : uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
 
   jumuahNote();
   $('dx-date').textContent = today.long;
@@ -174,7 +174,7 @@ const alertRows = () => (today.weekday === 'Fri' && khutbah() != null ? [...day.
 
 function tick() {
   const c = clock(new Date(), place().zone);
-  if (!today || c.d !== today.d) return loadDay(c);
+  if (!today || c.d !== today.d) { const later = !!today; loadDay(c); if (later) sync(); return; }
   const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrow.rows[0].adhan, nowMin, day.sunrise);
   $('now').textContent = fmt(Math.floor(nowMin));
   const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
@@ -554,7 +554,7 @@ function renderWeather() {
   const u = settings.units, w = weather;
   $('weather').hidden = !w;
   $('weather').textContent = w ? `${Math.round(w.temp)}°${u}${w.label ? `, ${w.label.toLowerCase()}` : ''}` : '';
-  $('wx-body').innerHTML = w ? weatherHtml(w, u, prayerMarks()) : '<p class="iq-note">Weather is not available right now. The page tries again every 30 minutes.</p>';
+  $('wx-body').innerHTML = w ? weatherHtml(w, u, prayerMarks()) : '<p class="iq-note">Weather is not available right now. The page tries again every 15 minutes.</p>';
   $('wx-updated').textContent = w && w.at != null ? `Updated ${fmt(w.at)} local time. Weather and air quality from Open-Meteo.` : '';
   document.querySelectorAll('[data-unit]').forEach(b => b.setAttribute('aria-pressed', b.dataset.unit === u));
 }
@@ -670,7 +670,11 @@ function setAwake(on) {
 }
 $('awake').addEventListener('click', () => setAwake(!settings.awake));
 $('awake-switch').addEventListener('change', () => setAwake($('awake-switch').checked));
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') updateLock(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  updateLock();
+  if (Date.now() - lastSync > SYNC_EVERY) sync(); // the device was asleep or the app was in the background
+});
 
 // Full screen: the chosen clock scaled to fill the screen, with the adhkar line. iPhone has no full screen for web pages, so it opens in the page.
 function fitDisplay() {
@@ -753,6 +757,29 @@ addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEven
 $('install').addEventListener('click', async () => { installEvent.prompt(); await installEvent.userChoice; $('install').hidden = true; });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
+// Iqama times come from our own /api/iqama (which reads iscj.org live); the daily iqama.json is the fallback.
+// Returns true when ISCJ itself answered. fresh asks the server to skip its 5 minute cache.
+const SYNC_EVERY = 15 * 60e3;
+let lastSync = 0;
+async function loadIqama(fresh) {
+  let j = null, live = false;
+  try { const r = await fetch(`/api/iqama${fresh ? '?fresh=1' : ''}`); if (r.ok) { j = await r.json(); live = !j.stale; } } catch (e) { /* fall back below */ }
+  if (!j || !j.iqama) {
+    live = false;
+    try { const r = await fetch('iqama.json', { cache: 'no-cache' }); if (r.ok) j = await r.json(); } catch (e) { j = null; }
+  }
+  if (!j || !j.iqama || typeof j.iqama !== 'object') { masjid.failed = !Object.keys(masjid.iqama).length; return false; }
+  masjid = { iqama: j.iqama, jumuah: Array.isArray(j.jumuah) ? j.jumuah : [], updated: /^\d{4}-\d{2}-\d{2}$/.test(j.updated) ? j.updated : '', checked: Number.isFinite(j.fetched) ? j.fetched : 0, stale: !!j.stale, failed: false };
+  return live;
+}
+// Iqama times, prayer times and weather in one go: at start, every 15 minutes, on a new day, on waking, and on Sync now.
+async function sync(fresh) {
+  lastSync = Date.now();
+  const [live] = await Promise.all([loadIqama(fresh), loadWeather()]);
+  if (today) loadDay(today);
+  return live;
+}
+
 // Start with calculated times at once, then fill in ISCJ's iqama times and the weather when they arrive
 save();
 route();
@@ -763,8 +790,12 @@ syncMode();
 tick();
 updateLock();
 setInterval(tick, 1000);
-loadWeather();
-setInterval(loadWeather, 30 * 60 * 1000);
-fetch('iqama.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : Promise.reject()).then(j => {
-  masjid = { iqama: j.iqama && typeof j.iqama === 'object' ? j.iqama : {}, jumuah: Array.isArray(j.jumuah) ? j.jumuah : [], updated: /^\d{4}-\d{2}-\d{2}$/.test(j.updated) ? j.updated : '', failed: false };
-}, () => { masjid.failed = true; }).then(() => loadDay(today));
+sync();
+setInterval(sync, SYNC_EVERY);
+$('sync').addEventListener('click', async () => {
+  $('sync').disabled = true;
+  say('Syncing iqama times, prayer times and weather…');
+  const live = await sync(true);
+  $('sync').disabled = false;
+  say(live && weather ? 'Synced.' : `${live ? '' : 'Could not reach ISCJ, so the iqama times are the last saved ones. '}${weather ? '' : 'Weather is not available right now.'}`.trim());
+});

@@ -183,14 +183,14 @@ const alertRows = () => (today.weekday === 'Fri' && khutbah() != null ? [...day.
 function tick() {
   const c = clock(new Date(), place().zone);
   if (!today || c.d !== today.d) return loadDay(c);
-  const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrow.rows[0].adhan, nowMin);
+  const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrow.rows[0].adhan, nowMin, day.sunrise);
   $('now').textContent = fmt(Math.floor(nowMin));
   const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
   $('clock').innerHTML = html;
   nowMinute = nowMin;
   if (displayOpen) {
     applyNight();
-    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats() });
+    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats() });
     else {
       $('dx-clock').innerHTML = html;
       if (c.sec % 10 === 0) fitDisplay(); // re-fit after late font loads or a change in what the clock shows

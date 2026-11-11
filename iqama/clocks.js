@@ -9,8 +9,10 @@ const ampm = (min) => fmt(min).slice(-2);
 const f1 = (n) => n.toFixed(1);
 const untilNext = (d) => fmtSpan(d.next.at * 60 - d.sec);
 const nextAt = (d) => `at ${fmt(d.next.at)}${d.next.at >= 1440 ? ' tomorrow' : ''}`;
-const nextName = (d) => `${NAMES[d.next.key]} ${d.next.kind}`;
-const stack = (cls, d) => `<div class="${cls}"><p>${nextName(d)} in</p><p class="ck-count">${untilNext(d)}</p><p>${nextAt(d)}</p></div>`;
+const nextName = (d) => `${NAMES[d.next.key]} ${d.next.kind}`.trim();
+// the countdown blinks (soft, once a second) in its last 15 minutes
+const soon = (d) => (d.next.at * 60 - d.sec < 900 ? ' ck-blink' : '');
+const stack = (cls, d) => `<div class="${cls}"><p>${nextName(d)} in</p><p class="ck-count${soon(d)}">${untilNext(d)}</p><p>${nextAt(d)}</p></div>`;
 
 function dial(d) {
   const C = 180, R = 122;
@@ -68,14 +70,14 @@ function sun(d) {
 function board(d) {
   const m = Math.floor(d.now);
   // the bar runs from the previous adhan or iqama to the next one
-  const marks = d.rows.flatMap(r => (r.iqama == null ? [r.adhan] : [r.adhan, r.iqama])).sort((a, b) => a - b);
+  const marks = [...d.rows.flatMap(r => (r.iqama == null ? [r.adhan] : [r.adhan, r.iqama])), ...(d.sunrise == null ? [] : [d.sunrise])].sort((a, b) => a - b);
   const prev = [...marks].reverse().find(v => v <= d.now) ?? marks[marks.length - 1] - 1440;
   const pct = Math.max(0, Math.min(100, (d.now - prev) / (d.next.at - prev) * 100));
   const tiles = d.rows.map(r => `<li${r.key === d.next.key ? ' class="is-next"' : ''}><span>${NAMES[r.key]}</span><strong>${hm(r.adhan)}</strong><small>Iqama</small><em>${r.iqama == null ? 'Not set' : hm(r.iqama)}</em></li>`).join('');
   const jum = d.jumuah.length ? `<span>Jumu’ah ${d.jumuah.map(fmt).join(' and ')}</span>` : '';
   return `<div class="ck-board"><p class="ck-board-time"><span class="ck-board-hm">${hm(m)}</span><span class="ck-board-side"><span>:${String(Math.floor(d.sec % 60)).padStart(2, '0')}</span><span>${ampm(m)}</span></span></p>`
     + `<p class="ck-board-date">${d.date}</p><ol class="ck-tiles">${tiles}</ol>`
-    + `<div class="ck-board-next"><span>${nextName(d)} in</span><strong>${untilNext(d)}</strong></div><div class="ck-bar"><span style="width:${pct.toFixed(1)}%"></span></div>`
+    + `<div class="ck-board-next"><span>${nextName(d)} in</span><strong class="${soon(d).trim()}">${untilNext(d)}</strong></div><div class="ck-bar"><span style="width:${pct.toFixed(1)}%"></span></div>`
     + `<p class="ck-board-foot"><span>Sunrise ${fmt(d.sunrise)}</span>${jum}</p></div>`;
 }
 
@@ -93,7 +95,7 @@ function timeline(d) {
     return `<li${cls ? ` class="${cls}"` : ''}><span class="ck-node"></span><strong>${NAMES[e.key]}</strong><span class="ck-tl-times"><b>${fmt(e.at)}</b><span>${iq}</span></span></li>`;
   }).join('');
   const jum = d.jumuah.length ? `<p class="ck-tl-foot">Jumu’ah khutbah ${d.jumuah.map(fmt).join(' and ')}</p>` : '';
-  return `<div class="ck-timeline"><div class="ck-tl-head"><p>${nextName(d)} ${nextAt(d)}, in</p><p class="ck-count">${untilNext(d)}</p></div>`
+  return `<div class="ck-timeline"><div class="ck-tl-head"><p>${nextName(d)} ${nextAt(d)}, in</p><p class="ck-count${soon(d)}">${untilNext(d)}</p></div>`
     + `<div class="ck-rail"><span class="ck-rail-fill" style="height:${f1(y)}px"></span><span class="ck-rail-dot" style="top:${f1(y - 9)}px"></span><ol>${rows}</ol></div>${jum}</div>`;
 }
 
@@ -104,7 +106,7 @@ function bedside(d) {
     return `<li${cls ? ` class="${cls}"` : ''}><span></span>${NAMES[r.key]}</li>`;
   }).join('');
   return `<div class="ck-bedside"><p class="ck-bed-time"><span>${hm(m)}</span><small>${ampm(m)}</small></p><p class="ck-bed-date">${d.date}</p>`
-    + `<div><p class="ck-bed-next">${nextName(d)} ${fmt(d.next.at)}</p><p class="ck-bed-in">in ${h ? `${h} hr ` : ''}${left % 60} min</p></div><ol class="ck-bed-dots">${dots}</ol></div>`;
+    + `<div><p class="ck-bed-next">${nextName(d)} ${fmt(d.next.at)}</p><p class="ck-bed-in${soon(d)}">in ${h ? `${h} hr ` : ''}${left % 60} min</p></div><ol class="ck-bed-dots">${dots}</ol></div>`;
 }
 
 const STYLES = { board, dial, analog, sun, timeline, bedside };
@@ -116,14 +118,17 @@ export function renderTimes(d) {
   const m = Math.floor(d.now);
   // shortcut: before Fajr the current prayer is last night's Isha, shown with today's times (they differ by a minute or two)
   const cur = [...d.rows].reverse().find(r => r.adhan <= d.now) ?? d.rows[d.rows.length - 1];
-  const marks = d.rows.flatMap(r => (r.iqama == null ? [r.adhan] : [r.adhan, r.iqama])).sort((a, b) => a - b);
+  const marks = [...d.rows.flatMap(r => (r.iqama == null ? [r.adhan] : [r.adhan, r.iqama])), ...(d.sunrise == null ? [] : [d.sunrise])].sort((a, b) => a - b);
   const prev = [...marks].reverse().find(v => v <= d.now) ?? marks[marks.length - 1] - 1440;
   const pct = Math.max(0, Math.min(100, (d.now - prev) / (d.next.at - prev) * 100));
   const row = d.next.at >= 1440 ? d.tomorrowFajr : d.rows.find(r => r.key === d.next.key);
   const sub = d.next.kind === 'adhan' ? `<p class="tm-sub">${NAMES[row.key]} ${fmt(row.adhan)}, iqama ${row.iqama == null ? 'not set' : fmt(row.iqama)}</p>` : '';
+  const rise = d.sunrise != null && d.now >= d.sunrise && d.now < d.rows[1].adhan;
+  const card = rise
+    ? `<p class="tm-label">Now</p><p class="tm-name">Sunrise</p><p class="tm-pt"><span><span class="tm-k">Time</span><b>${fmt(d.sunrise)}</b></span></p>`
+    : `<p class="tm-label">Current prayer</p><p class="tm-name">${NAMES[cur.key]}</p><p class="tm-pt"><span><span class="tm-k">Adhan</span><b>${fmt(cur.adhan)}</b></span><span><span class="tm-k">Iqama</span><b class="${d.next.kind === 'iqama' ? 'tm-hl' : ''}">${cur.iqama == null ? 'Not set' : fmt(cur.iqama)}</b></span></p>`;
   return `<div class="tm"><div class="tm-left"><p class="tm-time"><span class="tm-hm">${hm(m)}</span><span class="tm-side"><span>:${String(Math.floor(d.sec % 60)).padStart(2, '0')}</span><span>${ampm(m)}</span></span></p>${d.wx || ''}</div>`
-    + `<div class="tm-right"><div class="tm-card"><p class="tm-label">Current prayer</p><p class="tm-name">${NAMES[cur.key]}</p>`
-    + `<p class="tm-pt"><span><span class="tm-k">Adhan</span><b>${fmt(cur.adhan)}</b></span><span><span class="tm-k">Iqama</span><b class="${d.next.kind === 'iqama' ? 'tm-hl' : ''}">${cur.iqama == null ? 'Not set' : fmt(cur.iqama)}</b></span></p></div>`
-    + `<div><p class="tm-label">${nextName(d)} in</p><p class="tm-cnt">${untilNext(d)}</p>${sub}</div>`
+    + `<div class="tm-right"><div class="tm-card">${card}</div>`
+    + `<div><p class="tm-label">${nextName(d)} in</p><p class="tm-cnt${soon(d)}">${untilNext(d)}</p>${sub}</div>`
     + `<div class="tm-bar"><span style="width:${pct.toFixed(1)}%"></span></div></div></div>`;
 }

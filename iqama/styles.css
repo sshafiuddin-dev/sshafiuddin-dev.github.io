@@ -452,3 +452,8 @@ body { overflow: hidden; }
 .tm-temp span { font-size: max(1.25rem, calc(var(--u) * 3)); font-weight: 500; color: var(--muted); }
 .tm-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 1.2) calc(var(--u) * 2); }
 .tm-st { display: grid; font-size: max(1.125rem, calc(var(--u) * 3)); }
+
+/* Countdown in its last 15 minutes: bright for the first half of each second, dim for the second half */
+@keyframes ck-blink { 0% { opacity: 1; } 50% { opacity: .25; } }
+.ck-blink { animation: ck-blink 1s step-end infinite; }
+@media (prefers-reduced-motion: reduce) { :root .ck-blink { animation: none; color: var(--risk); } }

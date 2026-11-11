@@ -27,10 +27,12 @@ export function fmtSpan(sec) {
 }
 
 // What to count down to: the next adhan or iqama today, else tomorrow's Fajr adhan.
-export function nextEvent(rows, tomorrowFajrAdhan, nowMin) {
+// sunrise (optional) is counted down to after Fajr, as an event of its own with no kind.
+export function nextEvent(rows, tomorrowFajrAdhan, nowMin, sunrise) {
   for (const r of rows) {
     if (nowMin < r.adhan) return { key: r.key, kind: 'adhan', at: r.adhan };
     if (r.iqama != null && nowMin < r.iqama) return { key: r.key, kind: 'iqama', at: r.iqama };
+    if (r.key === 'fajr' && sunrise != null && nowMin < sunrise) return { key: 'sunrise', kind: '', at: sunrise };
   }
   return { key: 'fajr', kind: 'adhan', at: tomorrowFajrAdhan + 1440 };
 }

@@ -23,7 +23,8 @@ export function parse(html) {
     if (+m[2] > 12 || +m[3] > 59 || at < min || at > max) throw new Error(`Implausible ${key} iqama "${m[1]}"`);
     iqama[key] = `${two(Math.floor(at / 60))}:${two(at % 60)}`;
   }
-  const j = /Jumu.{0,4}ah.{0,200}/i.exec(text);
+  // the page also says "Jumu'ah" in its menu and program list, so look for the khutbah heading first
+  const j = /Jumu.{0,4}ah\s*Khutbahs?.{0,200}/i.exec(text) || /Jumu.{0,4}ah.{0,200}/i.exec(text);
   const jumuah = [...(j ? j[0] : '').matchAll(/(\d{1,2}):(\d{2})\s*([AP])M/gi)]
     .map(([, h, mi, ap]) => `${two(+h % 12 + (/p/i.test(ap) ? 12 : 0))}:${mi}`).slice(0, 4);
   return { iqama, jumuah };

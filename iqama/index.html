@@ -196,6 +196,10 @@
                         <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="set-translit"> Show transliteration</label>
                     </div>
                     <div class="set-group">
+                        <label class="iq-label" for="set-dxlayout">Full screen layout</label>
+                        <select class="d-select" id="set-dxlayout"><option value="auto">Automatic: times only on small screens</option><option value="times">Times only</option><option value="full">Clock, prayers and dua</option></select>
+                    </div>
+                    <div class="set-group">
                         <label class="iq-label" for="set-arsize">Arabic text size</label>
                         <input class="d-range d-range-success d-range-sm" id="set-arsize" type="range" min="0" max="2" step="1" aria-valuetext="Medium">
                         <div class="range-ends" aria-hidden="true"><span>Small</span><span>Medium</span><span>Large</span></div>
@@ -226,11 +230,13 @@
     <div class="display" id="display" hidden>
         <div class="dx-top">
             <p class="dx-meta"><span id="dx-date"></span> <span id="dx-place"></span></p>
+            <p class="dx-wx" id="dx-wx" hidden></p>
             <div class="dx-actions">
                 <span class="dx-awake" id="dx-awake" hidden><span class="dx-dot"></span>Screen stays on</span>
                 <button class="d-btn d-btn-sm d-btn-outline" type="button" id="dx-exit">Exit full screen</button>
             </div>
         </div>
+        <div class="dx-small" id="dx-small" role="timer"></div>
         <div class="dx-main" id="dx-main"><div class="ck-area dx-clock" id="dx-clock" role="timer"></div></div>
         <div class="dx-dhikr" id="dx-dhikr">
             <p class="dx-ar" lang="ar" dir="rtl" id="dx-ar"></p>

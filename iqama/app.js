@@ -2,7 +2,7 @@ import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
 import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
-import { CLOCKS, renderClock } from './clocks.js';
+import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
 import { SETS, pickSet } from './adhkar.js';
 
@@ -22,7 +22,7 @@ const MODES = ['auto', 'light', 'dark'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
   clock: 'board', palette: 'petrol', mode: 'auto', units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
-  adhkar: true, translit: true, arSize: 'm', awake: false,
+  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto',
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -47,6 +47,7 @@ settings.adhkar = settings.adhkar !== false;
 settings.translit = settings.translit !== false;
 if (!['s', 'm', 'l'].includes(settings.arSize)) settings.arSize = DEFAULTS.arSize;
 settings.awake = settings.awake === true;
+if (!['auto', 'times', 'full'].includes(settings.dxLayout)) settings.dxLayout = DEFAULTS.dxLayout;
 
 // Alerts for each prayer and for Jumu'ah
 const blankAlert = (key) => key === 'jumuah'
@@ -185,8 +186,11 @@ function tick() {
   const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
   $('clock').innerHTML = html;
   if (displayOpen) {
-    $('dx-clock').innerHTML = html;
-    if (c.sec % 10 === 0) fitDisplay(); // re-fit after late font loads or a change in what the clock shows
+    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, next: ev, tomorrowFajr: tomorrow.rows[0] });
+    else {
+      $('dx-clock').innerHTML = html;
+      if (c.sec % 10 === 0) fitDisplay(); // re-fit after late font loads or a change in what the clock shows
+    }
   }
   renderAdhkar(nowMin);
   for (const tr of $('today').tBodies[0].rows) tr.classList.toggle('next', tr.dataset.k === ev.key);
@@ -530,6 +534,8 @@ function renderWeather() {
   const u = settings.units, w = weather;
   $('weather').hidden = !w;
   $('weather').textContent = w ? `${Math.round(w.temp)}°${u}${w.label ? `, ${w.label.toLowerCase()}` : ''}` : '';
+  $('dx-wx').textContent = $('weather').textContent;
+  $('dx-wx').hidden = !w;
   $('wx-body').innerHTML = w ? weatherHtml(w, u, prayerMarks()) : '<p class="iq-note">Weather is not available right now. The page tries again every 30 minutes.</p>';
   $('wx-updated').textContent = w && w.at != null ? `Updated ${fmt(w.at)} local time. Weather and air quality from Open-Meteo.` : '';
   document.querySelectorAll('[data-unit]').forEach(b => b.setAttribute('aria-pressed', b.dataset.unit === u));
@@ -606,6 +612,8 @@ $('set-arsize').value = AR_SIZES.indexOf(settings.arSize);
 $('set-arsize').setAttribute('aria-valuetext', AR_NAMES[AR_SIZES.indexOf(settings.arSize)]);
 $('set-adhkar').addEventListener('change', () => { settings.adhkar = $('set-adhkar').checked; save(); tick(); });
 $('set-translit').addEventListener('change', () => { settings.translit = $('set-translit').checked; save(); tick(); });
+$('set-dxlayout').value = settings.dxLayout;
+$('set-dxlayout').addEventListener('change', () => { settings.dxLayout = $('set-dxlayout').value; save(); applyLayout(); });
 $('set-arsize').addEventListener('input', () => { const i = +$('set-arsize').value; settings.arSize = AR_SIZES[i]; $('set-arsize').setAttribute('aria-valuetext', AR_NAMES[i]); save(); tick(); });
 
 // Keep screen on (Screen Wake Lock); also held while full screen is open. The browser drops it when the app is hidden.
@@ -646,6 +654,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 // Full screen: the chosen clock scaled to fill the screen, with the adhkar line. iPhone has no full screen for web pages, so it opens in the page.
 function fitDisplay() {
+  if (timesLayout()) return;
   const el = $('dx-clock'), box = $('dx-main');
   el.style.zoom = 1;
   const r = el.getBoundingClientRect();
@@ -662,8 +671,19 @@ function wakeCursor() {
   clearTimeout(cursorTimer);
   cursorTimer = setTimeout(() => $('display').classList.add('idle'), 3000);
 }
+// Small screens (a touch device whose shorter side is under 800 CSS pixels: phones and tablets under about 10 inches) get the times-only view.
+// shortcut: the screen's size is used, not the window's, so entering full screen cannot flip the layout; inches are not available to a web page.
+const smallScreen = () => matchMedia('(any-pointer: coarse)').matches && Math.min(screen.width, screen.height) < 800;
+const timesLayout = () => settings.dxLayout === 'times' || (settings.dxLayout === 'auto' && smallScreen());
+function applyLayout() {
+  const want = timesLayout() ? 'times' : 'full';
+  if ($('display').dataset.layout === want) return;
+  $('display').dataset.layout = want;
+  if (displayOpen) { tick(); requestAnimationFrame(fitDisplay); }
+}
 async function openDisplay() {
   displayOpen = true;
+  applyLayout();
   $('display').hidden = false;
   dkSig = '';
   tick();
@@ -685,7 +705,7 @@ $('fullscreen').addEventListener('click', openDisplay);
 $('dx-exit').addEventListener('click', closeDisplay);
 document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) requestAnimationFrame(fitDisplay); else closeDisplay(); });
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && displayOpen) closeDisplay(); });
-addEventListener('resize', () => { if (displayOpen) fitDisplay(); });
+addEventListener('resize', () => { if (displayOpen) { applyLayout(); fitDisplay(); } });
 $('display').addEventListener('pointermove', wakeCursor);
 
 // Install and offline

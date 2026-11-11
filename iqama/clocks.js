@@ -109,3 +109,21 @@ function bedside(d) {
 
 const STYLES = { board, dial, analog, sun, timeline, bedside };
 export const renderClock = (style, d) => (STYLES[style] || board)(d);
+
+// Full screen on small screens: only the time, the current prayer and what is counted down to.
+// d also carries tomorrowFajr (a row) for the countdown after the last iqama of the day.
+export function renderTimes(d) {
+  const m = Math.floor(d.now);
+  // shortcut: before Fajr the current prayer is last night's Isha, shown with today's times (they differ by a minute or two)
+  const cur = [...d.rows].reverse().find(r => r.adhan <= d.now) ?? d.rows[d.rows.length - 1];
+  const marks = d.rows.flatMap(r => (r.iqama == null ? [r.adhan] : [r.adhan, r.iqama])).sort((a, b) => a - b);
+  const prev = [...marks].reverse().find(v => v <= d.now) ?? marks[marks.length - 1] - 1440;
+  const pct = Math.max(0, Math.min(100, (d.now - prev) / (d.next.at - prev) * 100));
+  const row = d.next.at >= 1440 ? d.tomorrowFajr : d.rows.find(r => r.key === d.next.key);
+  const sub = d.next.kind === 'adhan' ? `<p class="tm-sub">${NAMES[row.key]} ${fmt(row.adhan)}, iqama ${row.iqama == null ? 'not set' : fmt(row.iqama)}</p>` : '';
+  return `<div class="tm"><p class="tm-time"><span class="tm-hm">${hm(m)}</span><span class="tm-side"><span>:${String(Math.floor(d.sec % 60)).padStart(2, '0')}</span><span>${ampm(m)}</span></span></p>`
+    + `<div class="tm-right"><div class="tm-card"><p class="tm-label">Current prayer</p><p class="tm-name">${NAMES[cur.key]}</p>`
+    + `<p class="tm-pt"><span><span class="tm-k">Adhan</span><b>${fmt(cur.adhan)}</b></span><span><span class="tm-k">Iqama</span><b class="${d.next.kind === 'iqama' ? 'tm-hl' : ''}">${cur.iqama == null ? 'Not set' : fmt(cur.iqama)}</b></span></p></div>`
+    + `<div><p class="tm-label">${nextName(d)} in</p><p class="tm-cnt">${untilNext(d)}</p>${sub}</div>`
+    + `<div class="tm-bar"><span style="width:${pct.toFixed(1)}%"></span></div></div></div>`;
+}

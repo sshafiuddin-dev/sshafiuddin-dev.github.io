@@ -122,13 +122,17 @@ export function renderTimes(d) {
   const prev = [...marks].reverse().find(v => v <= d.now) ?? marks[marks.length - 1] - 1440;
   const pct = Math.max(0, Math.min(100, (d.now - prev) / (d.next.at - prev) * 100));
   const row = d.next.at >= 1440 ? d.tomorrowFajr : d.rows.find(r => r.key === d.next.key);
-  const sub = d.next.kind === 'adhan' ? `<p class="tm-sub">${NAMES[row.key]} ${fmt(row.adhan)}, iqama ${row.iqama == null ? 'not set' : fmt(row.iqama)}</p>` : '';
-  const rise = d.sunrise != null && d.now >= d.sunrise && d.now < d.rows[1].adhan;
-  const card = rise
-    ? `<p class="tm-label">Now</p><p class="tm-name">Sunrise</p><p class="tm-pt"><span><span class="tm-k">Time</span><b>${fmt(d.sunrise)}</b></span></p>`
-    : `<p class="tm-label">Current prayer</p><p class="tm-name">${NAMES[cur.key]}</p><p class="tm-pt"><span><span class="tm-k">Adhan</span><b>${fmt(cur.adhan)}</b></span><span><span class="tm-k">Iqama</span><b class="${d.next.kind === 'iqama' ? 'tm-hl' : ''}">${cur.iqama == null ? 'Not set' : fmt(cur.iqama)}</b></span></p>`;
+  const sub = d.next.kind === 'adhan' ? `<p class="tm-sub">${NAMES[row.key]} ${fmt(row.adhan)}, iqama ${row.iqama == null ? 'not set' : fmt(row.iqama)}</p>`
+    : d.next.kind === 'iqama' ? `<p class="tm-sub">Iqama at ${fmt(d.next.at)}</p>` : '';
+  const k = d.card, left = d.rows.filter(r => r.adhan > d.now);
+  const jum = d.friday && d.jumuah?.length ? `<p class="tm-sub">Jumu’ah ${d.jumuah.map(fmt).join(' and ')}</p>` : '';
+  const card = !k
+    ? `<p class="tm-label">Current prayer</p><p class="tm-name">${NAMES[cur.key]}</p><p class="tm-pt"><span><span class="tm-k">Adhan</span><b>${fmt(cur.adhan)}</b></span><span><span class="tm-k">Iqama</span><b class="${d.next.kind === 'iqama' ? 'tm-hl' : ''}">${cur.iqama == null ? 'Not set' : fmt(cur.iqama)}</b></span></p>`
+    : k.kind === 'dua'
+      ? `<p class="tm-label tm-lh"><span>${k.title}</span><span>${k.pos}</span></p><p class="tm-ar" lang="ar" dir="rtl">${k.item.ar}</p><p class="tm-en">${k.item.en}</p><p class="tm-src">${k.item.src} · tap: next</p>`
+      : `<p class="tm-label">Rest of today</p><ul class="tm-rest"><li class="tm-rh"><span></span><span>Adhan</span><span>Iqama</span></li>${left.map(r => `<li><span>${NAMES[r.key]}</span><span>${fmt(r.adhan)}</span><span>${r.iqama == null ? '–' : fmt(r.iqama)}</span></li>`).join('')}</ul>${jum}`;
   return `<div class="tm"><div class="tm-left"><p class="tm-time"><span class="tm-hm">${hm(m)}</span><span class="tm-side"><span>:${String(Math.floor(d.sec % 60)).padStart(2, '0')}</span><span>${ampm(m)}</span></span></p>${d.wx || ''}</div>`
-    + `<div class="tm-right"><div class="tm-card">${card}</div>`
+    + `<div class="tm-right"><div class="tm-card"${k?.kind === 'dua' ? ' data-dua' : ''}>${card}</div>`
     + `<div><p class="tm-label">${nextName(d)} in</p><p class="tm-cnt${soon(d)}">${untilNext(d)}</p>${sub}</div>`
     + `<div class="tm-bar"><span style="width:${pct.toFixed(1)}%"></span></div></div></div>`;
 }

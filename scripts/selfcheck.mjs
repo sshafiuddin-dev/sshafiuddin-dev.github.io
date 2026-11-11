@@ -1,7 +1,7 @@
 // Run with: node scripts/selfcheck.mjs
 import assert from 'node:assert/strict';
 import { parse } from './fetch-iqama.mjs';
-import { parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
+import { outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -26,6 +26,12 @@ const rows = [{ key: 'fajr', adhan: 312, iqama: 345 }, { key: 'isha', adhan: 109
 assert.deepEqual(nextEvent(rows, 313, 300), { key: 'fajr', kind: 'adhan', at: 312 });
 assert.deepEqual(nextEvent(rows, 313, 320), { key: 'fajr', kind: 'iqama', at: 345 });
 assert.deepEqual(nextEvent(rows, 313, 400), { key: 'isha', kind: 'adhan', at: 1090 });
+const dy = (date, max, pop, kind = 'clear') => ({ date, max, pop, kind });
+assert.equal(dayName('2026-11-12'), 'Thursday');
+assert.equal(outlook([dy('2026-11-11', 55, 10), dy('2026-11-12', 48, 70, 'rain'), dy('2026-11-13', 46, 20)], 'F'), 'Next two days: turning colder, rain tomorrow.');
+assert.equal(outlook([dy('2026-11-11', 55, 10), dy('2026-11-12', 56, 10), dy('2026-11-13', 58, 60, 'rain')], 'F'), 'Next two days: staying mild, rain Friday.');
+assert.equal(outlook([dy('2026-11-11', 20, 0), dy('2026-11-12', 24, 0), dy('2026-11-13', 25, 0)], 'C'), 'Next two days: turning warmer, mostly dry.');
+assert.equal(outlook([dy('2026-11-11', 20, 0)], 'C'), '');
 assert.deepEqual(nextEvent(rows, 313, 350, 400), { key: 'sunrise', kind: '', at: 400 });
 assert.deepEqual(nextEvent(rows, 313, 320, 400), { key: 'fajr', kind: 'iqama', at: 345 });
 assert.deepEqual(nextEvent(rows, 313, 400, 400), { key: 'isha', kind: 'adhan', at: 1090 });

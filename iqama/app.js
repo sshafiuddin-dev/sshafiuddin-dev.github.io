@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, outlook } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -22,7 +22,7 @@ const MODES = ['auto', 'light', 'dark'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
   clock: 'board', palette: 'petrol', mode: 'auto', units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
-  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxNight: false, dxAuto: false,
+  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxNight: false, dxAuto: false, dxCard: 'rest',
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -49,6 +49,7 @@ if (!['s', 'm', 'l'].includes(settings.arSize)) settings.arSize = DEFAULTS.arSiz
 settings.awake = settings.awake === true;
 settings.dxNight = settings.dxNight === true;
 settings.dxAuto = settings.dxAuto === true;
+if (!['rest', 'duas'].includes(settings.dxCard)) settings.dxCard = DEFAULTS.dxCard;
 if (!['auto', 'times', 'full'].includes(settings.dxLayout)) settings.dxLayout = DEFAULTS.dxLayout;
 
 // Alerts for each prayer and for Jumu'ah
@@ -190,7 +191,7 @@ function tick() {
   nowMinute = nowMin;
   if (displayOpen) {
     applyNight();
-    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats() });
+    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats(), card: dxCardFor(nowMin), jumuah: jumuahMins(), friday: today.weekday === 'Fri' });
     else {
       $('dx-clock').innerHTML = html;
       if (c.sec % 10 === 0) fitDisplay(); // re-fit after late font loads or a change in what the clock shows
@@ -534,16 +535,31 @@ function prayerMarks() {
   const nowMin = clock(new Date(), place().zone).sec / 60;
   return day.rows.map((r, i) => (r.adhan >= nowMin ? { name: NAMES[r.key], min: r.adhan, today: true } : { name: NAMES[r.key], min: tomorrow.rows[i].adhan, today: false }));
 }
-// Under the time in the times-only full screen: temperature, then high/low, feels like, humidity and wind.
+// Under the time in the times-only full screen: temperature, a line about the next two days, then one row of details.
 function wxStats() {
   const w = weather;
   if (!w) return '';
-  const u = settings.units, r = v => (v == null ? '–' : Math.round(v));
+  const u = settings.units, r = v => (v == null ? '–' : Math.round(v)), out = outlook(w.days, u), rain = w.today.pop ?? w.pop;
   const item = (k, v) => `<span class="tm-st"><span class="tm-k">${k}</span><b>${v}</b></span>`;
-  return `<div class="tm-wx"><p class="tm-temp">${r(w.temp)}°${u}<span>${w.label ? w.label.toLowerCase() : ''}</span></p><div class="tm-stats">`
-    + item('High / low', `${r(w.today.max)}° / ${r(w.today.min)}°`) + item('Feels like', `${r(w.feels)}°`)
-    + item('Humidity', w.humidity == null ? '–' : `${r(w.humidity)}%`) + item('Wind', `${r(w.wind)} ${u === 'F' ? 'mph' : 'km/h'}`) + '</div></div>';
+  return `<div class="tm-wx"><p class="tm-temp">${r(w.temp)}°${u}<span>${w.label ? w.label.toLowerCase() : ''}</span></p>${out ? `<p class="tm-out">${out}</p>` : ''}<div class="tm-stats">`
+    + item('High/low', `${r(w.today.max)}°/${r(w.today.min)}°`) + item('Feels', `${r(w.feels)}°`) + item('Humidity', w.humidity == null ? '–' : `${r(w.humidity)}%`)
+    + item('Wind', `${r(w.wind)} ${u === 'F' ? 'mph' : 'km/h'}`) + item('Rain', rain == null ? '–' : `${r(rain)}%`) + '</div></div>';
 }
+// What the card in the times-only full screen shows instead of the current prayer: after sunrise until Dhuhr (rest of today or a morning dua)
+// and, with duas chosen, from Maghrib until Isha (an evening dua). null keeps the current prayer.
+// shortcut: the dua changes every 3 minutes by itself and by one more on each tap on the card.
+let duaTap = 0;
+function dxCardFor(nowMin) {
+  const [, dhuhr, , maghrib, isha] = day.rows;
+  const morning = nowMin >= day.sunrise && nowMin < dhuhr.adhan, evening = nowMin >= maghrib.adhan && nowMin < isha.adhan;
+  if (!morning && !evening) return null;
+  if (settings.dxCard === 'duas' && settings.adhkar) {
+    const set = SETS[morning ? 'morning' : 'evening'], i = (Math.floor(nowMin / 3) + duaTap) % set.items.length;
+    return { kind: 'dua', title: set.title, item: set.items[i], pos: `${i + 1} / ${set.items.length}` };
+  }
+  return morning ? { kind: 'rest' } : null;
+}
+$('dx-small').addEventListener('click', (e) => { if (e.target.closest('[data-dua]')) { duaTap++; tick(); } });
 function renderWeather() {
   const u = settings.units, w = weather;
   $('weather').hidden = !w;
@@ -624,6 +640,8 @@ $('set-arsize').value = AR_SIZES.indexOf(settings.arSize);
 $('set-arsize').setAttribute('aria-valuetext', AR_NAMES[AR_SIZES.indexOf(settings.arSize)]);
 $('set-adhkar').addEventListener('change', () => { settings.adhkar = $('set-adhkar').checked; save(); tick(); });
 $('set-translit').addEventListener('change', () => { settings.translit = $('set-translit').checked; save(); tick(); });
+$('set-dxcard').value = settings.dxCard;
+$('set-dxcard').addEventListener('change', () => { settings.dxCard = $('set-dxcard').value; save(); tick(); });
 $('set-dxlayout').value = settings.dxLayout;
 $('set-dxlayout').addEventListener('change', () => { settings.dxLayout = $('set-dxlayout').value; save(); applyLayout(); });
 $('set-arsize').addEventListener('input', () => { const i = +$('set-arsize').value; settings.arSize = AR_SIZES[i]; $('set-arsize').setAttribute('aria-valuetext', AR_NAMES[i]); save(); tick(); });

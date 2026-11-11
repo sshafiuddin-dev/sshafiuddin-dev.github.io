@@ -73,6 +73,26 @@ const WEATHER = [
   [[45, 48], 'fog', 'Fog'], [[51, 53, 55, 56, 57], 'rain', 'Drizzle'], [[61, 63, 65, 66, 67, 80, 81, 82], 'rain', 'Rain'],
   [[71, 73, 75, 77, 85, 86], 'snow', 'Snow'], [[95, 96, 99], 'storm', 'Thunderstorm'],
 ];
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const dayName = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(typeof iso === 'string' ? iso : '');
+  return m ? DAY_NAMES[new Date(Date.UTC(+m[1], m[2] - 1, +m[3])).getUTCDay()] : '';
+};
+
+// One line about the two days after today. days: [{ date, max, min, pop, kind }] with today first.
+// Temperature is a trend against today's high (5 degrees F or 3 C), else a plain word; rain or snow is named when its chance is 50% or more.
+export function outlook(days, units) {
+  const [t, a, b] = days || [];
+  if (!t || !a || !b || [t.max, a.max, b.max].some(v => v == null)) return '';
+  const F = units === 'F', diff = (a.max + b.max) / 2 - t.max, step = F ? 5 : 3;
+  const avg = (a.max + b.max) / 2, c = F ? (avg - 32) / 1.8 : avg;
+  const word = c <= 4 ? 'cold' : c <= 13 ? 'cool' : c <= 24 ? 'mild' : c <= 31 ? 'warm' : 'hot';
+  const temp = diff <= -step ? 'turning colder' : diff >= step ? 'turning warmer' : `staying ${word}`;
+  const wet = [[a, 'tomorrow'], [b, dayName(b.date) || 'the day after']].filter(([d]) => d.pop != null && d.pop >= 50 || d.kind === 'snow' && d.pop == null);
+  const kind = wet.some(([d]) => d.kind === 'snow') ? 'snow' : wet.some(([d]) => d.kind === 'storm') ? 'storms' : 'rain';
+  return `Next two days: ${temp}, ${wet.length ? `${kind} ${wet.map(([, n]) => n).join(' and ')}` : 'mostly dry'}.`;
+}
+
 export function weatherKind(code) {
   const hit = WEATHER.find(([codes]) => codes.includes(code));
   return hit ? { kind: hit[1], label: hit[2] } : { kind: 'plain', label: '' };

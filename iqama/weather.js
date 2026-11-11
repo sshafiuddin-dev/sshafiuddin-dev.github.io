@@ -1,6 +1,6 @@
 // Weather details from Open-Meteo (free, no key). fetchWeather normalises the reply; weatherHtml draws the panel.
 // Only numbers and parsed times from the reply reach the page, never its raw strings.
-import { fmt, weatherKind, uvLevel, aqiLevel, compass } from './logic.js';
+import { fmt, weatherKind, uvLevel, aqiLevel, compass, outlook, dayName } from './logic.js';
 
 const CURRENT = 'temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,uv_index,precipitation_probability';
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
@@ -8,11 +8,11 @@ const minutesOf = (iso) => { const m = /T(\d{2}):(\d{2})/.exec(typeof iso === 's
 
 export async function fetchWeather(lat, lng, units) {
   const f = units === 'F';
-  const base = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&timezone=auto&forecast_days=2`
+  const base = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&timezone=auto&forecast_days=7`
     + `&temperature_unit=${f ? 'fahrenheit' : 'celsius'}&wind_speed_unit=${f ? 'mph' : 'kmh'}&precipitation_unit=${f ? 'inch' : 'mm'}`;
   const airReq = fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&timezone=auto&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide`)
     .then(r => (r.ok ? r.json() : null)).catch(() => null);
-  let r = await fetch(`${base}&current=${CURRENT}&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,sunrise,sunset`);
+  let r = await fetch(`${base}&current=${CURRENT}&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,sunrise,sunset,weather_code,precipitation_probability_max`);
   // shortcut: if Open-Meteo ever rejects a variable, show the basics rather than no weather at all
   if (r.status === 400) r = await fetch(`${base}&current=temperature_2m,weather_code`);
   if (!r.ok) throw new Error(`weather ${r.status}`);
@@ -29,6 +29,11 @@ export async function fetchWeather(lat, lng, units) {
     temp: col('temperature_2m', start + k), code: col('weather_code', start + k), pop: col('precipitation_probability', start + k),
   })).filter(x => x.min != null);
   const first = (name) => (dl[name] || [])[0];
+  const dates = Array.isArray(dl.time) ? dl.time : [];
+  const days = dates.slice(0, 7).map((date, i) => ({
+    date: typeof date === 'string' ? date : '', max: num((dl.temperature_2m_max || [])[i]), min: num((dl.temperature_2m_min || [])[i]),
+    pop: num((dl.precipitation_probability_max || [])[i]), ...weatherKind(num((dl.weather_code || [])[i])),
+  }));
   const a = (await airReq)?.current || null;
   return {
     ...weatherKind(num(c.weather_code)), at: minutesOf(now),
@@ -37,9 +42,9 @@ export async function fetchWeather(lat, lng, units) {
     gust: num(c.wind_gusts_10m), vis: num(c.visibility), uv: num(c.uv_index), pop: num(c.precipitation_probability),
     today: {
       max: num(first('temperature_2m_max')), min: num(first('temperature_2m_min')), uv: num(first('uv_index_max')),
-      rain: num(first('precipitation_sum')), sunrise: minutesOf(first('sunrise')), sunset: minutesOf(first('sunset')),
+      rain: num(first('precipitation_sum')), pop: num(first('precipitation_probability_max')), sunrise: minutesOf(first('sunrise')), sunset: minutesOf(first('sunset')),
     },
-    hours,
+    hours, days,
     air: a ? { aqi: num(a.us_aqi), pm25: num(a.pm2_5), pm10: num(a.pm10), o3: num(a.ozone), no2: num(a.nitrogen_dioxide) } : null,
   };
 }
@@ -88,6 +93,12 @@ export function weatherHtml(w, units, prayers) {
     const parts = [['PM2.5', w.air.pm25], ['PM10', w.air.pm10], ['Ozone', w.air.o3], ['Nitrogen dioxide', w.air.no2]].filter(([, v]) => v != null);
     html += `<h3>Air quality</h3><p class="wx-aqi"><span class="wx-aqi-dot" data-level="${level < 0 ? 5 : level}"></span><strong>${Math.round(w.air.aqi)}</strong> US AQI, ${aqiLevel(w.air.aqi)}</p>`
       + `<dl class="wx-grid">${parts.map(([k, v]) => `<div><dt>${k}</dt><dd>${Math.round(v)} µg/m³</dd></div>`).join('')}</dl>`;
+  }
+
+  if (w.days.length > 1) {
+    const rows = w.days.map((d, i) => `<li><span class="wx-dn">${i ? dayName(d.date).slice(0, 3) : 'Today'}</span>${icon(d.kind, false)}<span class="wx-dc">${d.label || ''}</span>`
+      + `<span class="wx-dt">${deg(d.max)} / ${deg(d.min)}</span><span class="wx-p">${d.pop == null ? '' : `${Math.round(d.pop)}%`}</span></li>`).join('');
+    html += `<h3>Next 7 days</h3>${outlook(w.days, units) ? `<p class="wx-outlook">${outlook(w.days, units)}</p>` : ''}<ul class="wx-days">${rows}</ul>`;
   }
 
   const inHour = (h, p) => p.today === h.today && Math.floor(p.min / 60) === Math.floor(h.min / 60);

@@ -76,12 +76,22 @@ export function parseLoose(text) {
   }
 }
 
-async function get(url, tries = 3) {
+// A chapter file is { "<title>": [ ...duas ] }. Chapter 126 has lost the closing quote on its title, so everything after it
+// reads as part of the title. The title is not used, so when the file cannot be read whole, read the list inside it.
+export function parseChapterJson(text) {
+  try { return parseLoose(text); } catch (whole) {
+    const from = text.indexOf('['), to = text.lastIndexOf(']');
+    if (from < 0 || to < from) throw whole;
+    try { return { items: parseLoose(text.slice(from, to + 1)) }; } catch { throw whole; }
+  }
+}
+
+async function get(url, parse = parseLoose, tries = 3) {
   for (let i = 1; ; i++) {
     try {
       const res = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (iqama-times updater; +https://sshafiuddin-dev.github.io/iqama/)' } });
       if (!res.ok) throw new Error(`${url} answered ${res.status}`);
-      return parseLoose(await res.text());
+      return parse(await res.text());
     } catch (e) {
       if (i >= tries) throw new Error(`${url}: ${e.message}`);
       await new Promise(r => setTimeout(r, 1500 * i));
@@ -94,7 +104,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const cats = Object.values(index).find(Array.isArray) || [];
   const chapters = {}, skipped = [];
   for (const c of cats) {
-    try { chapters[c.ID] = { items: normalizeChapter(await get(toHttps(c.TEXT))) }; } catch (e) {
+    try { chapters[c.ID] = { items: normalizeChapter(await get(toHttps(c.TEXT), parseChapterJson)) }; } catch (e) {
       skipped.push(c.ID);
       console.log(`::warning title=Hisn al-Muslim chapter ${c.ID} skipped::${e.message}`.slice(0, 900));
     }

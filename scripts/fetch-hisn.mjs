@@ -42,20 +42,37 @@ export function check(chapters, min = { chapters: 100, duas: 200 }) {
   return { chapters: Object.keys(chapters).length, duas: items.length, withAr, withTr: items.filter(i => i.tr).length, withEn: items.filter(i => i.en).length, withAudio: items.filter(i => i.audio).length };
 }
 
-// Their files sometimes hold a raw line break or tab inside a text value, which strict JSON refuses. This escapes those
-// inside strings only, so the text itself is unchanged. Anything else wrong with the file still fails.
+// Their files are not always strict JSON. Inside strings this escapes raw line breaks and tabs and drops a backslash that
+// escapes nothing; outside strings it drops a trailing comma. The text itself is unchanged. Anything else still fails,
+// and the error then shows where, so a broken file can be told apart from a change in the format.
+const ESCAPABLE = '"\\/bfnrtu';
+export function repairJson(text) {
+  const chars = [...text];
+  let out = '', inStr = false;
+  for (let i = 0; i < chars.length; i++) {
+    const ch = chars[i];
+    if (inStr) {
+      if (ch === '\\') { if (ESCAPABLE.includes(chars[i + 1] ?? '')) out += ch + chars[++i]; continue; }
+      if (ch < ' ') { out += ch === '\n' ? '\\n' : ch === '\r' ? '\\r' : ch === '\t' ? '\\t' : '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0'); continue; }
+      if (ch === '"') inStr = false;
+      out += ch;
+    } else {
+      if (ch === '"') inStr = true;
+      if (ch === ',') { let j = i + 1; while (/\s/.test(chars[j] ?? '')) j++; if (chars[j] === ']' || chars[j] === '}') continue; }
+      out += ch;
+    }
+  }
+  return out;
+}
 export function parseLoose(text) {
   const clean = String(text).replace(/^\uFEFF/, '');
   try { return JSON.parse(clean); } catch (strict) {
-    let out = '', inStr = false, esc = false;
-    for (const ch of clean) {
-      if (inStr && !esc && ch < ' ') out += ch === '\n' ? '\\n' : ch === '\r' ? '\\r' : ch === '\t' ? '\\t' : '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0');
-      else out += ch;
-      if (esc) esc = false;
-      else if (ch === '\\' && inStr) esc = true;
-      else if (ch === '"') inStr = !inStr;
+    const fixed = repairJson(clean);
+    try { return JSON.parse(fixed); } catch (second) {
+      const at = +(/position (\d+)/.exec(second.message)?.[1] ?? -1);
+      const near = at >= 0 ? ` near ${JSON.stringify(fixed.slice(Math.max(0, at - 40), at + 40))}` : '';
+      throw new Error(`${second.message}${near} (strict: ${strict.message})`);
     }
-    try { return JSON.parse(out); } catch { throw strict; }
   }
 }
 
@@ -75,13 +92,17 @@ async function get(url, tries = 3) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const index = await get(toHttps(INDEX));
   const cats = Object.values(index).find(Array.isArray) || [];
-  const chapters = {};
+  const chapters = {}, skipped = [];
   for (const c of cats) {
-    chapters[c.ID] = { items: normalizeChapter(await get(toHttps(c.TEXT))) };
+    try { chapters[c.ID] = { items: normalizeChapter(await get(toHttps(c.TEXT))) }; } catch (e) {
+      skipped.push(c.ID);
+      console.log(`::warning title=Hisn al-Muslim chapter ${c.ID} skipped::${e.message}`.slice(0, 900));
+    }
     await new Promise(r => setTimeout(r, 150));
   }
+  if (skipped.length > 5) throw new Error(`Too many chapters could not be read (${skipped.join(', ')}), so nothing was saved.`);
   const stats = check(chapters, process.env.HISN_MIN ? JSON.parse(process.env.HISN_MIN) : undefined);
-  console.log('Hisn al-Muslim text:', JSON.stringify(stats));
+  console.log('Hisn al-Muslim text:', JSON.stringify({ ...stats, skipped }));
   const body = JSON.stringify({ source: INDEX, chapters }, null, 1) + '\n';
   if (existsSync(OUT) && readFileSync(OUT, 'utf8') === body) console.log('Text unchanged.');
   else { writeFileSync(OUT, body); console.log('Wrote', OUT); }

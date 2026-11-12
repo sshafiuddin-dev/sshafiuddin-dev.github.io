@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
-import { normalizeItem, normalizeChapter, check, parseLoose } from './fetch-hisn.mjs';
+import { normalizeItem, normalizeChapter, check, parseLoose, repairJson } from './fetch-hisn.mjs';
 import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
@@ -130,5 +130,11 @@ for (const [k, s] of Object.entries(SETS)) for (const it of s.items) assert.ok(i
   assert.deepEqual([item.ar, item.en], ['a\nb\tc', 'say "hi"\nthere']);
   assert.deepEqual(parseLoose('\uFEFF{"a": [1, 2]}'), { a: [1, 2] }, 'valid JSON and a leading byte order mark are unchanged');
   assert.throws(() => parseLoose('{"a": [1, }'), 'real breakage still fails');
+}
+// Other slips in their JSON: a backslash that escapes nothing, a trailing comma. Real escapes and text stay as they are.
+{
+  assert.deepEqual(parseLoose('{"a": ["it\\\'s", "x\\\\ny", "q\\"z\\u0041"],}'), { a: ["it's", 'x\\ny', 'q"zA'] });
+  assert.equal(repairJson('{"k": "a, ]"}'), '{"k": "a, ]"}', 'a comma inside a string is left alone');
+  assert.throws(() => parseLoose('{"a": "' + 'x'.repeat(200) + '", "b": tru}'), /tru.*\(strict: /, 'the error shows the broken part and the strict error');
 }
 console.log('selfcheck ok');

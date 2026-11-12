@@ -118,12 +118,20 @@
                 <ul class="au-list" id="adhkar-audio"></ul>
             </main>
 
-            <main class="tab" id="tab-quran" aria-labelledby="tab-title" hidden>
-                <div class="qr-body">
-                    <label for="qr-reciter">Reciter</label><select class="d-select" id="qr-reciter"></select>
-                    <label for="qr-surah">Surah</label><select class="d-select" id="qr-surah"></select>
-                    <button class="d-btn d-btn-primary" type="button" id="qr-play" disabled>Play</button>
-                    <p class="iq-note" id="qr-note">Loading reciters…</p>
+            <main class="tab tab-fill qp" id="tab-quran" aria-labelledby="tab-title" data-pane="list" hidden>
+                <div class="qp-top">
+                    <input class="d-input qp-search" type="search" id="qp-search" placeholder="Search reciters and surahs" aria-label="Search reciters and surahs" autocomplete="off">
+                    <select class="d-select qp-riwaya" id="qp-riwaya" aria-label="Riwayah" disabled><option value="all">All riwayat</option></select>
+                    <div class="qp-tabs" role="tablist" aria-label="Quran library">
+                        <button class="d-btn d-btn-sm" type="button" role="tab" data-view="reciters" aria-selected="true">Reciters</button>
+                        <button class="d-btn d-btn-sm" type="button" role="tab" data-view="surahs" aria-selected="false">Surahs</button>
+                        <button class="d-btn d-btn-sm" type="button" role="tab" data-view="favorites" aria-selected="false">Favorites</button>
+                        <button class="d-btn d-btn-sm" type="button" role="tab" data-view="playlists" aria-selected="false">Playlists</button>
+                    </div>
+                </div>
+                <div class="qp-panes">
+                    <section class="qp-pane qp-list" id="qp-list" aria-label="Library"></section>
+                    <section class="qp-pane qp-detail" id="qp-detail" aria-label="What you can play" aria-live="off"></section>
                 </div>
             </main>
 
@@ -276,6 +284,7 @@
         </div>
     </div>
 
+    <script src="../vendor/motion.min.js" defer></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>

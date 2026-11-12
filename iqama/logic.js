@@ -55,6 +55,15 @@ export function km(a, b) {
 
 // Alert moments that fall in (fromSec, toSec]; anything over 90 s late is dropped.
 // cfg[key] = { on, adhan: type, before: { type, min }, iqama: { type, min } }; type 'off' or a missing part is silent.
+// One alert step is { on, type, min? }. Older saves held a bare type for the adhan and type 'off' for a step that was switched off.
+export function cleanStep(s, def, sounds, withMin) {
+  const o = typeof s === 'string' ? { type: s } : s && typeof s === 'object' ? s : {};
+  const known = sounds.includes(o.type);
+  const out = { on: o.type === 'off' ? false : typeof o.on === 'boolean' ? o.on : known ? true : def.on, type: known ? o.type : def.type };
+  if (withMin) out.min = Number.isInteger(o.min) && o.min >= 1 && o.min <= 60 ? o.min : def.min;
+  return out;
+}
+const stepType = (s) => (typeof s === 'string' ? s : s && s.on !== false ? s.type : 'off');
 export function alertsBetween(rows, cfg, fromSec, toSec) {
   const out = [];
   const add = (min, kind, key, type, mins) => {
@@ -64,9 +73,9 @@ export function alertsBetween(rows, cfg, fromSec, toSec) {
   for (const r of rows) {
     const c = cfg[r.key];
     if (!c || !c.on) continue;
-    add(r.adhan, 'adhan', r.key, c.adhan);
-    if (c.before) add(r.adhan - c.before.min, 'before', r.key, c.before.type, c.before.min);
-    if (c.iqama && r.iqama != null) add(r.iqama - c.iqama.min, 'iqama', r.key, c.iqama.type, c.iqama.min);
+    add(r.adhan, 'adhan', r.key, stepType(c.adhan));
+    if (c.before) add(r.adhan - c.before.min, 'before', r.key, stepType(c.before), c.before.min);
+    if (c.iqama && r.iqama != null) add(r.iqama - c.iqama.min, 'iqama', r.key, stepType(c.iqama), c.iqama.min);
   }
   return out;
 }

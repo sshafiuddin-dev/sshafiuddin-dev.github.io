@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
+import { normalizeItem, normalizeChapter, check } from './fetch-hisn.mjs';
 import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
@@ -111,4 +112,14 @@ assert.equal(at(21, 0), 'sleep');
 assert.equal(at(3, 0), 'sleep');
 assert.equal(pickSet(600, day.map(r => ({ ...r, iqama: null })), 399, 'Tue').key, 'general', 'no iqama times set');
 for (const [k, s] of Object.entries(SETS)) for (const it of s.items) assert.ok(it.en && it.src && Number.isInteger(it.n), `adhkar entry in ${k} is complete`);
+// Hisn al-Muslim text: fields are matched by meaning, text is copied untouched, http audio links become https
+{
+  const raw = { ID: 1, ARABIC_TEXT: ' \u0627\u0644\u062d\u0645\u062f ', LANGUAGE_ARABIC_TRANSLATED_TEXT: 'Alhamdu', TRANSLATED_TEXT: 'Praise be.', REPEAT: '3', AUDIO: 'http://www.hisnmuslim.com/audio/ar/1.mp3' };
+  assert.deepEqual(normalizeItem(raw), { ar: '\u0627\u0644\u062d\u0645\u062f', tr: 'Alhamdu', en: 'Praise be.', n: 3, audio: 'https://www.hisnmuslim.com/audio/ar/1.mp3' });
+  assert.deepEqual(normalizeItem({ ARABIC_TEXT: 'a', TRANSLATED_TEXT: 'b' }), { ar: 'a', tr: '', en: 'b' }, 'no repeat or audio is fine');
+  assert.equal(normalizeChapter({ 'Any chapter title': [raw, { ID: 2 }] }).length, 1, 'empty entries are dropped, the key is ignored');
+  const ch = (n) => ({ items: Array.from({ length: n }, () => ({ ar: 'x', tr: '', en: 'y' })) });
+  assert.throws(() => check({ 1: ch(3) }), /does not look as expected/, 'a bad download is refused');
+  assert.equal(check({ 1: ch(3), 2: ch(2) }, { chapters: 2, duas: 5 }).duas, 5);
+}
 console.log('selfcheck ok');

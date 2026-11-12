@@ -4,7 +4,7 @@ import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, ou
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
-import { SETS, pickSet } from './adhkar.js';
+import { SETS, AUDIO, pickSet } from './adhkar.js';
 
 const $ = (id) => document.getElementById(id);
 const root = document.documentElement;
@@ -212,15 +212,16 @@ function renderMonth() {
 const monthTitle = () => (today ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(Date.UTC(today.y, today.m - 1, 15))) : 'This month');
 
 // Tabs: one screen each, chosen by the address (#weather), so the back button moves between them
-const TAB_IDS = ['today', 'weather', 'alerts', 'month', 'settings'];
-const TITLES = { today: 'Today', weather: 'Weather', alerts: 'Adhan and alerts', settings: 'Settings' };
+const TAB_IDS = ['today', 'weather', 'adhkar', 'quran', 'month', 'settings'];
+const TITLES = { today: 'Today', weather: 'Weather', adhkar: 'Adhkar audio', quran: 'Quran', settings: 'Settings' };
 let tab = 'today', sub = 'location';
 function go(t, s) {
   if (s) sub = s;
   if (location.hash.slice(1) === t) route(); else location.hash = t;
 }
 function route() {
-  const h = location.hash.slice(1);
+  let h = location.hash.slice(1);
+  if (h === 'alerts') { h = 'settings'; sub = 'alerts'; } // the old address for the alerts screen
   tab = TAB_IDS.includes(h) ? h : 'today';
   for (const id of TAB_IDS) $(`tab-${id}`).hidden = id !== tab;
   document.querySelectorAll('.tabbar a, .dockbar a').forEach(a => {
@@ -271,6 +272,9 @@ function syncSound() {
   $('alerts-label').textContent = playing() ? 'Stop sound' : `Alerts: ${settings.muted ? 'off' : 'on'}`;
   $('alerts-toggle').checked = !settings.muted;
   $('dx-sound').hidden = !soundLocked;
+  $('sound-lock').hidden = !soundLocked;
+  $('qr-play').textContent = playing() ? 'Stop' : 'Play';
+  document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === AUDIO[b.dataset.key] ? 'Stop' : 'Play'; });
 }
 audio.addEventListener('ended', syncSound);
 audio.addEventListener('pause', syncSound);
@@ -281,9 +285,11 @@ function markUnlocked() {
   GESTURES.forEach(g => removeEventListener(g, unlockSound, true));
   syncSound();
 }
-function unlockSound() {
+function unlockSound(e) {
   const file = pending && Date.now() - pending.at < 120000 ? pending.file : null; // a stale alert is not played late
   pending = null;
+  // a tap on a button that starts its own sound unlocks through that sound, so a missed alert does not replay over it
+  if (e && e.target.closest && e.target.closest('#qr-play, #dk-listen, .au-play, [data-try]')) return;
   if (file) return play(file);
   if (playing()) return;
   audio.muted = true; // a silent start that lets later alerts play on their own
@@ -294,7 +300,7 @@ GESTURES.forEach(g => addEventListener(g, unlockSound, true));
 function play(file) {
   audio.pause();
   audio.muted = false;
-  audio.src = `audio/${file}.mp3`;
+  audio.src = /^https:/.test(file) ? file : `audio/${file}.mp3`;
   audio.play().then(markUnlocked, (err) => {
     if (err && err.name === 'AbortError') return; // another sound took over
     if (err && err.name === 'NotAllowedError') {
@@ -308,12 +314,76 @@ function play(file) {
     }
   });
 }
+// Adhkar audio: Hisn al-Muslim records one chapter per set, so this plays the whole chapter, not just the line shown
+$('dk-listen').addEventListener('click', () => {
+  if (playing()) return audio.pause();
+  if (AUDIO[dk.key]) play(AUDIO[dk.key]);
+});
+
+const AUDIO_LIST = [['Dua after hearing the adhan', 'adhan'], ['Adhkar after the prayer', 'prayer'], ['Morning and evening adhkar', 'morning'], ['Before sleep', 'sleep']];
+$('adhkar-audio').innerHTML = AUDIO_LIST.map(([label, key]) => `<li><span>${label}</span><button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-key="${key}">Play</button></li>`).join('');
+$('adhkar-audio').addEventListener('click', (e) => {
+  const b = e.target.closest('.au-play');
+  if (!b) return;
+  if (playing() && audio.src === AUDIO[b.dataset.key]) return audio.pause();
+  play(AUDIO[b.dataset.key]);
+});
+
+// Quran: reciters and surahs come from mp3quran.net when the panel is first opened; the audio streams from the reciter's server
+const QURAN_API = 'https://mp3quran.net/api/v3';
+let quran = null, qStore = {};
+try { qStore = JSON.parse(localStorage.getItem('iqama-quran') || '{}') || {}; } catch (e) {}
+const qSave = () => { try { localStorage.setItem('iqama-quran', JSON.stringify(qStore)); } catch (e) {} };
+const getJson = (path) => fetch(`${QURAN_API}/${path}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+function fillSurahs() {
+  const rec = quran.list[+$('qr-reciter').value];
+  $('qr-surah').innerHTML = rec.surahs.map(n => `<option value="${n}">${n}. ${quran.names.get(n) || 'Surah ' + n}</option>`).join('');
+  if (rec.surahs.includes(qStore.surah)) $('qr-surah').value = qStore.surah;
+}
+async function loadQuran() {
+  if (quran) return;
+  quran = 'loading';
+  $('qr-note').textContent = 'Loading reciters…';
+  try {
+    const [s, r] = await Promise.all([getJson('suwar?language=eng'), getJson('reciters?language=eng&rewaya=1')]);
+    const names = new Map((s.suwar || []).map(x => [+x.id, x.name]));
+    const list = [];
+    for (const rc of r.reciters || []) for (const m of rc.moshaf || []) {
+      const surahs = String(m.surah_list || '').split(',').map(Number).filter(n => n >= 1 && n <= 114);
+      if (m.server && surahs.length) list.push({ label: rc.moshaf.length > 1 ? `${rc.name} (${m.name})` : rc.name, server: m.server.replace(/^http:/, 'https:').replace(/\/?$/, '/'), surahs });
+    }
+    if (!list.length) throw new Error('no reciters');
+    quran = { names, list };
+    $('qr-reciter').innerHTML = list.map((x, i) => `<option value="${i}">${x.label}</option>`).join('');
+    const saved = list.findIndex(x => x.label === qStore.reciter);
+    if (saved >= 0) $('qr-reciter').value = saved;
+    fillSurahs();
+    $('qr-play').disabled = false;
+    $('qr-note').textContent = 'Audio streams from mp3quran.net, so it needs a connection.';
+  } catch (e) {
+    console.warn('Iqama Times: Quran list failed', e);
+    quran = null;
+    $('qr-note').textContent = 'Could not load the reciters. Check the connection, then close and open this again.';
+  }
+}
+addEventListener('hashchange', () => { if (location.hash === '#quran') loadQuran(); });
+if (location.hash === '#quran') loadQuran();
+$('qr-reciter').addEventListener('change', () => { qStore.reciter = quran.list[+$('qr-reciter').value].label; qSave(); fillSurahs(); });
+$('qr-surah').addEventListener('change', () => { qStore.surah = +$('qr-surah').value; qSave(); });
+$('qr-play').addEventListener('click', () => {
+  if (playing()) return audio.pause();
+  if (!quran || quran === 'loading') return;
+  const rec = quran.list[+$('qr-reciter').value], n = +$('qr-surah').value;
+  qStore = { reciter: rec.label, surah: n }; qSave();
+  play(`${rec.server}${String(n).padStart(3, '0')}.mp3`);
+});
+
 $('alerts-toggle').addEventListener('click', (e) => {
   if (playing()) { e.preventDefault(); return audio.pause(); }
   settings.muted = !settings.muted;
   save();
   syncSound();
-  say(settings.muted ? 'All alerts are off. Your settings for each prayer are kept.' : 'Alerts are on. Set them for each prayer under Adhan and alerts.');
+  say(settings.muted ? 'All alerts are off. Your settings for each prayer are kept.' : 'Alerts are on. Set them for each prayer under Settings, Adhan and alerts.');
 });
 
 const fillSelect = (id, map, value) => { $(id).innerHTML = Object.entries(map).map(([k, v]) => `<option value="${k}">${v}</option>`).join(''); $(id).value = value; };
@@ -633,6 +703,7 @@ function renderAdhkar(nowMin) {
   $('dk-count').setAttribute('aria-label', done ? `Done, ${it.n} of ${it.n}` : `Count, ${c} of ${it.n}`);
   $('dk-tr-toggle').textContent = settings.translit ? 'Hide transliteration' : 'Show transliteration';
   $('dk-tr-toggle').hidden = !it.tr;
+  $('dk-listen').hidden = !AUDIO[dk.key];
   $('dx-dhikr').hidden = !settings.adhkar;
   $('dx-ar').textContent = it.ar;
   $('dx-ar').hidden = !it.ar;

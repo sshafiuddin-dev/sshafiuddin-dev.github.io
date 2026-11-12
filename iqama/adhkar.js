@@ -53,3 +53,8 @@ export function pickSet(nowMin, rows, sunrise, weekday) {
   if (nowMin >= (isha.iqama ?? isha.adhan) + 20 || nowMin < fajr.adhan) return { key: 'sleep', until: null };
   return { key: weekday === 'Fri' ? 'friday' : 'general', until: null };
 }
+
+// Hisn al-Muslim chapter recordings (Arabic), one file per chapter. File number is the chapter ID plus one.
+// Chapters: 15 after hearing the adhan, 25 after the prayer, 27 morning and evening, 28 before sleep.
+const hisn = (id) => `https://www.hisnmuslim.com/audio/ar/ar_7esn_AlMoslem_by_Doors_${String(id + 1).padStart(3, '0')}.mp3`;
+export const AUDIO = { adhan: hisn(15), prayer: hisn(25), morning: hisn(27), evening: hisn(27), sleep: hisn(28) };

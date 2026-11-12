@@ -526,3 +526,12 @@ body { overflow: hidden; }
 }
 /* the weather body is a grid item: without this the wide hourly strip stretches the whole page */
 #wx-body { min-width: 0; }
+
+/* Quran panel and the sound unlock button on the main page */
+.qr { margin-top: 1rem; }
+.qr summary { cursor: pointer; font-weight: 600; }
+.qr-body { display: grid; gap: .5rem; margin-top: .6rem; max-width: 28rem; }
+.sound-lock { position: fixed; top: .75rem; left: 50%; transform: translateX(-50%); z-index: 50; animation: dx-sound-pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .sound-lock { animation: none; } }
+.au-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; max-width: 32rem; }
+.au-list li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .6rem .8rem; border: 1px solid var(--line, rgba(128, 128, 128, .3)); border-radius: .6rem; }

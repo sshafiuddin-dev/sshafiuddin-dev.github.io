@@ -28,6 +28,7 @@
   const hidden = [];
   const restore = () => {
     root.classList.remove('js-motion');
+    document.querySelectorAll('.tw-c').forEach(c => c.classList.add('on'));
     hidden.forEach(el => { el.style.opacity = ''; el.style.translate = ''; el.style.rotate = ''; el.style.scale = ''; });
   };
 
@@ -49,7 +50,7 @@
     const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
     /* ---------- Phase 1: hero sequence ---------- */
-    const chars = $$('h1 .ch'), bits = $$('.hero-lede, .hero-sub, .hero-cta'), card = $$('.sod'), cells = $$('.sod .cell'), badge = $$('.hero-badge');
+    const chars = $$('h1 .ch'), bits = $$('.hero-sub, .hero-cta'), card = $$('.sod'), cells = $$('.sod .cell'), badge = $$('.hero-badge');
     hide([...badge, ...chars, ...bits, ...card, ...cells]);
     $$('h2').forEach(h => { // words rise out of a mask; aria-label keeps the heading readable
       const text = h.textContent.trim().replace(/\s+/g, ' ');
@@ -73,7 +74,53 @@
     }
     animate(chars, { opacity: [0, 1], translate: up(T.dist.lg * 4.4), rotate: ['6deg', '0deg'] },
       { duration: .7, ease: T.ease, delay: stagger(T.gap.letters) });
-    animate(bits, { opacity: [0, 1], translate: up(T.dist.md) }, { duration: .7, ease: T.ease, delay: stagger(.1, { startDelay: .55 }) });
+    /* Typewriter lede: screen readers get the sentence whole (sr-only copy); the typed letters are aria-hidden
+       spans whose opacity flips one by one, so the line never reflows while it types. */
+    const lede = document.querySelector('.hero-lede');
+    let typed = .55;
+    if (lede) {
+      const text = lede.textContent.trim();
+      const sr = document.createElement('span'); sr.className = 'sr-only'; sr.textContent = text;
+      const vis = document.createElement('span'); vis.setAttribute('aria-hidden', 'true');
+      const cs = [...text].map(ch => { const c = document.createElement('span'); c.className = 'tw-c'; c.textContent = ch; vis.append(c); return c; });
+      lede.textContent = ''; lede.append(sr, vis);
+      const start = 1.0, per = .02; typed = start + cs.length * per;
+      let i = 0, last = null;
+      const step = () => {
+        if (last) last.classList.remove('tw-caret');
+        if (i >= cs.length) { setTimeout(() => last && last.classList.remove('tw-caret'), 1800); if (last) last.classList.add('tw-caret'); return; }
+        last = cs[i++]; last.classList.add('on', 'tw-caret');
+        setTimeout(step, per * 1000);
+      };
+      setTimeout(step, start * 1000);
+    }
+    animate(bits, { opacity: [0, 1], translate: up(T.dist.md) }, { duration: .7, ease: T.ease, delay: stagger(.12, { startDelay: typed }) });
+
+    /* Demo cursor: drifts in, "clicks" Run access review as the auto-play review fires (app.js, 2.4s), then leaves. */
+    const sodCard = document.querySelector('.sod'), reviewBtn = document.getElementById('sod-review');
+    if (sodCard && reviewBtn) {
+      const cur = document.createElement('div');
+      cur.className = 'sod-cursor'; cur.setAttribute('aria-hidden', 'true');
+      cur.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 2.5l15 8.2-6.6 1.6 3.9 7.4-2.7 1.4-3.9-7.4L5 18.4z"/></svg><span>Shafi</span>';
+      sodCard.append(cur);
+      setTimeout(() => {
+        const c = sodCard.getBoundingClientRect(), rb = reviewBtn.getBoundingClientRect();
+        // aim at the button when it is on screen, otherwise at the first conflicting cell the review clears
+        const t = rb.bottom < innerHeight - 8 ? reviewBtn : (sodCard.querySelector('.cell.conflict') || reviewBtn);
+        const b = t.getBoundingClientRect(), press = t;
+        const to = [b.left - c.left + b.width * .55, b.top - c.top + b.height * .45];
+        const from = [c.width * .82, c.height * .42];
+        animate(cur, { opacity: [0, 1] }, { duration: .25 });
+        animate(cur, { translate: [`${from[0]}px ${from[1]}px`, `${to[0]}px ${to[1]}px`] }, { duration: .8, ease: T.ease });
+        setTimeout(() => {
+          animate(cur.querySelector('svg'), { scale: [1, .78, 1] }, { duration: .28 });
+          animate(press, { scale: [1, .9, 1] }, { duration: .28 });
+        }, 900);
+        setTimeout(() => {
+          animate(cur, { translate: [`${to[0]}px ${to[1]}px`, `${to[0] + 40}px ${to[1] + 26}px`], opacity: [1, 0] }, { duration: .7, ease: T.ease });
+        }, 2300);
+      }, 1450);
+    }
     animate(card, { opacity: [0, 1], translate: up(T.dist.md) }, { duration: .8, ease: T.ease, delay: .35 });
     const ripple = (i) => .75 + Math.hypot(i % 7 - 3, Math.floor(i / 7) - 3) * .06; // outward from the matrix centre
     animate(cells, { opacity: [0, 1] }, { duration: .3, delay: ripple });
@@ -103,7 +150,16 @@
       once(stage, () => {
         animate(rings, { opacity: [0, 1], scale: [.8, 1] }, { duration: 1, ease: T.ease, delay: stagger(.15) });
         animate(core, { opacity: [0, 1] }, { duration: .6, delay: .1 });
-        animate(chips, { opacity: [0, 1], scale: [.3, 1] }, { ...T.spring.pop, delay: stagger(.07, { startDelay: .5 }) });
+        animate(chips, { opacity: [0, 1], scale: [.3, 1], filter: ['blur(8px)', 'blur(0px)'] }, { duration: .9, ease: T.ease, delay: stagger(.09, { startDelay: .45 }) })
+          .then(() => chips.forEach(c => { c.style.opacity = ''; c.style.scale = ''; c.style.filter = ''; })); // hand back to CSS so the step highlight can dim rings
+        // the fly-in spin rides on each node (its own transform places it on the ring), so it never fights the orbit
+        $$('.node', stage).forEach((n, i) => {
+          const base = getComputedStyle(n).transform;
+          animate(n, { transform: [`${base} rotate(-180deg)`, `${base} rotate(0deg)`] }, { duration: .9, ease: T.ease, delay: .45 + i * .09 })
+            .then(() => { n.getAnimations().forEach(a => a.cancel()); n.style.transform = ''; }); // back to the cqw-based CSS placement
+        });
+        const comets = $$('.comet', stage); hide(comets);
+        animate(comets, { opacity: [0, 1] }, { duration: .8, delay: stagger(.15, { startDelay: 1.2 }) });
       }, { amount: .4 });
     }
 

@@ -256,6 +256,51 @@ reviewBtn.addEventListener('click', review);
 render();
 if (!calm) setTimeout(review, root.classList.contains('js-motion') ? 2400 : 1500); // let the hero entrance finish first
 
+// Ambient motion (rings, comets, marquee, button borders): one nav toggle pauses all of it, remembered
+// per browser; loops that are off-screen rest on their own.
+const motionBtn = $('motion-toggle');
+const labelMotion = () => {
+  const off = root.dataset.motion === 'off';
+  motionBtn.setAttribute('aria-pressed', String(off));
+  motionBtn.title = off ? 'Play animations' : 'Pause animations';
+};
+labelMotion();
+motionBtn.addEventListener('click', () => {
+  const off = root.dataset.motion !== 'off';
+  if (off) root.dataset.motion = 'off'; else delete root.dataset.motion;
+  try { localStorage.setItem('motion', off ? 'off' : 'on'); } catch (e) {}
+  labelMotion();
+});
+if ('IntersectionObserver' in window) {
+  const rest = new IntersectionObserver((es) => es.forEach(e => e.target.classList.toggle('idle', !e.isIntersecting)));
+  document.querySelectorAll('.hero, .marquee, .orbits').forEach(el => rest.observe(el));
+}
+
+// Inside-out steps: light one layer and its ring at a time. Cycles on its own while in view; hover or
+// keyboard focus takes over, and the motion toggle pauses the cycle along with the rest.
+const scape = document.querySelector('.landscape');
+if (scape) {
+  const steps = [...scape.querySelectorAll('.lx-steps > li')];
+  let at = 0, held = false, seen = false;
+  const light = (li) => {
+    steps.forEach(s => s.classList.toggle('on', s === li));
+    if (li) scape.dataset.on = li.dataset.ring; else delete scape.dataset.on;
+  };
+  steps.forEach((li, k) => {
+    const take = () => { held = true; at = k; light(li); };
+    const give = () => { held = false; };
+    li.addEventListener('pointerenter', take); li.addEventListener('focus', take);
+    li.addEventListener('pointerleave', give); li.addEventListener('blur', give);
+  });
+  light(steps[0]);
+  setInterval(() => {
+    if (held || !seen || root.dataset.motion === 'off' || document.hidden) return;
+    at = (at + 1) % steps.length; light(steps[at]);
+  }, 4500);
+  if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => { seen = e.isIntersecting; }).observe(scape);
+  else seen = true;
+}
+
 // Marquee: duplicate the list once so the loop is seamless
 const marquee = $('marquee');
 [...marquee.children].forEach(li => { const c = li.cloneNode(true); c.dataset.dup = ''; marquee.append(c); });

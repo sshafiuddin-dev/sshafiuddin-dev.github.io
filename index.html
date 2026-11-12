@@ -16,7 +16,7 @@
   <meta name="twitter:description" content="20+ years designing enterprise SAP security programs, access governance, and automation." />
   <title>Shafiuddin Syed | SAP Architect & Enterprise Security Leader</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+  <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;if(localStorage.getItem('motion')==='off')document.documentElement.dataset.motion='off'}catch(e){}</script>
   <!-- hides the entrance targets until motion.js takes over; the timer shows everything if it never does -->
   <script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('js-motion');setTimeout(function(){document.documentElement.classList.remove('js-motion')},4000)}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,6 +45,7 @@
         <li><a href="#projects" data-tcode="SE80" title="SE80: object navigator">Projects</a></li>
         <li><a href="#contact" data-tcode="SO01" title="SO01: SAP inbox">Contact</a></li>
       </ul>
+      <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false" aria-label="Pause animations" title="Pause animations"><svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="3" width="3" height="10" rx="1"/><rect x="9.5" y="3" width="3" height="10" rx="1"/></svg><svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2v9.6a.7.7 0 0 0 1.05.6l7.6-4.8a.7.7 0 0 0 0-1.2l-7.6-4.8A.7.7 0 0 0 5 3.2z"/></svg></button>
       <button class="theme-toggle" id="theme-toggle" type="button">Dark</button>
     </div>
   </nav>
@@ -57,7 +58,7 @@
         <p class="hero-lede">Twenty years deciding who gets access to what across global SAP landscapes, and proving it to the auditors.</p>
         <p class="hero-sub">SAP architecture, access governance, Azure cloud, automation, and CMMC and SOX compliance.</p>
         <div class="hero-cta">
-          <a href="#contact" class="btn btn-primary">Get in touch</a>
+          <a href="#contact" class="btn btn-primary btn-live">Get in touch</a>
           <a href="#projects" class="btn btn-outline">See the projects</a>
         </div>
       </div>
@@ -118,28 +119,29 @@
 
       <div class="landscape" data-reveal>
         <div class="landscape-copy">
-          <h3>The landscape, in rings</h3>
-          <p>Access decisions sit at the centre. Around them are the platforms they protect, and the cloud and tools that connect it all.</p>
-          <dl class="rings-key">
-            <div><dt><i class="key k1" aria-hidden="true"></i>Governance</dt><dd>GRC, SoD, UAR, PAM, IGA</dd></div>
-            <div><dt><i class="key k2" aria-hidden="true"></i>Platform</dt><dd>ECC, S/4HANA, HANA, Basis, BTP</dd></div>
-            <div><dt><i class="key k3" aria-hidden="true"></i>Around it</dt><dd>Azure, SuccessFactors, Dynamics 365, Python tooling</dd></div>
-          </dl>
+          <h3 class="lx-title">Inside out</h3>
+          <p class="lx-lede">Access decisions at the core, the platforms they protect, then everything SAP talks to.</p>
+          <ol class="lx-steps">
+            <li tabindex="0" data-ring="1"><span class="lx-dot d1" aria-hidden="true"></span><p class="lx-verb">Decide<span>Governance</span></p><p class="lx-d">Who can do what, and which duties must never meet in one person.</p><ul class="lx-tags"><li>GRC</li><li>SoD</li><li>UAR</li><li>PAM</li><li>IGA</li></ul></li>
+            <li tabindex="0" data-ring="2"><span class="lx-dot d2" aria-hidden="true"></span><p class="lx-verb">Run<span>Platform</span></p><p class="lx-d">The SAP systems those access decisions protect, from Basis up.</p><ul class="lx-tags"><li>ECC</li><li>S/4HANA</li><li>HANA</li><li>Basis</li><li>BTP</li></ul></li>
+            <li tabindex="0" data-ring="3"><span class="lx-dot d3" aria-hidden="true"></span><p class="lx-verb">Connect<span>Around it</span></p><p class="lx-d">The cloud, HR and CRM systems around SAP, and the Python tooling that automates the reviews.</p><ul class="lx-tags"><li>Azure</li><li>SuccessFactors</li><li>Dynamics 365</li><li>Python</li></ul></li>
+          </ol>
         </div>
         <figure class="orbits" aria-hidden="true">
-          <div class="ring r1" style="--d:30;--t:46s">
+          <div class="ring r4" style="--d:90;--t:120s;--dir:reverse"><i class="comet" style="--ct:22s"></i><i class="comet" style="--ct:22s;--c0:180deg"></i></div>
+          <div class="ring r1" style="--d:30;--t:46s"><i class="comet" style="--ct:9s"></i>
             <span class="node" style="--a:270deg"><span class="orb-chip">GRC</span></span>
             <span class="node" style="--a:30deg"><span class="orb-chip">SoD</span></span>
             <span class="node" style="--a:150deg"><span class="orb-chip">UAR</span></span>
           </div>
-          <div class="ring r2" style="--d:50;--t:62s;--dir:reverse;--cdir:normal">
+          <div class="ring r2" style="--d:50;--t:62s;--dir:reverse;--cdir:normal"><i class="comet" style="--ct:14s;--c0:90deg"></i>
             <span class="node" style="--a:20deg"><span class="orb-chip">Basis</span></span>
             <span class="node" style="--a:92deg"><span class="orb-chip">HANA</span></span>
             <span class="node" style="--a:164deg"><span class="orb-chip">ECC</span></span>
             <span class="node" style="--a:236deg"><span class="orb-chip">S/4HANA</span></span>
             <span class="node" style="--a:308deg"><span class="orb-chip">BTP</span></span>
           </div>
-          <div class="ring r3" style="--d:70;--t:84s">
+          <div class="ring r3" style="--d:70;--t:84s"><i class="comet" style="--ct:18s;--c0:200deg"></i>
             <span class="node" style="--a:30deg"><span class="orb-chip">Azure</span></span>
             <span class="node" style="--a:120deg"><span class="orb-chip">SuccessFactors</span></span>
             <span class="node" style="--a:210deg"><span class="orb-chip">Dynamics 365</span></span>
@@ -347,7 +349,7 @@
             <span data-fs-error="message" class="field-error" role="alert"></span>
           </div>
           <input type="text" name="_gotcha" hidden aria-hidden="true" tabindex="-1" />
-          <button type="submit" data-fs-submit-btn class="btn btn-send">Send message</button>
+          <button type="submit" data-fs-submit-btn class="btn btn-send btn-live">Send message</button>
           <p class="form-note">* Required fields. Your details are used only to reply to you.</p>
         </form>
       </div>

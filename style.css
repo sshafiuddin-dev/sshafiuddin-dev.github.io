@@ -117,6 +117,41 @@ section { padding-block: clamp(4rem, 9vw, 7.5rem); border-top: 1px solid var(--l
   font: 500 .85rem/1.3 var(--body); padding: .4rem .7rem; cursor: pointer;
 }
 .theme-toggle:hover { border-color: var(--ink); }
+.motion-toggle { flex: none; display: grid; place-items: center; width: 2.1rem; height: 2.1rem; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--ink); cursor: pointer; }
+.motion-toggle:hover { border-color: var(--ink); }
+.motion-toggle svg { width: .9rem; height: .9rem; fill: currentColor; }
+.motion-toggle .i-play, .motion-toggle[aria-pressed="true"] .i-pause { display: none; }
+.motion-toggle[aria-pressed="true"] .i-play { display: block; }
+
+/* Ambient motion control: the nav toggle pauses everything that loops; off-screen loops also rest (app.js adds .idle). */
+:root[data-motion="off"] :is(.ring, .orb-chip, .comet, .marquee-track, .btn-live),
+:root[data-motion="off"] .hero::before,
+.idle :is(.ring, .orb-chip, .comet, .marquee-track), .idle.marquee .marquee-track, .hero.idle::before { animation-play-state: paused; }
+
+/* Living buttons: a teal arc travels round the border; on hover a teal fill slides in from the left. */
+@property --ba { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.btn.btn-live, .btn.btn-live:hover {
+  --bg: var(--ink); position: relative; isolation: isolate; overflow: hidden; border: 2px solid transparent; color: var(--paper);
+  background: linear-gradient(var(--bg), var(--bg)) padding-box,
+    conic-gradient(from var(--ba), var(--clear), var(--bg) 30%, var(--clear) 50%, var(--bg) 80%, var(--clear)) border-box;
+  animation: border-spin 4s linear infinite;
+}
+.btn.btn-send.btn-live, .btn.btn-send.btn-live:hover { --bg: var(--band-ink); color: var(--band); }
+.btn-live::after { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--clear); transform: translateX(-101%); transition: transform .4s cubic-bezier(.22, 1, .36, 1); }
+.btn-live:hover::after, .btn-live:focus-visible::after { transform: none; }
+.btn.btn-live:hover, .btn.btn-live:focus-visible { color: var(--paper); }
+.btn-live[disabled]::after { display: none; }
+@keyframes border-spin { to { --ba: 360deg; } }
+
+/* Typewriter caret (motion.js) and the demo cursor that drives the SoD card on first load */
+.tw-c { opacity: 0; }
+.tw-c.on { opacity: 1; }
+.tw-caret { position: relative; }
+.tw-caret::after { content: ""; position: absolute; right: -3px; top: .12em; bottom: .05em; width: 2px; background: var(--clear); animation: blink .9s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.sod-cursor { position: absolute; left: 0; top: 0; z-index: 4; display: flex; align-items: flex-start; gap: .1rem; pointer-events: none; opacity: 0; }
+.sod-cursor svg { width: 22px; height: 22px; fill: var(--clear); stroke: var(--surface); stroke-width: 1.2; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .25)); }
+.sod-cursor span { margin-top: 16px; padding: .3rem .65rem; border-radius: 99px; background: var(--clear); color: var(--surface); font: 600 .78rem/1 var(--body); white-space: nowrap; }
 
 /* Hero */
 .hero { position: relative; isolation: isolate; overflow-x: clip; padding-block: clamp(2.5rem, 6vw, 5rem) 0; }
@@ -133,9 +168,7 @@ section { padding-block: clamp(4rem, 9vw, 7.5rem); border-top: 1px solid var(--l
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 :root[data-theme="dark"] .hero::after { opacity: .1; filter: invert(1); }
-@media (prefers-reduced-motion: no-preference) {
-  .hero::before { animation: drift 26s ease-in-out infinite alternate; }
-}
+.hero::before { animation: drift 26s ease-in-out infinite alternate; } /* ambient: see the motion toggle rules */
 @keyframes drift { to { transform: translate3d(2.5%, 4%, 0) scale(1.07); } }
 .hero-badge {
   display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 1.4rem; padding: .5rem .9rem;
@@ -246,7 +279,7 @@ h1 .ch { display: inline-block; }
 .stats dt { color: var(--muted); font-size: .92rem; }
 
 /* Marquee */
-.marquee { overflow: hidden; border-top: 1px solid var(--line); padding-block: 1.1rem; }
+.marquee { overflow: hidden; border-top: 1px solid var(--line); padding-block: 1.1rem; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
 .marquee-track { display: flex; width: max-content; animation: slide 45s linear infinite; }
 .marquee:hover .marquee-track { animation-play-state: paused; }
 .marquee-track li { font: 600 1.5rem/1 var(--display); font-stretch: 80%; white-space: nowrap; padding-inline: 1.4rem; display: flex; align-items: center; gap: 2.8rem; }
@@ -264,13 +297,31 @@ h1 .ch { display: inline-block; }
 .landscape > * { min-width: 0; }
 .landscape-copy { display: grid; gap: 1rem; align-content: start; max-width: 40ch; }
 .landscape-copy p { color: var(--muted); }
-.rings-key { margin-top: .5rem; }
-.rings-key > div { padding-block: .9rem; border-top: 1px solid var(--line); }
-.rings-key dt { display: flex; align-items: center; gap: .6rem; font: 600 1.05rem/1.2 var(--display); }
-.rings-key dd { color: var(--muted); font-size: .95rem; margin: .25rem 0 0 1.35rem; }
-.key { width: .7rem; height: .7rem; border-radius: 50%; border: 2px solid var(--clear); flex: none; }
-.key.k2 { border-color: var(--ink); }
-.key.k3 { border-color: var(--muted); border-style: dashed; }
+/* Inside-out steps beside the rings: one step lights its ring. app.js cycles them; hover or focus takes over. */
+.landscape-copy .lx-title { color: var(--ink); font: 700 clamp(1.6rem, 2.6vw, 2.1rem)/1.1 var(--display); letter-spacing: -.015em; }
+.landscape-copy .lx-lede { margin-top: -.3rem; max-width: 42ch; }
+.lx-steps { position: relative; display: grid; gap: 1.6rem; margin: .8rem 0 0; padding: 0 0 0 2.4rem; list-style: none; }
+.lx-steps::before { content: ""; position: absolute; left: .7rem; top: .6rem; bottom: 1.5rem; width: 1px; background: linear-gradient(var(--clear), var(--line)); }
+.lx-steps > li { position: relative; outline: none; cursor: default; }
+.lx-steps > li:focus-visible { outline: 2px solid var(--focus); outline-offset: 6px; border-radius: 4px; }
+.lx-dot { position: absolute; left: -2.4rem; top: .05rem; width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--paper); display: grid; place-items: center; }
+.lx-dot::before { content: ""; border-radius: 50%; border: 2px solid var(--line); transition: border-color .3s, background .3s; }
+.d1::before { width: .45rem; height: .45rem; }
+.d2::before { width: .8rem; height: .8rem; }
+.d3::before { width: 1.15rem; height: 1.15rem; border-style: dashed; }
+.landscape-copy .lx-verb { color: var(--ink); font: 700 1.5rem/1 var(--display); letter-spacing: -.01em; transition: color .3s; }
+.lx-verb span { font: 500 .75rem/1 var(--code); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-left: .6rem; }
+.landscape-copy .lx-d { font-size: .95rem; margin-top: .35rem; max-width: 46ch; }
+.lx-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin: .75rem 0 0; padding: 0; list-style: none; }
+.lx-tags li { padding: .4rem .7rem; border: 1px solid var(--line); border-radius: 99px; font: 500 .78rem/1 var(--body); background: var(--surface); transition: border-color .3s; }
+.lx-steps > li.on .lx-verb { color: var(--clear); }
+.lx-steps > li.on .lx-dot::before { border-color: var(--clear); }
+.lx-steps > li.on .d1::before { background: var(--clear); }
+.lx-steps > li.on .lx-tags li { border-color: color-mix(in srgb, var(--clear) 55%, var(--line)); }
+.landscape[data-on] .ring .orb-chip { opacity: .35; }
+.landscape[data-on="1"] .r1 .orb-chip, .landscape[data-on="2"] .r2 .orb-chip, .landscape[data-on="3"] .r3 .orb-chip { opacity: 1; border-color: var(--clear); }
+.landscape[data-on="1"] .r1, .landscape[data-on="2"] .r2, .landscape[data-on="3"] .r3 { border-color: var(--clear); }
+.ring { transition: border-color .4s; }
 .orbits { position: relative; margin: 0; justify-self: center; width: min(36rem, 100%); aspect-ratio: 1; container-type: inline-size; }
 .orbits::before { content: ""; position: absolute; inset: 22%; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--clear) 16%, transparent), transparent); }
 .ring {
@@ -287,7 +338,7 @@ h1 .ch { display: inline-block; }
 .orb-chip {
   position: absolute; left: 0; top: 0; translate: -50% -50%; white-space: nowrap;
   padding: .5rem .9rem; border: 1px solid var(--line); border-radius: 99px; background: var(--surface);
-  font: 500 .8rem/1.1 var(--body); color: var(--ink); transition: border-color .25s;
+  font: 500 .8rem/1.1 var(--body); color: var(--ink); transition: border-color .4s, opacity .4s;
 }
 .r1 .orb-chip { border-color: var(--clear); }
 .r3 .orb-chip { color: var(--muted); }
@@ -295,11 +346,20 @@ h1 .ch { display: inline-block; }
 .core { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
 .core strong { font: 800 clamp(2rem, 8cqw, 2.9rem)/1 var(--display); font-stretch: 88%; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .core > span { font: 500 .8rem/1.2 var(--body); color: var(--muted); margin-top: .25rem; }
-@media (prefers-reduced-motion: no-preference) {
-  .ring { animation: spin var(--t) linear infinite var(--dir, normal); }
-  .orb-chip { animation: spin var(--t) linear infinite var(--cdir, reverse); }
-  .orbits:hover .ring, .orbits:hover .orb-chip { animation-play-state: paused; }
+/* Ambient: the rings keep turning even with reduced motion requested, because the nav has a visible pause
+   control (WCAG 2.2.2) and nothing moves fast. Entrances and the typewriter still switch off (motion.js). */
+.ring { animation: spin var(--t) linear infinite var(--dir, normal); }
+.orb-chip { animation: spin var(--t) linear infinite var(--cdir, reverse); }
+.orbits:hover :is(.ring, .orb-chip, .comet) { animation-play-state: paused; }
+.r4 { border-style: dashed; border-color: color-mix(in srgb, var(--line) 70%, transparent); }
+.r4::before { display: none; }
+.r1 .orb-chip { box-shadow: 0 0 0 4px color-mix(in srgb, var(--clear) 12%, transparent), 0 0 22px color-mix(in srgb, var(--clear) 35%, transparent); }
+.comet { position: absolute; inset: -1px; border-radius: 50%; pointer-events: none; rotate: var(--c0, 0deg); animation: comet var(--ct) linear infinite; }
+.comet::after {
+  content: ""; position: absolute; left: 50%; top: 0; width: 6px; height: 6px; margin: -2.5px 0 0 -3px; border-radius: 50%;
+  background: var(--clear); box-shadow: 0 0 10px 3px color-mix(in srgb, var(--clear) 55%, transparent);
 }
+@keyframes comet { from { rotate: var(--c0, 0deg); } to { rotate: calc(var(--c0, 0deg) + 360deg); } }
 @keyframes spin { to { rotate: 360deg; } }
 @media (max-width: 60rem) { .landscape { grid-template-columns: 1fr; } .landscape-copy { max-width: 56ch; } }
 @media (max-width: 40rem) { .orbits { display: none; } }
@@ -427,8 +487,6 @@ section { position: relative; }
 @keyframes vt-out { to { opacity: 0; transform: translateY(-10px); } }
 @keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track { animation: none; flex-wrap: wrap; width: auto; row-gap: 1rem; }
-  .marquee-track li[data-dup] { display: none; }
   .cell.conflict::before { animation: none; }
   .story li, .sod-bar i { transition: none; }
   .progress { display: none; }

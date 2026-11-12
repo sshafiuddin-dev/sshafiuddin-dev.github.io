@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
-import { normalizeItem, normalizeChapter, check } from './fetch-hisn.mjs';
+import { normalizeItem, normalizeChapter, check, parseLoose } from './fetch-hisn.mjs';
 import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
@@ -121,5 +121,14 @@ for (const [k, s] of Object.entries(SETS)) for (const it of s.items) assert.ok(i
   const ch = (n) => ({ items: Array.from({ length: n }, () => ({ ar: 'x', tr: '', en: 'y' })) });
   assert.throws(() => check({ 1: ch(3) }), /does not look as expected/, 'a bad download is refused');
   assert.equal(check({ 1: ch(3), 2: ch(2) }, { chapters: 2, duas: 5 }).duas, 5);
+}
+// A raw line break inside a text value (as in one of their chapter files) is read, and kept as a line break
+{
+  const bad = '{"What to say when\nyou feel frightened": [{"ARABIC_TEXT": "a\nb\tc", "TRANSLATED_TEXT": "say \\"hi\\"\r\nthere", "REPEAT": 1}]}';
+  assert.throws(() => JSON.parse(bad), 'strict JSON refuses it');
+  const item = normalizeChapter(parseLoose(bad))[0];
+  assert.deepEqual([item.ar, item.en], ['a\nb\tc', 'say "hi"\nthere']);
+  assert.deepEqual(parseLoose('\uFEFF{"a": [1, 2]}'), { a: [1, 2] }, 'valid JSON and a leading byte order mark are unchanged');
+  assert.throws(() => parseLoose('{"a": [1, }'), 'real breakage still fails');
 }
 console.log('selfcheck ok');

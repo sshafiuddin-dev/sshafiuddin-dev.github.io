@@ -260,22 +260,52 @@ $('share-month').addEventListener('click', () => share('Iqama Times', [
 ].join('\n')));
 $('share-app').addEventListener('click', () => share('Iqama Times', 'Prayer and iqama times with a live clock, alerts and weather.'));
 
-// Sound: one player for the adhan, alert sounds and previews
-let audio = null;
-const playing = () => !!audio && !audio.paused && !audio.ended;
+// Sound: one shared player for the adhan, alert sounds and previews.
+// Browsers only allow sound after the page has been touched in this visit. The first touch unlocks it; until then an
+// alert that could not sound shows a "Tap to enable sound" button on the display, and plays when it is tapped.
+const audio = new Audio();
+audio.preload = 'auto';
+let soundLocked = false, pending = null;
+const playing = () => !!audio.src && !audio.paused && !audio.ended;
 function syncSound() {
   $('alerts-label').textContent = playing() ? 'Stop sound' : `Alerts: ${settings.muted ? 'off' : 'on'}`;
   $('alerts-toggle').checked = !settings.muted;
+  $('dx-sound').hidden = !soundLocked;
 }
+audio.addEventListener('ended', syncSound);
+audio.addEventListener('pause', syncSound);
+// shortcut: on touch screens only the end of a tap counts as a user gesture (pointerdown does not), so listen for all of these
+const GESTURES = ['pointerup', 'touchend', 'mousedown', 'keydown'];
+function markUnlocked() {
+  soundLocked = false;
+  GESTURES.forEach(g => removeEventListener(g, unlockSound, true));
+  syncSound();
+}
+function unlockSound() {
+  const file = pending && Date.now() - pending.at < 120000 ? pending.file : null; // a stale alert is not played late
+  pending = null;
+  if (file) return play(file);
+  if (playing()) return;
+  audio.muted = true; // a silent start that lets later alerts play on their own
+  audio.src = 'audio/beep.mp3';
+  audio.play().then(() => { if (audio.muted) { audio.pause(); audio.muted = false; } markUnlocked(); }, () => {});
+}
+GESTURES.forEach(g => addEventListener(g, unlockSound, true));
 function play(file) {
-  if (audio) audio.pause();
-  audio = new Audio(`audio/${file}.mp3`);
-  audio.addEventListener('ended', syncSound);
-  audio.addEventListener('pause', syncSound);
-  audio.play().then(syncSound, () => {
-    // shortcut: browsers mute sound until the page is touched in this visit; a tap then starts it late
-    say('Tap anywhere on the page so the sound can play.');
-    document.addEventListener('pointerdown', () => audio.play().then(syncSound, () => {}), { once: true });
+  audio.pause();
+  audio.muted = false;
+  audio.src = `audio/${file}.mp3`;
+  audio.play().then(markUnlocked, (err) => {
+    if (err && err.name === 'AbortError') return; // another sound took over
+    if (err && err.name === 'NotAllowedError') {
+      soundLocked = true;
+      pending = { file, at: Date.now() };
+      say('Sound is blocked until you tap the page. Tap anywhere to turn it on.');
+      syncSound();
+    } else {
+      console.warn('Iqama Times: the sound could not play', err);
+      say('The sound could not play.');
+    }
   });
 }
 $('alerts-toggle').addEventListener('click', (e) => {

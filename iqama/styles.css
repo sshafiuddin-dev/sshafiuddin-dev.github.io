@@ -324,6 +324,9 @@ body { overflow: hidden; }
   background: var(--paper); color: var(--ink); overflow: hidden;
 }
 .display.idle, .display.idle * { cursor: none; }
+.dx-sound { animation: dx-sound-pulse 1.6s ease-in-out infinite; }
+@keyframes dx-sound-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .dx-sound { animation: none; } }
 .dx-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem; }
 .dx-meta { display: flex; flex-wrap: wrap; gap: .1rem 1rem; min-width: 0; color: var(--muted); font-size: 1.05rem; }
 .dx-meta span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

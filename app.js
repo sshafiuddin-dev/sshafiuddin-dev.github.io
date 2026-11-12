@@ -290,8 +290,8 @@ tInput.addEventListener('input', () => { // picking from the suggestion list jum
   if (TCODES[typedCode()]) runTcode(); else { tForm.classList.remove('bad'); tMsg.textContent = ''; }
 });
 
-// Project cards: glow follows the pointer
-document.querySelectorAll('.project').forEach(p => p.addEventListener('pointermove', (e) => {
+// Project cards and the hero SoD card: glow follows the pointer
+document.querySelectorAll('.project, .sod').forEach(p => p.addEventListener('pointermove', (e) => {
   const r = p.getBoundingClientRect();
   p.style.setProperty('--mx', `${e.clientX - r.left}px`);
   p.style.setProperty('--my', `${e.clientY - r.top}px`);

@@ -49,8 +49,8 @@
     const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
     /* ---------- Phase 1: hero sequence ---------- */
-    const chars = $$('h1 .ch'), bits = $$('.hero-lede, .hero-sub, .hero-cta'), card = $$('.sod'), cells = $$('.sod .cell');
-    hide([...chars, ...bits, ...card, ...cells]);
+    const chars = $$('h1 .ch'), bits = $$('.hero-lede, .hero-sub, .hero-cta'), card = $$('.sod'), cells = $$('.sod .cell'), badge = $$('.hero-badge');
+    hide([...badge, ...chars, ...bits, ...card, ...cells]);
     $$('h2').forEach(h => { // words rise out of a mask; aria-label keeps the heading readable
       const text = h.textContent.trim().replace(/\s+/g, ' ');
       h.setAttribute('aria-label', text);
@@ -64,6 +64,13 @@
     });
     root.classList.remove('js-motion'); // our inline styles hold everything hidden from here
 
+    animate(badge, { opacity: [0, 1], translate: up(T.dist.md) }, { duration: .6, ease: T.ease, delay: .05 });
+    // Hero exit: as the page scrolls past, the hero content recedes (scrubbed by scroll, not timed).
+    const heroEl = document.querySelector('.hero'), heroGrid = document.querySelector('.hero-grid');
+    if (heroEl && heroGrid) {
+      scroll(animate(heroGrid, { opacity: [1, .15], transform: ['translateY(0px) scale(1)', 'translateY(-36px) scale(.975)'] }, { ease: 'linear' }),
+        { target: heroEl, offset: ['start start', 'end start'] });
+    }
     animate(chars, { opacity: [0, 1], translate: up(T.dist.lg * 4.4), rotate: ['6deg', '0deg'] },
       { duration: .7, ease: T.ease, delay: stagger(T.gap.letters) });
     animate(bits, { opacity: [0, 1], translate: up(T.dist.md) }, { duration: .7, ease: T.ease, delay: stagger(.1, { startDelay: .55 }) });
@@ -86,6 +93,19 @@
         if (lines.length) animate(lines, { opacity: [0, 1], translate: ['-8px 0px', '0px 0px'] }, { duration: .5, ease: T.ease, delay: stagger(T.gap.list, { startDelay: .3 }) });
       }, { amount: .2 });
     });
+
+    /* landscape rings: rings open outward, then the chips pop in (opacity and scale only, so they never
+       fight the CSS rotate/translate that keeps them orbiting) */
+    const stage = document.querySelector('.orbits');
+    if (stage) {
+      const rings = $$('.ring', stage), chips = $$('.orb-chip', stage), core = $$('.core', stage);
+      hide([...rings, ...chips, ...core]);
+      once(stage, () => {
+        animate(rings, { opacity: [0, 1], scale: [.8, 1] }, { duration: 1, ease: T.ease, delay: stagger(.15) });
+        animate(core, { opacity: [0, 1] }, { duration: .6, delay: .1 });
+        animate(chips, { opacity: [0, 1], scale: [.3, 1] }, { ...T.spring.pop, delay: stagger(.07, { startDelay: .5 }) });
+      }, { amount: .4 });
+    }
 
     /* stat count-up, now started by inView */
     $$('[data-count]').forEach(el => {

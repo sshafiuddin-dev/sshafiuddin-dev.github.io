@@ -275,7 +275,7 @@ function syncSound() {
   $('dx-sound').hidden = !soundLocked;
   $('sound-lock').hidden = !soundLocked;
   $('qr-play').textContent = playing() ? 'Stop' : 'Play';
-  document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === b.dataset.src ? 'Stop' : 'Play'; });
+  document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === b.dataset.src ? 'Stop' : (b.dataset.label || 'Play'); });
 }
 audio.addEventListener('ended', syncSound);
 audio.addEventListener('pause', syncSound);
@@ -322,7 +322,7 @@ $('dk-listen').addEventListener('click', () => {
 });
 
 // Adhkar tab: every Hisn al-Muslim chapter with its recording, filtered by what is typed in the search box
-$('adhkar-audio').innerHTML = HISN.map(([id, title, num]) => `<li data-t="${title.toLowerCase()} ${id}"><span class="au-no">${id}</span><span class="au-title">${title}</span><button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-src="${hisnUrl(num)}" aria-label="Play: ${title}">Play</button></li>`).join('');
+$('adhkar-audio').innerHTML = HISN.map(([id, title, num]) => `<li data-id="${id}" data-t="${title.toLowerCase()} ${id}"><div class="au-row"><button class="au-toggle" type="button" aria-expanded="false" aria-controls="au-body-${id}"><span class="au-no">${id}</span><span class="au-title">${title}</span></button><button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-src="${hisnUrl(num)}" data-label="Chapter" aria-label="Play the whole chapter: ${title}">Chapter</button></div><div class="au-body" id="au-body-${id}" hidden></div></li>`).join('');
 function filterAdhkar() {
   const q = $('au-search').value.trim().toLowerCase();
   let shown = 0;
@@ -331,7 +331,37 @@ function filterAdhkar() {
 }
 $('au-search').addEventListener('input', filterAdhkar);
 filterAdhkar();
+// The text is copied from hisnmuslim.com into hisn-text.json by scripts/fetch-hisn.mjs, so it loads from this site
+let hisnText = null;
+async function loadHisnText() {
+  if (hisnText) return hisnText;
+  const r = await fetch('hisn-text.json');
+  if (!r.ok) throw new Error(`hisn-text.json answered ${r.status}`);
+  hisnText = (await r.json()).chapters || {};
+  return hisnText;
+}
+const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hisnItems = (items) => items.map((it, i) => `<article class="au-dua"><div class="au-meta"><span>Dua ${i + 1} of ${items.length}</span>${it.n ? `<span>Read ${it.n} ${it.n === 1 ? 'time' : 'times'}</span>` : ''}</div>`
+  + `${it.ar ? `<p class="au-ar" lang="ar" dir="rtl">${esc(it.ar)}</p>` : ''}${it.tr ? `<p class="au-tr">${esc(it.tr)}</p>` : ''}${it.en ? `<p class="au-en">${esc(it.en)}</p>` : ''}`
+  + `${it.audio ? `<button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-src="${esc(it.audio)}" aria-label="Play dua ${i + 1}">Play</button>` : ''}</article>`).join('');
+function openChapter(li, btn) {
+  const body = li.querySelector('.au-body'), open = btn.getAttribute('aria-expanded') !== 'true';
+  btn.setAttribute('aria-expanded', String(open));
+  body.hidden = !open;
+  if (!open || body.dataset.done) return;
+  body.innerHTML = '<p class="iq-note">Loading…</p>';
+  loadHisnText().then(all => {
+    const items = all[li.dataset.id]?.items || [];
+    body.innerHTML = items.length ? hisnItems(items) : '<p class="iq-note">There is no text for this chapter.</p>';
+    body.dataset.done = '1';
+  }).catch((e) => {
+    console.warn('Iqama Times: adhkar text failed', e);
+    body.innerHTML = '<p class="iq-note">The text is not available yet. The recording still plays.</p>';
+  });
+}
 $('adhkar-audio').addEventListener('click', (e) => {
+  const t = e.target.closest('.au-toggle');
+  if (t) return openChapter(t.closest('li'), t);
   const b = e.target.closest('.au-play');
   if (!b) return;
   if (playing() && audio.src === b.dataset.src) return audio.pause();

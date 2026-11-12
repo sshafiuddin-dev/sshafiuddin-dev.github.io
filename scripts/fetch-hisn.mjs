@@ -42,14 +42,31 @@ export function check(chapters, min = { chapters: 100, duas: 200 }) {
   return { chapters: Object.keys(chapters).length, duas: items.length, withAr, withTr: items.filter(i => i.tr).length, withEn: items.filter(i => i.en).length, withAudio: items.filter(i => i.audio).length };
 }
 
+// Their files sometimes hold a raw line break or tab inside a text value, which strict JSON refuses. This escapes those
+// inside strings only, so the text itself is unchanged. Anything else wrong with the file still fails.
+export function parseLoose(text) {
+  const clean = String(text).replace(/^\uFEFF/, '');
+  try { return JSON.parse(clean); } catch (strict) {
+    let out = '', inStr = false, esc = false;
+    for (const ch of clean) {
+      if (inStr && !esc && ch < ' ') out += ch === '\n' ? '\\n' : ch === '\r' ? '\\r' : ch === '\t' ? '\\t' : '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0');
+      else out += ch;
+      if (esc) esc = false;
+      else if (ch === '\\' && inStr) esc = true;
+      else if (ch === '"') inStr = !inStr;
+    }
+    try { return JSON.parse(out); } catch { throw strict; }
+  }
+}
+
 async function get(url, tries = 3) {
   for (let i = 1; ; i++) {
     try {
       const res = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (iqama-times updater; +https://sshafiuddin-dev.github.io/iqama/)' } });
       if (!res.ok) throw new Error(`${url} answered ${res.status}`);
-      return JSON.parse((await res.text()).replace(/^﻿/, ''));
+      return parseLoose(await res.text());
     } catch (e) {
-      if (i >= tries) throw e;
+      if (i >= tries) throw new Error(`${url}: ${e.message}`);
       await new Promise(r => setTimeout(r, 1500 * i));
     }
   }

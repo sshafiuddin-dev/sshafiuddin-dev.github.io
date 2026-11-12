@@ -102,6 +102,86 @@ assert.deepEqual(tick([{ key: 'jumuah', adhan: 720, iqama: null }], { jumuah: { 
   assert.deepEqual(cleanStep(null, def, sounds, true), def);
 }
 
+// Quran player: catalogue, search, queue, saved state and playlists
+{
+  const Q = await import('../iqama/quran-logic.js');
+  const suwar = { suwar: [{ id: 1, name: 'Al-Fatihah ', makkia: 1 }, { id: 2, name: 'Al-Baqarah ', makkia: 0 }, { id: 18, name: 'Al-Kahf', makkia: 1 }, { id: 114, name: 'An-Nas', makkia: 1 }] };
+  const reciters = { reciters: [
+    { id: 102, name: 'Maher Al Meaqli', letter: 'M', moshaf: [
+      { id: 102, name: "Rewayat Hafs A'n Assem - Murattal", rewaya_id: 1, server: 'https://cdn.example/maher/r1/', surah_list: '1,2,18,114' },
+      { id: 133, name: "Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad", rewaya_id: 1, server: 'http://cdn.example/maher/r3', surah_list: '18,1,1,999,x' }] },
+    { id: 5, name: "Abdul'aziz Al-Ahmad", letter: 'A', moshaf: [{ id: 50, name: "Rewayat Warsh A'n Nafi' - Murattal", rewaya_id: 2, server: 'https://cdn.example/aziz/', surah_list: '2,114' }] },
+    { id: 9, name: 'Nobody', letter: 'N', moshaf: [{ id: 90, name: 'Empty', rewaya_id: 1, server: '', surah_list: '1' }] }] };
+  const riwayat = { riwayat: [{ id: 1, name: "Rewayat Hafs A'n Assem" }, { id: 2, name: "Rewayat Warsh A'n Nafi'" }, { id: 3, name: 'Rewayat Khalaf' }] };
+  const cat = Q.buildCatalog(suwar, reciters, riwayat);
+  assert.deepEqual(cat.reciters.map(r => r.name), ["Abdul'aziz Al-Ahmad", 'Maher Al Meaqli'], 'sorted by name; a reciter with nothing playable is left out');
+  assert.deepEqual(cat.riwayat, [{ id: 1, name: "Hafs A'n Assem", count: 2 }, { id: 2, name: "Warsh A'n Nafi'", count: 1 }], 'only riwayat that have a recitation');
+  assert.deepEqual(cat.moshaf.get(133).surahs, [1, 18], 'surah list is cleaned and sorted');
+  assert.equal(cat.moshaf.get(133).server, 'https://cdn.example/maher/r3/', 'https and a closing slash');
+  assert.equal(cat.moshaf.get(102).style, "Hafs A'n Assem · Murattal");
+  assert.equal(cat.surahs.get(1).name, 'Al-Fatihah');
+  assert.deepEqual(Q.trackInfo(cat, '102:18'), { id: '102:18', n: 18, title: 'Al-Kahf', reciter: 'Maher Al Meaqli', style: "Hafs A'n Assem · Murattal", url: 'https://cdn.example/maher/r1/018.mp3' });
+  assert.equal(Q.trackInfo(cat, '133:2'), null, 'a surah the recitation does not have');
+  assert.equal(Q.trackInfo(cat, '7:1'), null);
+  assert.deepEqual(Q.recitersFor(cat, 2).map(r => r.id), [5], 'riwayah filter');
+  assert.deepEqual(Q.moshafOf(cat, cat.reciters[1], 1).map(m => m.id), [102, 133]);
+  assert.deepEqual(Q.search(cat, 'abdulaziz').reciters.map(r => r.id), [5], 'search ignores apostrophes');
+  assert.deepEqual(Q.search(cat, 'al fatiha').surahs.map(s => s.n), [1], 'search ignores hyphens and case');
+  assert.deepEqual(Q.search(cat, '18').surahs.map(s => s.n), [18], 'search by surah number');
+  assert.deepEqual(Q.search(cat, 'maher', 2).reciters, [], 'search respects the riwayah filter');
+  assert.deepEqual(Q.search(cat, '  '), { reciters: [], surahs: [] });
+  assert.deepEqual([0, 59.9, 61, 3600, 3725, NaN].map(Q.fmtTime), ['0:00', '0:59', '1:01', '1:00:00', '1:02:05', '0:00']);
+
+  const ids = ['102:1', '102:2', '102:18', '102:114'];
+  let q = Q.makeQueue(ids, 2);
+  assert.equal(Q.current(q), '102:18');
+  assert.deepEqual([Q.stepPos(q, 1, 'off'), Q.stepPos(q, -1, 'off')], [3, 1]);
+  q.pos = 3;
+  assert.deepEqual([Q.stepPos(q, 1, 'off'), Q.stepPos(q, 1, 'one'), Q.stepPos(q, 1, 'all')], [-1, -1, 0], 'Next stops at the end unless the list repeats');
+  assert.deepEqual([Q.afterEnd(q, 'off'), Q.afterEnd(q, 'one'), Q.afterEnd(q, 'all')], [-1, 'again', 0]);
+  q.pos = 0;
+  assert.deepEqual([Q.stepPos(q, -1, 'off'), Q.stepPos(q, -1, 'all')], [-1, 3]);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const sh = Q.makeQueue(ids, 2, true, rnd);
+  assert.equal(Q.current(sh), '102:18', 'shuffle starts on the chosen surah');
+  assert.deepEqual([...sh.order].sort(), [0, 1, 2, 3], 'shuffle plays every surah once');
+  sh.pos = 2;
+  const un = Q.reshuffle(sh, false);
+  assert.deepEqual([un.order, Q.current(un)], [[0, 1, 2, 3], Q.current(sh)], 'turning shuffle off keeps the surah that is playing');
+  assert.equal(Q.current(Q.makeQueue([], 0)), null);
+
+  const blank = Q.cleanStore(null);
+  assert.deepEqual(blank, { v: 2, last: null, riwaya: 'all', favR: [], favT: [], lists: [], repeat: 'off', shuffle: false, vol: 1, rate: 1 });
+  const old = Q.cleanStore({ reciter: "Maher Al Meaqli (Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad)", surah: 18 });
+  assert.deepEqual(old.legacy, { reciter: "Maher Al Meaqli (Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad)", surah: 18 }, 'the old player\'s save is kept for carrying over');
+  assert.equal(Q.legacyTrack(cat, old.legacy), '133:18');
+  assert.equal(Q.legacyTrack(cat, { reciter: "Abdul'aziz Al-Ahmad", surah: 2 }), '50:2');
+  assert.equal(Q.legacyTrack(cat, { reciter: 'Gone', surah: 2 }), null);
+  const dirty = Q.cleanStore({ last: { id: '102:18', t: 93.5, title: 'x', sub: 'y', url: 'javascript:alert(1)', queue: ['102:1', 'bad', '102:1'] }, riwaya: 2, favR: [102, '5', 102], favT: ['102:18', 7, '102:18'],
+    lists: [{ id: 'a', name: '  Morning   set ', tracks: ['102:1', 'nope'] }, { id: 'b', name: '   ' }, null], repeat: 'forever', shuffle: 'yes', vol: 4, rate: 9 });
+  assert.deepEqual(dirty, { v: 2, last: { id: '102:18', t: 93.5, title: 'x', sub: 'y', queue: ['102:1'], url: '' }, riwaya: 2, favR: [102], favT: ['102:18'],
+    lists: [{ id: 'a', name: 'Morning set', tracks: ['102:1'] }], repeat: 'off', shuffle: false, vol: 1, rate: 1 }, 'anything malformed falls back');
+  assert.equal(Q.cleanStore({ last: { id: '102:18', url: 'https://cdn.example/maher/r1/018.mp3' } }).last.url, 'https://cdn.example/maher/r1/018.mp3');
+  assert.deepEqual([Q.nextRepeat('off'), Q.nextRepeat('all'), Q.nextRepeat('one')], ['all', 'one', 'off']);
+  assert.deepEqual([Q.toggle([1, 2], 2), Q.toggle([1], 2)], [[1], [1, 2]]);
+
+  let lists = Q.addList([], '  Friday  ', 'p1');
+  assert.deepEqual(lists, [{ id: 'p1', name: 'Friday', tracks: [] }]);
+  assert.equal(Q.addList(lists, '   '), lists, 'a playlist needs a name');
+  lists = Q.addToList(Q.addToList(Q.addToList(lists, 'p1', '102:18'), 'p1', '102:1'), 'p1', '102:18');
+  assert.deepEqual(lists[0].tracks, ['102:18', '102:1'], 'no surah twice in one playlist');
+  lists = Q.addToList(lists, 'p1', '50:114');
+  assert.deepEqual(Q.moveInList(lists, 'p1', 2, 0)[0].tracks, ['50:114', '102:18', '102:1']);
+  assert.equal(Q.moveInList(lists, 'p1', 0, 9)[0], lists[0], 'a move off the end is ignored');
+  assert.deepEqual(Q.setListOrder(lists, 'p1', ['102:1', '50:114', '102:18'])[0].tracks, ['102:1', '50:114', '102:18']);
+  assert.equal(Q.setListOrder(lists, 'p1', ['102:1', '102:1', '102:18'])[0], lists[0], 'a reorder must keep the same surahs');
+  assert.deepEqual(Q.removeFromList(lists, 'p1', '102:18')[0].tracks, ['102:1', '50:114']);
+  assert.equal(Q.renameList(lists, 'p1', 'Jumu’ah')[0].name, 'Jumu’ah');
+  assert.equal(Q.renameList(lists, 'p1', ' ')[0].name, 'Friday');
+  assert.deepEqual(Q.removeList(lists, 'p1'), []);
+  assert.equal(lists[0].tracks.length, 3, 'the earlier list is never changed in place');
+}
+
 // Weather labels
 assert.deepEqual([0, 2.9, 3, 7.9, 10, 11].map(uvLevel), ['low', 'low', 'moderate', 'high', 'very high', 'extreme']);
 assert.deepEqual([42, 51, 101, 151, 201, 301].map(aqiLevel), ['good', 'moderate', 'unhealthy for sensitive groups', 'unhealthy', 'very unhealthy', 'hazardous']);

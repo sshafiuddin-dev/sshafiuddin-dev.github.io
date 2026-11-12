@@ -6,6 +6,7 @@ import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
 import { SETS, AUDIO, pickSet } from './adhkar.js';
 import { HISN, hisnUrl } from './hisn.js';
+import { initQuran } from './quran.js';
 
 const $ = (id) => document.getElementById(id);
 const root = document.documentElement;
@@ -280,11 +281,13 @@ function syncSound() {
   if (!playing() && !pending) alertNow = null;
   const stop = !!alertNow && playing();
   for (const id of ['alert-stop', 'dx-stop']) { $(id).hidden = !stop; if (stop) $(id).textContent = `Stop ${alertNow}`; }
-  $('qr-play').textContent = playing() ? 'Stop' : 'Play';
   document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === b.dataset.src ? 'Stop' : (b.dataset.label || 'Play'); });
 }
-audio.addEventListener('ended', syncSound);
-audio.addEventListener('pause', syncSound);
+// The Quran player has its own audio element. It steps aside for any sound played here and comes back when that sound is over.
+const quran = initQuran({ say, stopOthers: () => { pending = null; if (playing()) audio.pause(); } });
+const soundOver = () => { syncSound(); if (!playing()) quran.resume(); };
+audio.addEventListener('ended', soundOver);
+audio.addEventListener('pause', soundOver);
 // shortcut: on touch screens only the end of a tap counts as a user gesture (pointerdown does not), so listen for all of these
 const GESTURES = ['pointerup', 'touchend', 'mousedown', 'keydown'];
 function markUnlocked() {
@@ -297,7 +300,7 @@ function unlockSound(e) {
   const file = late && late.file;
   pending = null;
   // a tap on a button that starts its own sound unlocks through that sound, so a missed alert does not replay over it
-  if (e && e.target.closest && e.target.closest('#qr-play, #dk-listen, .au-play, [data-try]')) return;
+  if (e && e.target.closest && e.target.closest('[data-q="toggle"], [data-q="prev"], [data-q="next"], [data-q="jump"], [data-act="play"], [data-act="play-all"], #dk-listen, .au-play, [data-try]')) return;
   if (file) return play(file, late.label);
   if (playing()) return;
   audio.muted = true; // a silent start that lets later alerts play on their own
@@ -307,6 +310,8 @@ function unlockSound(e) {
 GESTURES.forEach(g => addEventListener(g, unlockSound, true));
 function play(file, label) {
   audio.pause();
+  quran.interrupt();
+  if (label) quran.closeDialogs();
   alertNow = label || null;
   audio.muted = false;
   audio.src = /^https:/.test(file) ? file : `audio/${file}.mp3`;
@@ -317,10 +322,11 @@ function play(file, label) {
       soundLocked = true;
       pending = { file, label, at: Date.now() };
       say('Sound is blocked until you tap the page. Tap anywhere to turn it on.');
-      syncSound();
+      soundOver();
     } else {
       console.warn('Iqama Times: the sound could not play', err);
       say('The sound could not play.');
+      soundOver();
     }
   });
 }
@@ -375,55 +381,6 @@ $('adhkar-audio').addEventListener('click', (e) => {
   if (!b) return;
   if (playing() && audio.src === b.dataset.src) return audio.pause();
   play(b.dataset.src);
-});
-
-// Quran: reciters and surahs come from mp3quran.net when the panel is first opened; the audio streams from the reciter's server
-const QURAN_API = 'https://mp3quran.net/api/v3';
-let quran = null, qStore = {};
-try { qStore = JSON.parse(localStorage.getItem('iqama-quran') || '{}') || {}; } catch (e) {}
-const qSave = () => { try { localStorage.setItem('iqama-quran', JSON.stringify(qStore)); } catch (e) {} };
-const getJson = (path) => fetch(`${QURAN_API}/${path}`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
-function fillSurahs() {
-  const rec = quran.list[+$('qr-reciter').value];
-  $('qr-surah').innerHTML = rec.surahs.map(n => `<option value="${n}">${n}. ${quran.names.get(n) || 'Surah ' + n}</option>`).join('');
-  if (rec.surahs.includes(qStore.surah)) $('qr-surah').value = qStore.surah;
-}
-async function loadQuran() {
-  if (quran) return;
-  quran = 'loading';
-  $('qr-note').textContent = 'Loading reciters…';
-  try {
-    const [s, r] = await Promise.all([getJson('suwar?language=eng'), getJson('reciters?language=eng&rewaya=1')]);
-    const names = new Map((s.suwar || []).map(x => [+x.id, x.name]));
-    const list = [];
-    for (const rc of r.reciters || []) for (const m of rc.moshaf || []) {
-      const surahs = String(m.surah_list || '').split(',').map(Number).filter(n => n >= 1 && n <= 114);
-      if (m.server && surahs.length) list.push({ label: rc.moshaf.length > 1 ? `${rc.name} (${m.name})` : rc.name, server: m.server.replace(/^http:/, 'https:').replace(/\/?$/, '/'), surahs });
-    }
-    if (!list.length) throw new Error('no reciters');
-    quran = { names, list };
-    $('qr-reciter').innerHTML = list.map((x, i) => `<option value="${i}">${x.label}</option>`).join('');
-    const saved = list.findIndex(x => x.label === qStore.reciter);
-    if (saved >= 0) $('qr-reciter').value = saved;
-    fillSurahs();
-    $('qr-play').disabled = false;
-    $('qr-note').textContent = 'Audio streams from mp3quran.net, so it needs a connection.';
-  } catch (e) {
-    console.warn('Iqama Times: Quran list failed', e);
-    quran = null;
-    $('qr-note').textContent = 'Could not load the reciters. Check the connection, then close and open this again.';
-  }
-}
-addEventListener('hashchange', () => { if (location.hash === '#quran') loadQuran(); });
-if (location.hash === '#quran') loadQuran();
-$('qr-reciter').addEventListener('change', () => { qStore.reciter = quran.list[+$('qr-reciter').value].label; qSave(); fillSurahs(); });
-$('qr-surah').addEventListener('change', () => { qStore.surah = +$('qr-surah').value; qSave(); });
-$('qr-play').addEventListener('click', () => {
-  if (playing()) return audio.pause();
-  if (!quran || quran === 'loading') return;
-  const rec = quran.list[+$('qr-reciter').value], n = +$('qr-surah').value;
-  qStore = { reciter: rec.label, surah: n }; qSave();
-  play(`${rec.server}${String(n).padStart(3, '0')}.mp3`);
 });
 
 for (const id of ['alert-stop', 'dx-stop']) $(id).addEventListener('click', () => { audio.pause(); say('Alert stopped. Your alert settings are unchanged.'); });

@@ -527,10 +527,7 @@ body { overflow: hidden; }
 /* the weather body is a grid item: without this the wide hourly strip stretches the whole page */
 #wx-body { min-width: 0; }
 
-/* Quran panel and the sound unlock button on the main page */
-.qr { margin-top: 1rem; }
-.qr summary { cursor: pointer; font-weight: 600; }
-.qr-body { display: grid; gap: .5rem; margin-top: .6rem; max-width: 28rem; }
+/* The sound unlock button on the main page */
 .sound-lock { position: fixed; top: .75rem; left: 50%; transform: translateX(-50%); z-index: 50; animation: dx-sound-pulse 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .sound-lock { animation: none; } }
 /* Stop button shown on every screen while an alert is sounding */
@@ -552,3 +549,167 @@ body { overflow: hidden; }
 .au-ar { font-family: Amiri, serif; font-size: 1.6rem; line-height: 2; margin: 0 0 .4rem; white-space: pre-line; }
 .au-tr { font-style: italic; opacity: .8; margin: 0 0 .4rem; white-space: pre-line; }
 .au-en { margin: 0 0 .6rem; white-space: pre-line; }
+
+/* ---------- Quran tab and player ----------
+   Timings mirror motion.js (fast .18s, normal .35s, press .95); with "reduce motion" on, nothing moves or scales. */
+.qp { --qp-fast: .18s; --qp-row: 3.25rem; overflow: hidden; gap: .75rem; padding-bottom: .75rem; }
+.qp-top { display: grid; grid-template-columns: minmax(12rem, 1fr) minmax(10rem, 18rem); gap: .6rem .75rem; align-items: center; }
+.qp-search, .qp-riwaya { width: 100%; min-height: 2.75rem; }
+.qp-tabs { grid-column: 1 / -1; display: flex; gap: .4rem; overflow-x: auto; padding-block: .15rem; scrollbar-width: none; }
+.qp-tabs .d-btn { flex: none; min-height: 2.5rem; padding-inline: 1rem; border-radius: 99px; background: transparent; border: 1px solid var(--line); color: var(--muted); font-weight: 600; box-shadow: none; }
+.qp-tabs .d-btn[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.qp-panes { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: .75rem; min-height: 0; }
+.qp-pane { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: .25rem .5rem 1rem; border: 1px solid var(--line); border-top: 0; border-radius: .9rem; background: var(--surface); }
+.iqama .qp-pane { padding-block: .5rem 1rem; border-top: 1px solid var(--line); } /* outranks the page-wide `section` rule */
+.qp-rows { display: grid; gap: .15rem; margin: 0; padding: 0; list-style: none; }
+.qp-row { display: flex; align-items: center; gap: .15rem; min-height: var(--qp-row); border-radius: .65rem; }
+.qp-row:hover, .qp-row.is-open { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.qp-row.is-cur .qp-txt b { color: var(--clear); }
+.qp-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: .7rem; min-height: var(--qp-row); padding: .3rem .6rem; background: none; border: 0; border-radius: .65rem; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.qp-no { flex: none; width: 2rem; text-align: center; font-size: .85rem; font-variant-numeric: tabular-nums; color: var(--muted); }
+.qp-txt { min-width: 0; display: grid; line-height: 1.25; }
+.qp-txt b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-txt small { font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-h { position: sticky; top: -.5rem; z-index: 1; margin: 0; padding: .7rem .6rem .3rem; background: var(--surface); font: 650 .8rem/1.2 var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.iqama .tab .qp-h { margin: 0; font: 650 .8rem/1.2 var(--body); }
+.qp-empty { margin: 0; padding: .9rem .6rem; font-size: .92rem; color: var(--muted); max-width: 46ch; list-style: none; }
+.qp-new { margin: .35rem .5rem .5rem; }
+.qp-head { display: flex; align-items: center; gap: .35rem; padding: .25rem .25rem 0 .6rem; }
+.iqama .tab .qp-head h3 { flex: 1; min-width: 0; margin: 0; font: 650 1.25rem/1.2 var(--display); overflow-wrap: anywhere; }
+.qp-count, .qp-dlg-sub { margin: 0; padding: .1rem .6rem; font-size: .85rem; color: var(--muted); }
+.qp-chips { display: flex; flex-wrap: wrap; gap: .4rem; padding: .5rem .6rem; }
+.qp-chips .d-btn { height: auto; min-height: 2.25rem; padding-block: .3rem; text-align: left; }
+.qp-back { display: none; }
+
+/* Icon buttons: at least 44px to touch, with a quick press */
+.qp-ic { flex: none; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; background: none; border: 0; border-radius: 50%; color: var(--ink); cursor: pointer; transition: scale var(--qp-fast) var(--ease), background-color var(--qp-fast); }
+.qp-ic:hover { background: color-mix(in srgb, var(--ink) 9%, transparent); }
+.qp-ic:active, .qp-main:active .qp-txt { scale: .95; }
+.qp-ic:disabled { opacity: .4; cursor: default; }
+.qp-ic svg { width: 1.35rem; height: 1.35rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.qp-ic svg text { fill: currentColor; stroke: none; font: 700 6.5px var(--body); }
+.qp-ic svg.qp-solid { fill: currentColor; stroke-width: 1.2; }
+.qp-ic svg.qp-dots { stroke-width: 2.8; }
+.qp-ic[aria-pressed="true"] { color: var(--clear); }
+.qp-heart[aria-pressed="true"] svg { fill: currentColor; }
+.qp-ic[data-q="repeat"][aria-pressed="true"], .qp-ic[data-q="shuffle"][aria-pressed="true"] { background: color-mix(in srgb, var(--clear) 16%, transparent); }
+.qp-play { width: 3.25rem; height: 3.25rem; background: var(--ink); color: var(--paper); }
+.qp-play:hover { background: color-mix(in srgb, var(--ink) 86%, var(--paper)); }
+.qp-ic:focus-visible, .qp-main:focus-visible, .qp-meta:focus-visible, .qp-pick:focus-visible { outline: 3px solid var(--clear); outline-offset: -1px; }
+.qp-grip { cursor: grab; touch-action: none; color: var(--muted); }
+.qp-row.is-drag { background: color-mix(in srgb, var(--clear) 14%, var(--surface)); box-shadow: 0 .4rem 1.2rem rgba(0, 0, 0, .18); position: relative; z-index: 2; }
+.qp-row.is-drag .qp-grip { cursor: grabbing; }
+
+/* The bars that mark the surah that is playing */
+.qp-eq { flex: none; display: none; align-items: flex-end; justify-content: center; gap: 2px; width: 2rem; height: 1rem; }
+.qp-eq i { width: 3px; height: 100%; border-radius: 2px; background: var(--clear); transform-origin: bottom; transform: scaleY(.35); }
+.qp-row.is-cur .qp-eq, .qp-player .qp-eq, .qp-now .qp-eq { display: flex; }
+.qp-row.is-cur .qp-no { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .qp-row.is-playing .qp-eq i, [data-state="playing"] > .qp-ctl .qp-eq i, [data-state="playing"] .qp-now-title .qp-eq i { animation: qp-eq .9s ease-in-out infinite alternate; }
+  .qp-eq i:nth-child(2) { animation-delay: -.3s; } .qp-eq i:nth-child(3) { animation-delay: -.6s; }
+  [data-state="loading"] .qp-play { animation: dx-sound-pulse 1.2s ease-in-out infinite; }
+}
+@keyframes qp-eq { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
+.qp-row.is-playing .qp-eq i:nth-child(2), [data-state="playing"] .qp-eq i:nth-child(2) { transform: scaleY(.9); }
+.qp-row.is-playing .qp-eq i:nth-child(3), [data-state="playing"] .qp-eq i:nth-child(3) { transform: scaleY(.6); }
+
+/* Timeline: the fill and the buffered range are scaled, never resized; a real range input sits on top for touch and keyboard */
+.qp-time { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) 3.2rem; align-items: center; gap: .5rem; font-size: .8rem; font-variant-numeric: tabular-nums; color: var(--muted); }
+.qp-cur { text-align: right; }
+.qp-track { position: relative; height: 2rem; }
+.qp-track::before, .qp-buf, .qp-fill { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: .3rem; margin-top: -.15rem; border-radius: 99px; }
+.qp-track::before { background: color-mix(in srgb, var(--ink) 14%, transparent); }
+.qp-buf { background: color-mix(in srgb, var(--ink) 22%, transparent); transform-origin: left; transform: scaleX(0); }
+.qp-fill { background: var(--clear); transform-origin: left; transform: scaleX(0); }
+.qp-seek { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: none; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.qp-seek:disabled { cursor: default; }
+.qp-seek::-webkit-slider-runnable-track { background: none; height: .3rem; }
+.qp-seek::-moz-range-track { background: none; height: .3rem; }
+.qp-seek::-webkit-slider-thumb { -webkit-appearance: none; width: 1rem; height: 1rem; margin-top: -.35rem; border: 0; border-radius: 50%; background: var(--clear); transition: scale var(--qp-fast) var(--ease); }
+.qp-seek::-moz-range-thumb { width: 1rem; height: 1rem; border: 0; border-radius: 50%; background: var(--clear); transition: scale var(--qp-fast) var(--ease); }
+.qp-seek:hover::-webkit-slider-thumb, .qp-seek:active::-webkit-slider-thumb { scale: 1.3; }
+.qp-seek:hover::-moz-range-thumb, .qp-seek:active::-moz-range-thumb { scale: 1.3; }
+.qp-seek:disabled::-webkit-slider-thumb { opacity: 0; } .qp-seek:disabled::-moz-range-thumb { opacity: 0; }
+.qp-seek:focus-visible { outline: 3px solid var(--clear); outline-offset: 2px; border-radius: 99px; }
+
+/* The docked player: it sits under whichever tab is open */
+.qp-player { flex: none; display: grid; gap: 0; padding: .35rem max(clamp(.75rem, 3vw, 2.5rem), env(safe-area-inset-right, 0px)) .5rem clamp(.75rem, 3vw, 2.5rem); background: var(--surface); border-top: 1px solid var(--line); }
+.iqama .qp-player { padding-block: .35rem .5rem; }
+.qp-ctl { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .5rem; }
+.qp-meta { min-width: 0; display: flex; align-items: center; gap: .6rem; padding: .25rem .4rem .25rem 0; background: none; border: 0; border-radius: .6rem; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.qp-btns { display: flex; align-items: center; gap: .15rem; }
+.qp-side { display: flex; justify-content: flex-end; align-items: center; gap: .15rem; }
+
+/* Now playing: a full screen over the app, below the alert Stop button */
+.qp-now { position: fixed; inset: 0; z-index: 39; display: grid; grid-template-columns: minmax(0, 1fr); background: var(--paper); overflow-y: auto; overscroll-behavior: contain; }
+.qp-now-in { width: min(100%, 44rem); min-width: 0; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: .9rem; padding: max(1rem, env(safe-area-inset-top, 0px)) 1.25rem max(1.5rem, env(safe-area-inset-bottom, 0px)); }
+.qp-now-top { display: flex; align-items: center; gap: .5rem; font-weight: 600; color: var(--muted); }
+.qp-now-title { display: grid; justify-items: center; gap: .35rem; text-align: center; padding-block: .5rem; }
+.qp-now-title .qp-eq { height: 1.6rem; width: 2.4rem; gap: 4px; } .qp-now-title .qp-eq i { width: 5px; }
+.qp-now-title h2 { max-width: none; font: 700 clamp(1.6rem, 5vw, 2.4rem)/1.1 var(--display); }
+.qp-now-title p { color: var(--muted); overflow-wrap: anywhere; }
+.qp-btns-lg { justify-content: center; gap: clamp(.15rem, 2vw, .9rem); }
+.qp-btns-lg .qp-ic { width: 3.25rem; height: 3.25rem; } .qp-btns-lg .qp-play { width: 4.25rem; height: 4.25rem; }
+.qp-btns-lg .qp-ic svg { width: 1.6rem; height: 1.6rem; } .qp-btns-lg .qp-play svg { width: 2rem; height: 2rem; }
+.qp-more { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .5rem; }
+.qp-rate { min-width: 3.75rem; height: 2.5rem; font-variant-numeric: tabular-nums; }
+.qp-vol { display: inline-flex; align-items: center; gap: .4rem; color: var(--muted); }
+.qp-vol svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.qp-vol input { width: min(8rem, 30vw); accent-color: var(--clear); }
+.qp-now .qp-h { position: static; background: none; padding-inline: 0; }
+.qp-queue { padding-bottom: 1rem; }
+
+/* The one dialog: add to a playlist, name a playlist, confirm a delete */
+.qp-dlg { width: min(26rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); margin: auto; padding: 0; overflow: visible; border: 0; background: none; color: var(--ink); }
+.qp-dlg::backdrop { background: rgba(0, 0, 0, .5); }
+.qp-dlg-in { display: grid; gap: .75rem; max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 1.25rem; border: 1px solid var(--line); border-radius: 1rem; background: var(--surface); box-shadow: 0 1rem 3rem rgba(0, 0, 0, .3); }
+.qp-dlg h3 { font: 650 1.25rem/1.2 var(--display); }
+.qp-dlg .qp-dlg-sub { padding: 0; }
+.qp-picks { display: grid; gap: .35rem; margin: 0; padding: 0; list-style: none; max-height: 40vh; overflow-y: auto; }
+.qp-pick { width: 100%; display: grid; gap: .1rem; min-height: 3.25rem; padding: .5rem .8rem; background: color-mix(in srgb, var(--ink) 6%, transparent); border: 1px solid var(--line); border-radius: .7rem; font: inherit; color: inherit; text-align: left; cursor: pointer; transition: scale var(--qp-fast) var(--ease); }
+.qp-pick:active { scale: .98; }
+.qp-pick small { font-size: .8rem; color: var(--muted); }
+.qp-pick:disabled { opacity: .55; cursor: default; }
+.qp-form { display: flex; flex-wrap: wrap; gap: .5rem; }
+.qp-form .d-input { flex: 1 1 12rem; min-height: 2.75rem; }
+.qp-form .d-btn { min-height: 2.75rem; }
+.qp-dlg-foot { display: flex; justify-content: flex-end; gap: .5rem; }
+
+@media (max-width: 56rem) {
+  /* one pane at a time, with a Back button in the detail */
+  .qp-panes { grid-template-columns: minmax(0, 1fr); }
+  .qp[data-pane="list"] .qp-detail, .qp[data-pane="detail"] .qp-list { display: none; }
+  .qp-back { display: grid; }
+  .qp-head { padding-left: 0; }
+}
+@media (max-width: 40rem) {
+  /* phones: the bar keeps the title, previous, play, next and the button that opens now playing; the rest is one tap away there */
+  .qp-top { grid-template-columns: minmax(0, 1fr); }
+  .qp-player .qp-extra { display: none; }
+  .qp-player .qp-time { grid-template-columns: minmax(0, 1fr); }
+  .qp-player .qp-time span { display: none; }
+  .qp-player .qp-track { height: 1.25rem; }
+  .qp-ctl { grid-template-columns: minmax(0, 1fr) auto auto; gap: .25rem; }
+  .qp-now-in { padding-inline: .9rem; }
+  .qp-btns-lg { gap: 0; justify-content: space-between; }
+  .qp-btns-lg .qp-ic { width: 2.75rem; height: 2.75rem; } .qp-btns-lg .qp-play { width: 3.75rem; height: 3.75rem; }
+  body:has(#qp-player:not([hidden])) .toast { bottom: calc(10rem + env(safe-area-inset-bottom, 0px)); }
+}
+/* messages sit above the docked player, not on it */
+@media (min-width: 40.01rem) { body:has(#qp-player:not([hidden])) .toast { bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); } }
+@media (min-width: 60rem) {
+  /* wide screens, such as a small tablet on its side: tabs, search and riwayah share one row so the lists stay tall */
+  .qp-top { grid-template-columns: auto minmax(10rem, 1fr) minmax(9rem, 16rem); }
+  .qp-tabs { grid-column: 1; grid-row: 1; }
+}
+@media (max-height: 42rem) and (min-width: 40rem) {
+  .qp { gap: .5rem; }
+  .qp-player .qp-track { height: 1.25rem; }
+  .qp-player { padding-block: .2rem .3rem; }
+  .iqama .qp-player { padding-block: .2rem .3rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qp-ic, .qp-pick, .qp-seek::-webkit-slider-thumb, .qp-seek::-moz-range-thumb { transition: none; }
+  .qp-ic:active, .qp-main:active .qp-txt, .qp-pick:active, .qp-seek:hover::-webkit-slider-thumb, .qp-seek:active::-webkit-slider-thumb, .qp-seek:hover::-moz-range-thumb, .qp-seek:active::-moz-range-thumb { scale: 1; }
+}

@@ -5,6 +5,7 @@ import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
 import { SETS, AUDIO, pickSet } from './adhkar.js';
+import { HISN, hisnUrl } from './hisn.js';
 
 const $ = (id) => document.getElementById(id);
 const root = document.documentElement;
@@ -274,7 +275,7 @@ function syncSound() {
   $('dx-sound').hidden = !soundLocked;
   $('sound-lock').hidden = !soundLocked;
   $('qr-play').textContent = playing() ? 'Stop' : 'Play';
-  document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === AUDIO[b.dataset.key] ? 'Stop' : 'Play'; });
+  document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === b.dataset.src ? 'Stop' : 'Play'; });
 }
 audio.addEventListener('ended', syncSound);
 audio.addEventListener('pause', syncSound);
@@ -320,13 +321,21 @@ $('dk-listen').addEventListener('click', () => {
   if (AUDIO[dk.key]) play(AUDIO[dk.key]);
 });
 
-const AUDIO_LIST = [['Dua after hearing the adhan', 'adhan'], ['Adhkar after the prayer', 'prayer'], ['Morning and evening adhkar', 'morning'], ['Before sleep', 'sleep']];
-$('adhkar-audio').innerHTML = AUDIO_LIST.map(([label, key]) => `<li><span>${label}</span><button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-key="${key}">Play</button></li>`).join('');
+// Adhkar tab: every Hisn al-Muslim chapter with its recording, filtered by what is typed in the search box
+$('adhkar-audio').innerHTML = HISN.map(([id, title, num]) => `<li data-t="${title.toLowerCase()} ${id}"><span class="au-no">${id}</span><span class="au-title">${title}</span><button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-src="${hisnUrl(num)}" aria-label="Play: ${title}">Play</button></li>`).join('');
+function filterAdhkar() {
+  const q = $('au-search').value.trim().toLowerCase();
+  let shown = 0;
+  for (const li of $('adhkar-audio').children) { const on = !q || li.dataset.t.includes(q); li.hidden = !on; if (on) shown++; }
+  $('au-count').textContent = shown ? (q ? `${shown} of ${HISN.length} chapters` : `${HISN.length} chapters`) : 'No chapters match.';
+}
+$('au-search').addEventListener('input', filterAdhkar);
+filterAdhkar();
 $('adhkar-audio').addEventListener('click', (e) => {
   const b = e.target.closest('.au-play');
   if (!b) return;
-  if (playing() && audio.src === AUDIO[b.dataset.key]) return audio.pause();
-  play(AUDIO[b.dataset.key]);
+  if (playing() && audio.src === b.dataset.src) return audio.pause();
+  play(b.dataset.src);
 });
 
 // Quran: reciters and surahs come from mp3quran.net when the panel is first opened; the audio streams from the reciter's server

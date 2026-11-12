@@ -1,6 +1,6 @@
 {
   "source": "https://iscj.org/",
-  "updated": "2026-11-11",
+  "updated": "2026-11-12",
   "iqama": {
     "fajr": "05:45",
     "dhuhr": "12:30",
@@ -8,5 +8,8 @@
     "maghrib": "+0",
     "isha": "20:00"
   },
-  "jumuah": []
+  "jumuah": [
+    "12:00",
+    "13:10"
+  ]
 }

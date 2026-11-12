@@ -102,6 +102,14 @@ export function outlook(days, units) {
   return `Next two days: ${temp}, ${wet.length ? `${kind} ${wet.map(([, n]) => n).join(' and ')}` : 'mostly dry'}.`;
 }
 
+// Open-Meteo's daily code is the most severe condition of the day, so a few snowy hours on a rainy day read as "snow".
+// Keep snow only when its water content (about a tenth of the snowfall depth, in cm or inches) is at least the rain that falls.
+export function dayKind(code, snowfall, rain) {
+  const base = weatherKind(code);
+  if (base.kind !== 'snow' || snowfall == null || rain == null) return base;
+  return snowfall / 10 >= rain ? base : weatherKind(63);
+}
+
 export function weatherKind(code) {
   const hit = WEATHER.find(([codes]) => codes.includes(code));
   return hit ? { kind: hit[1], label: hit[2] } : { kind: 'plain', label: '' };

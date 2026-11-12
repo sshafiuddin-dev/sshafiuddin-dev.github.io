@@ -1,6 +1,6 @@
 // Weather details from Open-Meteo (free, no key). fetchWeather normalises the reply; weatherHtml draws the panel.
 // Only numbers and parsed times from the reply reach the page, never its raw strings.
-import { fmt, weatherKind, uvLevel, aqiLevel, compass, outlook, dayName } from './logic.js';
+import { fmt, weatherKind, uvLevel, aqiLevel, compass, outlook, dayName, dayKind } from './logic.js';
 
 const CURRENT = 'temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,uv_index,precipitation_probability';
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
@@ -12,7 +12,7 @@ export async function fetchWeather(lat, lng, units) {
     + `&temperature_unit=${f ? 'fahrenheit' : 'celsius'}&wind_speed_unit=${f ? 'mph' : 'kmh'}&precipitation_unit=${f ? 'inch' : 'mm'}`;
   const airReq = fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&timezone=auto&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide`)
     .then(r => (r.ok ? r.json() : null)).catch(() => null);
-  let r = await fetch(`${base}&current=${CURRENT}&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,sunrise,sunset,weather_code,precipitation_probability_max`);
+  let r = await fetch(`${base}&current=${CURRENT}&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,sunrise,sunset,weather_code,precipitation_probability_max,snowfall_sum,rain_sum,showers_sum`);
   // shortcut: if Open-Meteo ever rejects a variable, show the basics rather than no weather at all
   if (r.status === 400) r = await fetch(`${base}&current=temperature_2m,weather_code`);
   if (!r.ok) throw new Error(`weather ${r.status}`);
@@ -30,9 +30,10 @@ export async function fetchWeather(lat, lng, units) {
   })).filter(x => x.min != null);
   const first = (name) => (dl[name] || [])[0];
   const dates = Array.isArray(dl.time) ? dl.time : [];
+  const rainOf = (i) => { const r = num((dl.rain_sum || [])[i]), s = num((dl.showers_sum || [])[i]); return r == null && s == null ? null : (r || 0) + (s || 0); };
   const days = dates.slice(0, 7).map((date, i) => ({
     date: typeof date === 'string' ? date : '', max: num((dl.temperature_2m_max || [])[i]), min: num((dl.temperature_2m_min || [])[i]),
-    pop: num((dl.precipitation_probability_max || [])[i]), ...weatherKind(num((dl.weather_code || [])[i])),
+    pop: num((dl.precipitation_probability_max || [])[i]), ...dayKind(num((dl.weather_code || [])[i]), num((dl.snowfall_sum || [])[i]), rainOf(i)),
   }));
   const a = (await airReq)?.current || null;
   return {

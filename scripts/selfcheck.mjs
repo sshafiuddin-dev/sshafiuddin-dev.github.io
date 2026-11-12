@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
 import { normalizeItem, normalizeChapter, check, parseLoose, repairJson, parseChapterJson } from './fetch-hisn.mjs';
-import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
+import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, dayKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -95,6 +95,10 @@ assert.deepEqual([0, 44, 90, 200, 315, 359, -45].map(compass), ['N', 'NE', 'E', 
 assert.deepEqual(weatherKind(63), { kind: 'rain', label: 'Rain' });
 assert.equal(weatherKind(75).kind, 'snow');
 assert.equal(weatherKind(999).kind, 'plain');
+assert.equal(dayKind(73, 0.4, 6).kind, 'rain'); // a little snow on a rainy day is rain
+assert.equal(dayKind(73, 5, 0.5).kind, 'snow');
+assert.equal(dayKind(73, null, null).kind, 'snow');
+assert.equal(dayKind(61, 9, 0).kind, 'rain');
 // Adhkar set for the time of day (ISCJ, Nov 10): Fajr 5:21/5:45, sunrise 6:39, Dhuhr 11:42/12:30, Asr 2:24/2:45, Maghrib 4:45, Isha 6:03/8:00
 const { SETS, pickSet } = await import('../iqama/adhkar.js');
 const day = [{ adhan: 321, iqama: 345 }, { adhan: 702, iqama: 750 }, { adhan: 864, iqama: 885 }, { adhan: 1005, iqama: 1005 }, { adhan: 1083, iqama: 1200 }];

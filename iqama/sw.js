@@ -1,6 +1,6 @@
 // Offline support for Iqama Times. Network first, so a new deploy or new iqama times show at once;
 // the cached copy is used only when the network fails.
-const CACHE = 'iqama-v13';
+const CACHE = 'iqama-v14';
 const SHELL = ['./', 'daisy.css', 'styles.css', 'app.js', 'logic.js', 'sky.js', 'clocks.js', 'weather.js', 'adhkar.js', 'hisn.js', 'lib/PrayTimes.js', 'lib/CalculationMethods.js', 'iqama.json', 'manifest.webmanifest', 'icon-192.png', '../favicon.svg'];
 
 self.addEventListener('install', (e) => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));

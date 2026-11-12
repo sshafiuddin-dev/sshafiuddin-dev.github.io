@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
 import { normalizeItem, normalizeChapter, check, parseLoose, repairJson, parseChapterJson } from './fetch-hisn.mjs';
-import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, dayKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
+import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -85,6 +85,22 @@ assert.deepEqual(tick([{ key: 'isha', adhan: 1100, iqama: null }], { isha: cfg.d
 assert.deepEqual(tick(dhuhr, {}, 690), [], 'no settings for the prayer');
 // Jumu'ah: only a "before" alert, keyed like any other row
 assert.deepEqual(tick([{ key: 'jumuah', adhan: 720, iqama: null }], { jumuah: { on: true, before: { type: 'message', min: 15 } } }, 705), [{ kind: 'before', key: 'jumuah', type: 'message', min: 15 }]);
+
+// Each alert step has its own switch and sound; saves from before that are read as they behaved
+{
+  const steps = { dhuhr: { on: true, adhan: { on: true, type: 'makkah' }, before: { on: false, type: 'beep', min: 10 }, iqama: { on: true, type: 'aqsa', min: 5 } } };
+  assert.deepEqual(tick(dhuhr, steps, 700), [{ kind: 'adhan', key: 'dhuhr', type: 'makkah', min: undefined }], 'a named recording at adhan');
+  assert.deepEqual(tick(dhuhr, steps, 690), [], 'a step switched off keeps its sound but does not fire');
+  assert.deepEqual(tick(dhuhr, steps, 715), [{ kind: 'iqama', key: 'dhuhr', type: 'aqsa', min: 5 }]);
+  const sounds = ['message', 'beep', 'adhan', 'makkah'], def = { on: false, type: 'beep', min: 10 };
+  assert.deepEqual(cleanStep('adhan', { on: true, type: 'message' }, sounds, false), { on: true, type: 'adhan' }, 'old adhan setting: a bare type');
+  assert.deepEqual(cleanStep('off', { on: true, type: 'message' }, sounds, false), { on: false, type: 'message' }, 'old adhan setting: off');
+  assert.deepEqual(cleanStep({ type: 'off', min: 20 }, def, sounds, true), { on: false, type: 'beep', min: 20 }, 'old step: off keeps its minutes');
+  assert.deepEqual(cleanStep({ type: 'message', min: 7 }, def, sounds, true), { on: true, type: 'message', min: 7 }, 'old step: a type meant on');
+  assert.deepEqual(cleanStep({ on: false, type: 'makkah', min: 3 }, def, sounds, true), { on: false, type: 'makkah', min: 3 });
+  assert.deepEqual(cleanStep({ on: true, type: 'nonsense', min: 99 }, def, sounds, true), { on: true, type: 'beep', min: 10 }, 'unknown sound and minutes fall back');
+  assert.deepEqual(cleanStep(null, def, sounds, true), def);
+}
 
 // Weather labels
 assert.deepEqual([0, 2.9, 3, 7.9, 10, 11].map(uvLevel), ['low', 'low', 'moderate', 'high', 'very high', 'extreme']);

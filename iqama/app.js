@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, outlook, cardWindow } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -15,8 +15,11 @@ const ISCJ = { lat: 40.384, lng: -74.563, zone: 'America/New_York', name: 'ISCJ,
 const NEAR_KM = 40;
 const ADHANS = { makkah: 'Makkah (3:44)', egypt: 'Egyptian style (3:25)', aqsa: 'Masjid Al-Aqsa (4:07)', ottoman: 'Ottoman style, Shaykh Nazim (2:38)', afasy: 'Mishary Al-Afasy (4:17)' };
 const FAJR_ADHANS = { 'fajr-zahrani': 'Mansoor Az-Zahrani (3:26)', 'fajr-afasy': 'Mishary Al-Afasy (3:24)' };
-const ALERT_TYPES = { adhan: 'Adhan recording', beep: 'Soft beep', bismillah: 'Bismillah, spoken', message: 'Message only', off: 'Off' };
-const SHORT_TYPES = ['beep', 'bismillah', 'message', 'off'];
+// What an alert can do: show a message only, play a short sound, or play an adhan recording (the default one from the pickers above, or a named one)
+const SOUNDS = { message: 'Message only', beep: 'Soft beep', bismillah: 'Bismillah, spoken', adhan: 'Adhan, your default recording' };
+const RECORDINGS = { ...ADHANS, ...FAJR_ADHANS };
+const SOUND_KEYS = [...Object.keys(SOUNDS), ...Object.keys(RECORDINGS)];
+const soundName = (t) => t === 'adhan' ? 'Adhan recording' : SOUNDS[t] ? SOUNDS[t].split(',')[0] : `${RECORDINGS[t].replace(/ \(.*/, '')} adhan`;
 const ALERT_KEYS = [...PRAYERS, 'jumuah'];
 const PALETTES = { petrol: 'Petrol', green: 'Masjid green', dusk: 'Dusk', night: 'Night', contrast: 'High contrast' };
 const MODES = ['auto', 'light', 'dark'];
@@ -55,14 +58,14 @@ if (!['auto', 'times', 'full'].includes(settings.dxLayout)) settings.dxLayout = 
 
 // Alerts for each prayer and for Jumu'ah
 const blankAlert = (key) => key === 'jumuah'
-  ? { on: false, before: { type: 'message', min: 15 }, time: null }
-  : { on: true, adhan: 'message', before: { type: 'off', min: 10 }, iqama: { type: 'off', min: 5 } };
+  ? { on: false, before: { on: true, type: 'message', min: 15 }, time: null }
+  : { on: true, adhan: { on: true, type: 'message' }, before: { on: false, type: 'beep', min: 10 }, iqama: { on: false, type: 'beep', min: 5 } };
 function cleanAlert(key, a) {
   const d = blankAlert(key);
   if (!a || typeof a !== 'object') return d;
-  const step = (s, def) => (s && SHORT_TYPES.includes(s.type) && Number.isInteger(s.min) && s.min >= 1 && s.min <= 60 ? { type: s.type, min: s.min } : def);
-  if (key === 'jumuah') return { on: a.on === true, before: step(a.before, d.before), time: parseHM(a.time) != null ? a.time : null };
-  return { on: a.on !== false, adhan: ALERT_TYPES[a.adhan] ? a.adhan : d.adhan, before: step(a.before, d.before), iqama: step(a.iqama, d.iqama) };
+  const step = (part, withMin = true) => cleanStep(a[part], d[part], SOUND_KEYS, withMin);
+  if (key === 'jumuah') return { on: a.on === true, before: step('before'), time: parseHM(a.time) != null ? a.time : null };
+  return { on: a.on !== false, adhan: step('adhan', false), before: step('before'), iqama: step('iqama') };
 }
 const savedAlerts = settings.alerts && typeof settings.alerts === 'object' ? settings.alerts : {};
 settings.alerts = Object.fromEntries(ALERT_KEYS.map(k => [k, cleanAlert(k, savedAlerts[k])]));
@@ -267,13 +270,16 @@ $('share-app').addEventListener('click', () => share('Iqama Times', 'Prayer and 
 // alert that could not sound shows a "Tap to enable sound" button on the display, and plays when it is tapped.
 const audio = new Audio();
 audio.preload = 'auto';
-let soundLocked = false, pending = null;
+let soundLocked = false, pending = null, alertNow = null; // alertNow names the alert that is sounding, for the Stop button
 const playing = () => !!audio.src && !audio.paused && !audio.ended;
 function syncSound() {
   $('alerts-label').textContent = playing() ? 'Stop sound' : `Alerts: ${settings.muted ? 'off' : 'on'}`;
   $('alerts-toggle').checked = !settings.muted;
   $('dx-sound').hidden = !soundLocked;
   $('sound-lock').hidden = !soundLocked;
+  if (!playing() && !pending) alertNow = null;
+  const stop = !!alertNow && playing();
+  for (const id of ['alert-stop', 'dx-stop']) { $(id).hidden = !stop; if (stop) $(id).textContent = `Stop ${alertNow}`; }
   $('qr-play').textContent = playing() ? 'Stop' : 'Play';
   document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === b.dataset.src ? 'Stop' : (b.dataset.label || 'Play'); });
 }
@@ -287,26 +293,29 @@ function markUnlocked() {
   syncSound();
 }
 function unlockSound(e) {
-  const file = pending && Date.now() - pending.at < 120000 ? pending.file : null; // a stale alert is not played late
+  const late = pending && Date.now() - pending.at < 120000 ? pending : null; // a stale alert is not played late
+  const file = late && late.file;
   pending = null;
   // a tap on a button that starts its own sound unlocks through that sound, so a missed alert does not replay over it
   if (e && e.target.closest && e.target.closest('#qr-play, #dk-listen, .au-play, [data-try]')) return;
-  if (file) return play(file);
+  if (file) return play(file, late.label);
   if (playing()) return;
   audio.muted = true; // a silent start that lets later alerts play on their own
   audio.src = 'audio/beep.mp3';
   audio.play().then(() => { if (audio.muted) { audio.pause(); audio.muted = false; } markUnlocked(); }, () => {});
 }
 GESTURES.forEach(g => addEventListener(g, unlockSound, true));
-function play(file) {
+function play(file, label) {
   audio.pause();
+  alertNow = label || null;
   audio.muted = false;
   audio.src = /^https:/.test(file) ? file : `audio/${file}.mp3`;
+  audio.addEventListener('playing', syncSound, { once: true });
   audio.play().then(markUnlocked, (err) => {
     if (err && err.name === 'AbortError') return; // another sound took over
     if (err && err.name === 'NotAllowedError') {
       soundLocked = true;
-      pending = { file, at: Date.now() };
+      pending = { file, label, at: Date.now() };
       say('Sound is blocked until you tap the page. Tap anywhere to turn it on.');
       syncSound();
     } else {
@@ -417,6 +426,7 @@ $('qr-play').addEventListener('click', () => {
   play(`${rec.server}${String(n).padStart(3, '0')}.mp3`);
 });
 
+for (const id of ['alert-stop', 'dx-stop']) $(id).addEventListener('click', () => { audio.pause(); say('Alert stopped. Your alert settings are unchanged.'); });
 $('alerts-toggle').addEventListener('click', (e) => {
   if (playing()) { e.preventDefault(); return audio.pause(); }
   settings.muted = !settings.muted;
@@ -437,15 +447,20 @@ document.querySelectorAll('[data-try]').forEach(b => b.addEventListener('click',
 }));
 
 // Alert cards, one per prayer plus Jumu'ah
-const typeOptions = (types, sel) => types.map(t => `<option value="${t}"${t === sel ? ' selected' : ''}>${ALERT_TYPES[t]}</option>`).join('');
+const soundOptions = (sel) => {
+  const opts = (map) => Object.keys(map).map(t => `<option value="${t}"${t === sel ? ' selected' : ''}>${map === SOUNDS ? SOUNDS[t] : RECORDINGS[t]}</option>`).join('');
+  return `${opts(SOUNDS)}<optgroup label="A named adhan recording">${opts(RECORDINGS)}</optgroup>`;
+};
 function alertCard(k) {
   const a = settings.alerts[k], id = (part) => `al-${k}-${part}`, name = k === 'jumuah' ? 'Jumu’ah' : NAMES[k];
-  const step = (part, label) => `<div class="al-row"><label for="${id(`${part}-type`)}">${label}</label><select class="d-select d-select-sm" id="${id(`${part}-type`)}" data-k="${k}">${typeOptions(SHORT_TYPES, a[part].type)}</select>`
-    + `<span class="al-min"><input class="d-input d-input-sm" type="number" id="${id(`${part}-min`)}" data-k="${k}" min="1" max="60" step="1" inputmode="numeric" value="${a[part].min}" aria-label="${name}, ${label.toLowerCase()}, minutes"><span>min</span></span></div>`;
+  // each step has its own switch and its own sound; the two "before" steps also have minutes
+  const step = (part, label) => `<div class="al-row" data-part="${part}"><input class="d-toggle d-toggle-success d-toggle-xs" type="checkbox" role="switch" id="${id(`${part}-on`)}" data-k="${k}" aria-label="${name}, ${label.toLowerCase()} alert"${a[part].on ? ' checked' : ''}>`
+    + `<label for="${id(`${part}-type`)}">${label}</label><select class="d-select d-select-sm" id="${id(`${part}-type`)}" data-k="${k}" aria-label="${name}, ${label.toLowerCase()}, sound">${soundOptions(a[part].type)}</select>`
+    + (part === 'adhan' ? '' : `<span class="al-min"><input class="d-input d-input-sm" type="number" id="${id(`${part}-min`)}" data-k="${k}" min="1" max="60" step="1" inputmode="numeric" value="${a[part].min}" aria-label="${name}, ${label.toLowerCase()}, minutes"><span>min</span></span>`)
+    + '</div>';
   const body = k === 'jumuah'
     ? `${step('before', 'Before khutbah')}<div class="al-row"><label for="${id('time')}">Khutbah time</label><input class="d-input d-input-sm" type="time" id="${id('time')}" data-k="${k}" value="${a.time ? a.time.padStart(5, '0') : ''}"></div><p class="al-note" id="al-jumuah-note"></p>`
-    : `<div class="al-row"><label for="${id('adhan')}">At adhan</label><select class="d-select d-select-sm" id="${id('adhan')}" data-k="${k}">${typeOptions(Object.keys(ALERT_TYPES), a.adhan)}</select></div>`
-      + `${step('before', 'Before adhan')}${step('iqama', 'Before iqama')}<button class="d-btn d-btn-sm d-btn-ghost al-copy" type="button" data-copy="${k}">Use for all prayers</button>`;
+    : `${step('adhan', 'At adhan')}${step('before', 'Before adhan')}${step('iqama', 'Before iqama')}<button class="d-btn d-btn-sm d-btn-ghost al-copy" type="button" data-copy="${k}">Use for all prayers</button>`;
   return `<div class="al-card d-collapse d-collapse-arrow" id="${id('card')}"><input type="checkbox" class="al-open" aria-label="Show ${name} settings">`
     + `<div class="d-collapse-title al-title"><input class="d-toggle d-toggle-success d-toggle-sm" type="checkbox" role="switch" id="${id('on')}" data-k="${k}" aria-label="${name} alerts"${a.on ? ' checked' : ''}><span class="al-name">${name}</span><span class="al-sum" id="${id('sum')}">${alertSummary(k, a)}</span></div>`
     + `<div class="d-collapse-content al-body">${body}</div></div>`;
@@ -453,15 +468,18 @@ function alertCard(k) {
 // A short line that sums up a card, so it is readable while folded
 function alertSummary(k, a) {
   if (!a.on) return 'Off';
-  const parts = k === 'jumuah' ? [] : [ALERT_TYPES[a.adhan]];
-  if (a.before.type !== 'off') parts.push(`${a.before.min} min before ${k === 'jumuah' ? 'khutbah' : 'adhan'}`);
-  if (k !== 'jumuah' && a.iqama.type !== 'off') parts.push(`${a.iqama.min} min before iqama`);
+  const parts = k !== 'jumuah' && a.adhan.on ? [soundName(a.adhan.type)] : [];
+  if (a.before.on) parts.push(`${a.before.min} min before ${k === 'jumuah' ? 'khutbah' : 'adhan'}`);
+  if (k !== 'jumuah' && a.iqama.on) parts.push(`${a.iqama.min} min before iqama`);
   return parts.join(', ') || 'No alerts';
 }
 function syncCard(k) {
   const a = settings.alerts[k], card = $(`al-${k}-card`);
   card.classList.toggle('is-off', !a.on);
-  card.querySelectorAll('.al-body select, .al-body input, .al-body button').forEach(el => { el.disabled = !a.on; });
+  card.querySelectorAll('.al-body select, .al-body input, .al-body button').forEach(el => {
+    const part = el.closest('[data-part]')?.dataset.part; // a step that is switched off keeps its switch live and greys the rest of its row
+    el.disabled = !a.on || (!!part && !a[part].on && el.type !== 'checkbox');
+  });
   $(`al-${k}-sum`).textContent = alertSummary(k, a);
 }
 function buildAlerts() { $('alert-cards').innerHTML = ALERT_KEYS.map(alertCard).join(''); ALERT_KEYS.forEach(syncCard); jumuahNote(); }
@@ -478,9 +496,10 @@ $('alert-cards').addEventListener('change', (e) => {
   const v = (part) => $(`al-${k}-${part}`), a = settings.alerts[k];
   const mins = (part, old) => { const n = Math.round(+v(part).value); if (n >= 1 && n <= 60) return n; say('Alert minutes must be between 1 and 60.'); v(part).value = old; return old; };
   a.on = v('on').checked;
-  a.before = { type: v('before-type').value, min: mins('before-min', a.before.min) };
+  const step = (part) => ({ on: v(`${part}-on`).checked, type: v(`${part}-type`).value, ...(part === 'adhan' ? {} : { min: mins(`${part}-min`, a[part].min) }) });
+  a.before = step('before');
   if (k === 'jumuah') a.time = parseHM(v('time').value) != null ? v('time').value : null;
-  else { a.adhan = v('adhan').value; a.iqama = { type: v('iqama-type').value, min: mins('iqama-min', a.iqama.min) }; }
+  else { a.adhan = step('adhan'); a.iqama = step('iqama'); }
   settings.alerts[k] = cleanAlert(k, a);
   save();
   syncCard(k);
@@ -510,8 +529,11 @@ function fire({ kind, key, type, min }) {
   const text = MESSAGES[kind](key === 'jumuah' ? 'Jumu’ah' : NAMES[key], min, key);
   say(text);
   if (document.hidden) notify(text);
-  if (type === 'adhan') play(key === 'fajr' ? settings.fajrAdhan : settings.adhan);
-  else if ((type === 'beep' || type === 'bismillah') && !playing()) play(type);
+  const name = key === 'jumuah' ? 'Jumu’ah' : NAMES[key], label = kind === 'adhan' ? `${name} adhan` : `${name} alert`;
+  // a recording takes over whatever is playing; a short sound waits its turn rather than cut an adhan off
+  if (type === 'adhan') play(key === 'fajr' ? settings.fajrAdhan : settings.adhan, label);
+  else if (RECORDINGS[type]) play(type, label);
+  else if ((type === 'beep' || type === 'bismillah') && !playing()) play(type, label);
 }
 
 // Your own iqama times; the first choice is ISCJ near the masjid and "Not set" elsewhere

@@ -369,7 +369,7 @@ body { overflow: hidden; }
 .al-body { display: grid; gap: .65rem; }
 .al-card.is-off .al-body { opacity: .6; }
 .al-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
-.al-row > label { min-width: 6.75rem; font-size: .92rem; }
+.al-row > label { min-width: 5.75rem; font-size: .92rem; }
 .al-row select { flex: 1 1 8rem; min-width: 0; }
 .al-min { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; font-size: .9rem; color: var(--muted); }
 .iqama .al-row input[type="number"] { width: 4.25rem; }
@@ -533,6 +533,9 @@ body { overflow: hidden; }
 .qr-body { display: grid; gap: .5rem; margin-top: .6rem; max-width: 28rem; }
 .sound-lock { position: fixed; top: .75rem; left: 50%; transform: translateX(-50%); z-index: 50; animation: dx-sound-pulse 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .sound-lock { animation: none; } }
+/* Stop button shown on every screen while an alert is sounding */
+.alert-stop { position: fixed; top: .75rem; left: 50%; transform: translateX(-50%); z-index: 45; max-width: calc(100vw - 2rem); box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .3); }
+.al-row .d-toggle { flex: none; }
 .au-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; max-width: 32rem; }
 .au-search { max-width: 32rem; width: 100%; margin: .25rem 0; }
 .au-no { min-width: 2rem; opacity: .6; font-variant-numeric: tabular-nums; }

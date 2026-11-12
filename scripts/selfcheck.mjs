@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
-import { normalizeItem, normalizeChapter, check, parseLoose, repairJson } from './fetch-hisn.mjs';
+import { normalizeItem, normalizeChapter, check, parseLoose, repairJson, parseChapterJson } from './fetch-hisn.mjs';
 import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, weatherKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
@@ -136,5 +136,13 @@ for (const [k, s] of Object.entries(SETS)) for (const it of s.items) assert.ok(i
   assert.deepEqual(parseLoose('{"a": ["it\\\'s", "x\\\\ny", "q\\"z\\u0041"],}'), { a: ["it's", 'x\\ny', 'q"zA'] });
   assert.equal(repairJson('{"k": "a, ]"}'), '{"k": "a, ]"}', 'a comma inside a string is left alone');
   assert.throws(() => parseLoose('{"a": "' + 'x'.repeat(200) + '", "b": tru}'), /tru.*\(strict: /, 'the error shows the broken part and the strict error');
+}
+// A chapter whose title lost its closing quote (chapter 126) is read from the list inside it
+{
+  const broken = '{\r\n\t"What to say when you feel frightened:\r\n\t[\r\n\t\t{\r\n\t\t\t"ID": 245,\r\n\t\t\t"ARABIC_TEXT": "a",\r\n\t\t\t"TRANSLATED_TEXT": "b[1]",\r\n\t\t\t"REPEAT": 3\r\n\t\t}\r\n\t]\r\n}';
+  assert.throws(() => parseLoose(broken), 'the whole file cannot be read');
+  const items = normalizeChapter(parseChapterJson(broken));
+  assert.deepEqual(items, [{ ar: 'a', tr: '', en: 'b[1]', n: 3 }]);
+  assert.throws(() => parseChapterJson('{"no list here": 5'), 'a file with no list still fails');
 }
 console.log('selfcheck ok');

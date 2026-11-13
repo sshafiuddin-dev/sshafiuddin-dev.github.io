@@ -1,10 +1,10 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
-import { SETS, AUDIO, pickSet } from './adhkar.js';
+import { SETS, AUDIO, pickSet, fillSets } from './adhkar.js';
 import { HISN, hisnUrl } from './hisn.js';
 import { initQuran } from './quran.js';
 
@@ -19,6 +19,9 @@ const FAJR_ADHANS = { 'fajr-zahrani': 'Mansoor Az-Zahrani (3:26)', 'fajr-afasy':
 // What an alert can do: show a message only, play a short sound, or play an adhan recording (the default one from the pickers above, or a named one)
 const SOUNDS = { message: 'Message only', beep: 'Soft beep', bismillah: 'Bismillah, spoken', adhan: 'Adhan, your default recording' };
 const RECORDINGS = { ...ADHANS, ...FAJR_ADHANS };
+// The beep is made in the page. audio/bismillah.mp3 is hisnmuslim.com's recording of Hisn al-Muslim ch. 8 (before wudu), kept here so it plays offline;
+// the recording says more, so only 5.5 to 6.6 s plays, where "Bismillah" is said on its own (the browser stops at the end of the range)
+const SOUND_SRC = { beep: URL.createObjectURL(new Blob([beepWav()], { type: 'audio/wav' })), bismillah: 'audio/bismillah.mp3#t=5.5,6.6' };
 const SOUND_KEYS = [...Object.keys(SOUNDS), ...Object.keys(RECORDINGS)];
 const soundName = (t) => t === 'adhan' ? 'Adhan recording' : SOUNDS[t] ? SOUNDS[t].split(',')[0] : `${RECORDINGS[t].replace(/ \(.*/, '')} adhan`;
 const ALERT_KEYS = [...PRAYERS, 'jumuah'];
@@ -102,16 +105,6 @@ try {
   const ref = new URL(document.referrer);
   $('back').hidden = !(ref.origin === location.origin && !ref.pathname.startsWith('/iqama') && !matchMedia('(display-mode: standalone)').matches);
 } catch (e) {}
-
-// Wall clock at the prayer location
-const formatters = {};
-function clock(date, zone) {
-  const f = formatters[zone] ||= new Intl.DateTimeFormat('en-US', { timeZone: zone, hourCycle: 'h23', weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
-  const parts = {};
-  for (const { type, value } of f.formatToParts(date)) parts[type] = value;
-  const [y, m, d, h, mi, s] = ['year', 'month', 'day', 'hour', 'minute', 'second'].map(k => +parts[k]);
-  return { y, m, d, weekday: parts.weekday, sec: h * 3600 + mi * 60 + s, offset: Math.round((Date.UTC(y, m - 1, d, h, mi, s) - date.getTime()) / 9e5) / 4 };
-}
 
 function dayTimes(y, m, d) {
   const { lat, lng, zone } = place(), useMasjid = near();
@@ -284,7 +277,7 @@ function syncSound() {
   document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === b.dataset.src ? 'Stop' : (b.dataset.label || 'Play'); });
 }
 // The Quran player has its own audio element. It steps aside for any sound played here and comes back when that sound is over.
-const quran = initQuran({ say, stopOthers: () => { pending = null; if (playing()) audio.pause(); } });
+const quran = initQuran({ say, stopOthers: () => { pending = null; if (playing() && !audio.muted) audio.pause(); } }); // a muted sound is the silent unlock, which must finish
 const soundOver = () => { syncSound(); if (!playing()) quran.resume(); };
 audio.addEventListener('ended', soundOver);
 audio.addEventListener('pause', soundOver);
@@ -299,12 +292,14 @@ function unlockSound(e) {
   const late = pending && Date.now() - pending.at < 120000 ? pending : null; // a stale alert is not played late
   const file = late && late.file;
   pending = null;
+  const tapped = (sel) => !!(e && e.target.closest && e.target.closest(sel));
   // a tap on a button that starts its own sound unlocks through that sound, so a missed alert does not replay over it
-  if (e && e.target.closest && e.target.closest('[data-q="toggle"], [data-q="prev"], [data-q="next"], [data-q="jump"], [data-act="play"], [data-act="play-all"], #dk-listen, .au-play, [data-try]')) return;
-  if (file) return play(file, late.label);
+  if (tapped('#dk-listen, .au-play, [data-try]')) return;
+  // a Quran button plays on the Quran's own element: the missed alert is dropped, but this element still needs the silent unlock
+  if (file && !tapped('[data-q="toggle"], [data-q="prev"], [data-q="next"], [data-q="jump"], [data-act="play"], [data-act="play-all"]')) return play(file, late.label);
   if (playing()) return;
   audio.muted = true; // a silent start that lets later alerts play on their own
-  audio.src = 'audio/beep.mp3';
+  audio.src = SOUND_SRC.beep;
   audio.play().then(() => { if (audio.muted) { audio.pause(); audio.muted = false; } markUnlocked(); }, () => {});
 }
 GESTURES.forEach(g => addEventListener(g, unlockSound, true));
@@ -314,7 +309,7 @@ function play(file, label) {
   if (label) quran.closeDialogs();
   alertNow = label || null;
   audio.muted = false;
-  audio.src = /^https:/.test(file) ? file : `audio/${file}.mp3`;
+  audio.src = SOUND_SRC[file] || (/^https:/.test(file) ? file : `audio/${file}.mp3`);
   audio.addEventListener('playing', syncSound, { once: true });
   audio.play().then(markUnlocked, (err) => {
     if (err && err.name === 'AbortError') return; // another sound took over
@@ -355,7 +350,6 @@ async function loadHisnText() {
   hisnText = (await r.json()).chapters || {};
   return hisnText;
 }
-const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const hisnItems = (items) => items.map((it, i) => `<article class="au-dua"><div class="au-meta"><span>Dua ${i + 1} of ${items.length}</span>${it.n ? `<span>Read ${it.n} ${it.n === 1 ? 'time' : 'times'}</span>` : ''}</div>`
   + `${it.ar ? `<p class="au-ar" lang="ar" dir="rtl">${esc(it.ar)}</p>` : ''}${it.tr ? `<p class="au-tr">${esc(it.tr)}</p>` : ''}${it.en ? `<p class="au-en">${esc(it.en)}</p>` : ''}`
   + `${it.audio ? `<button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-src="${esc(it.audio)}" aria-label="Play dua ${i + 1}">Play</button>` : ''}</article>`).join('');
@@ -633,9 +627,13 @@ function syncMode() {
 modeInputs.forEach(r => r.addEventListener('change', () => { settings.mode = r.value; save(); applyLook(); }));
 
 // Weather, for the header, the backdrop and the Weather panel; the page works the same without it
+let wxReq = 0;
 async function loadWeather() {
-  const { lat, lng } = place();
-  try { weather = await fetchWeather(lat, lng, settings.units); } catch (e) { weather = null; }
+  const { lat, lng } = place(), n = ++wxReq;
+  let w = null;
+  try { w = await fetchWeather(lat, lng, settings.units); } catch (e) {}
+  if (n !== wxReq) return; // a newer request (new place or units) has started; this answer is stale
+  weather = w;
   renderWeather();
   tick();
 }
@@ -661,7 +659,7 @@ let duaTap = 0;
 function dxCardFor(nowMin) {
   const w = cardWindow(nowMin, day.rows, day.sunrise);
   if (!w) return null;
-  if (settings.dxCard === 'duas' && settings.adhkar) {
+  if (settings.dxCard === 'duas' && settings.adhkar && SETS[w].items[0].ar) { // the text has loaded
     const set = SETS[w], i = (Math.floor(nowMin / 3) + duaTap) % set.items.length;
     return { kind: 'dua', title: set.title, item: set.items[i], pos: `${i + 1} / ${set.items.length}` };
   }
@@ -699,10 +697,11 @@ function renderAdhkar(nowMin) {
   if (pick.key !== dk.key) dk = { key: pick.key, i: pick.key === 'general' ? Math.floor(Date.UTC(today.y, today.m - 1, today.d) / 864e5) % set.items.length : 0 };
   dk.until = pick.until;
   const it = dkItem(), c = dkCounts()[`${dk.key}.${dk.i}`] || 0, done = it.n > 0 && c >= it.n;
-  const sig = [dk.key, dk.i, dk.until, c, settings.adhkar, settings.translit, settings.arSize].join('|');
+  const show = settings.adhkar && !!(it.ar || it.en); // hidden until the Hisn al-Muslim text has loaded
+  const sig = [dk.key, dk.i, dk.until, c, show, settings.translit, settings.arSize].join('|');
   if (sig === dkSig) return;
   dkSig = sig;
-  $('adhkar').hidden = !settings.adhkar;
+  $('adhkar').hidden = !show;
   $('adhkar').dataset.size = settings.arSize;
   $('dk-title').textContent = set.title;
   $('dk-when').textContent = dk.until != null ? `${set.when}, until ${fmt(dk.until)}` : set.when;
@@ -722,7 +721,7 @@ function renderAdhkar(nowMin) {
   $('dk-tr-toggle').textContent = settings.translit ? 'Hide transliteration' : 'Show transliteration';
   $('dk-tr-toggle').hidden = !it.tr;
   $('dk-listen').hidden = !AUDIO[dk.key];
-  $('dx-dhikr').hidden = !settings.adhkar;
+  $('dx-dhikr').hidden = !show;
   $('dx-ar').textContent = it.ar;
   $('dx-ar').hidden = !it.ar;
   $('dx-en').textContent = it.en;
@@ -894,6 +893,8 @@ async function loadIqama(fresh) {
 // Iqama times, prayer times and weather in one go: at start, every 15 minutes, on a new day, on waking, and on Sync now.
 async function sync(fresh) {
   lastSync = Date.now();
+  // the Today tab's duas are entries of Hisn al-Muslim, read from the Adhkar tab's file; asked again until it has loaded once
+  if (!SETS.adhan.items[0].ar) loadHisnText().then(fillSets).then(() => { dkSig = ''; tick(); }).catch((e) => console.warn('Iqama Times: adhkar text failed', e));
   const [live] = await Promise.all([loadIqama(fresh), loadWeather()]);
   if (today) loadDay(today);
   return live;

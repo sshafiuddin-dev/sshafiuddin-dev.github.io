@@ -9,6 +9,9 @@ const PRAYERS = [
   ['isha', 'Isha', true, 1020, 1439],
 ];
 const two = (n) => String(n).padStart(2, '0');
+export const SOURCE = 'https://iscj.org/';
+// how this site's fetches introduce themselves to iscj.org and hisnmuslim.com
+export const USER_AGENT = 'Mozilla/5.0 (iqama-times; +https://sshafiuddin.pages.dev/iqama/)';
 
 export function parse(html) {
   const text = html.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&(?:rsquo|lsquo|apos|#8217|#8216|#0*39|#x27);/gi, "'").replace(/\s+/g, ' ');

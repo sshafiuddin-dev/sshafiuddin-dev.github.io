@@ -4,6 +4,7 @@
 // as expected, so a bad download never ships.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { USER_AGENT } from '../functions/_lib/parse.js';
 
 const INDEX = process.env.HISN_INDEX || 'https://www.hisnmuslim.com/api/en/husn_en.json';
 const OUT = process.env.HISN_OUT || fileURLToPath(new URL('../iqama/hisn-text.json', import.meta.url));

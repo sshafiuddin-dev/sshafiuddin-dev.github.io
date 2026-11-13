@@ -2,6 +2,32 @@
 export const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 export const NAMES = { fajr: 'Fajr', sunrise: 'Sunrise', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' };
 
+// Wall clock at a place: its date, weekday, seconds after midnight, and UTC offset in hours (to the quarter hour)
+const formatters = {};
+export function clock(date, zone) {
+  const f = formatters[zone] ||= new Intl.DateTimeFormat('en-US', { timeZone: zone, hourCycle: 'h23', weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+  const parts = {};
+  for (const { type, value } of f.formatToParts(date)) parts[type] = value;
+  const [y, m, d, h, mi, s] = ['year', 'month', 'day', 'hour', 'minute', 'second'].map(k => +parts[k]);
+  return { y, m, d, weekday: parts.weekday, sec: h * 3600 + mi * 60 + s, offset: Math.round((Date.UTC(y, m - 1, d, h, mi, s) - date.getTime()) / 9e5) / 4 };
+}
+
+// The soft alert beep, made here instead of shipped as a recording: a short 880 Hz tone that fades out, as 16-bit mono WAV bytes
+export function beepWav(rate = 22050, sec = 0.45, hz = 880) {
+  const n = Math.round(rate * sec), v = new DataView(new ArrayBuffer(44 + n * 2));
+  const str = (at, s) => [...s].forEach((c, i) => v.setUint8(at + i, c.charCodeAt(0)));
+  str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVEfmt '); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    const t = i / rate; // a 5 ms fade in avoids a click; the decay makes it a soft "ding"
+    v.setInt16(44 + i * 2, Math.round(Math.sin(2 * Math.PI * hz * t) * Math.exp(-t * 7) * Math.min(1, t * 200) * 0.35 * 32767), true);
+  }
+  return new Uint8Array(v.buffer);
+}
+
+export const esc =(t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 export function parseHM(s) {
   const m = /^(\d{1,2}):(\d{2})$/.exec(s);
   return m && +m[1] < 24 && +m[2] < 60 ? m[1] * 60 + +m[2] : null;

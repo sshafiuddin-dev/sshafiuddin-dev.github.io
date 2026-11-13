@@ -2,8 +2,8 @@
 // A "moshaf" is one recitation set by one reciter (a riwayah and a style); a track is one surah from one moshaf, written "moshafId:surah".
 
 export const trackId = (m, s) => `${m}:${s}`;
-export const parseTrack = (id) => { const [m, s] = String(id).split(':').map(Number); return { m, s }; };
-export const trackUrl = (server, s) => `${server}${String(s).padStart(3, '0')}.mp3`;
+const parseTrack = (id) => { const [m, s] = String(id).split(':').map(Number); return { m, s }; };
+const trackUrl = (server, s) => `${server}${String(s).padStart(3, '0')}.mp3`;
 const isTrack = (id) => typeof id === 'string' && /^\d+:\d{1,3}$/.test(id);
 
 export function fmtTime(sec) {
@@ -13,7 +13,7 @@ export function fmtTime(sec) {
 }
 
 // Search ignores case, accents, apostrophes and hyphens, so "al fatiha" finds "Al-Fatihah" and "abdul" finds "Abdul'aziz"
-export const fold = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ'’`]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+const fold = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ'’`]/g, '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
 const short = (name) => String(name || '').replace(/^Rewayat\s+/i, '').replace(/\s+/g, ' ').trim();
 
 // Turns mp3quran's three lists into what the player needs
@@ -87,7 +87,7 @@ export const afterEnd = (q, repeat) => (repeat === 'one' ? 'again' : stepPos(q, 
 
 // Everything kept on the device. Saves from the old two-dropdown player ({ reciter, surah }) are carried over as `legacy`.
 const REPEATS = ['off', 'all', 'one'];
-export const RATES = [1, 1.25, 1.5, 0.75];
+const RATES = [1, 1.25, 1.5, 0.75];
 export const cleanName = (name) => String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, 40);
 export function cleanStore(raw) {
   const o = raw && typeof raw === 'object' ? raw : {};

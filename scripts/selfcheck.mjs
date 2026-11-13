@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
 import { normalizeItem, normalizeChapter, check, parseLoose, repairJson, parseChapterJson } from './fetch-hisn.mjs';
-import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass, clock, esc, beepWav } from '../iqama/logic.js';
+import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass, clock, esc, beepWav, alertLogText } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -50,6 +50,13 @@ assert.deepEqual((({ y, m, d, weekday, sec }) => ({ y, m, d, weekday, sec }))(cl
   assert.ok(Math.max(...samples.map(Math.abs)) < 0.36 * 32767 && Math.abs(samples.at(-1)) < 0.05 * 32767, 'beep stays soft and ends quietly');
 }
 assert.equal(esc(`<a href="x">'&'</a>`), '&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;');
+// The log under Settings that explains a missed alert
+assert.equal(alertLogText(null, ''), 'No alert has gone off on this device yet.');
+assert.equal(
+  alertLogText({ last: { what: 'Fajr adhan', when: 'Nov 13, 5:24 AM', result: 'message shown, sound played' }, gaps: [{ from: 'Nov 12, 11:12 PM', to: 'Nov 13, 6:40 AM' }] }, 'Nov 13, 7:05 AM'),
+  'Last alert: Fajr adhan, Nov 13, 5:24 AM: message shown, sound played.\nThis page’s clock stopped, so alerts in between were skipped: Nov 12, 11:12 PM to Nov 13, 6:40 AM.\nThis page started Nov 13, 7:05 AM.');
+assert.equal(alertLogText({ last: 5, gaps: 'x' }, ''), 'No alert has gone off on this device yet.', 'a damaged save is ignored');
+assert.ok(alertLogText({ gaps: [{}, 1, null, { from: 'a', to: 'b' }, { from: 'c', to: 'd' }, { from: 'e', to: 'f' }, { from: 'g', to: 'h' }] }, '').includes('a to b; c to d; e to f.'), 'at most three stopped periods');
 assert.equal(parseHM('05:45'), 345);
 assert.equal(parseHM('25:00'), null);
 assert.equal(iqamaAt('+10', 300), 310);

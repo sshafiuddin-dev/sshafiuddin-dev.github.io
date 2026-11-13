@@ -2,7 +2,8 @@
    Loaded after styles.css. app.js sets on <html>:
      data-palette  paper | hand | contrast        (Settings, Display, Look)
      data-dim      0 bright, 1 soft, 2 dim, 3 darkest (the brightness button, or Auto after Isha or Maghrib)
-     data-theme    light for 0 and 1, dark for 2 and 3, for the rules in styles.css that only know light and dark
+     data-theme    light up to Dim, dark at Darkest (and from Dim in High contrast), for the rules in styles.css that only know light and dark
+   Dim is a warm-light page, like an e-reader's night light: amber paper and dark ink, no blue and no white, softer contrast (about 7:1).
    A web page cannot change the screen's backlight, so the levels lower the page's own brightness and contrast. Text keeps
    4.5:1 contrast on its paper at every level except Darkest, where the muted text is kept around 4:1 on purpose so nothing glows. */
 
@@ -19,7 +20,7 @@
   --paper: #F3EDE1; --surface: #FBF8F1; --ink: #1C1914; --muted: #5F5647; --line: #CFC4AE; --clear: #A8321F; --risk: #9E1B1B;
 }
 :root[data-palette="paper"][data-dim="1"] { --paper: #D8CFBE; --surface: #E0D8C8; --ink: #29241C; --muted: #50483A; --line: #B3A68E; --clear: #8A2818; --risk: #7E1616; }
-:root[data-palette="paper"][data-dim="2"] { --paper: #1D1A16; --surface: #25211B; --ink: #D6CCB8; --muted: #A39883; --line: #3B352C; --clear: #E39A7C; --risk: #F08F8F; color-scheme: dark; }
+:root[data-palette="paper"][data-dim="2"] { --paper: #B8A07A; --surface: #C0A983; --ink: #22190F; --muted: #45351F; --line: #9A845E; --clear: #6B1D10; --risk: #6B1D10; }
 :root[data-palette="paper"][data-dim="3"] { --paper: #000000; --surface: #0A0806; --ink: #A9803F; --muted: #85683A; --line: #1E1810; --clear: #C98A3A; --risk: #C96A4E; color-scheme: dark; }
 
 /* Handwritten: blue-black pen on a ruled sheet, red pen for what matters next */
@@ -28,7 +29,7 @@
   --ar: "Aref Ruqaa", "Amiri", serif;
 }
 :root[data-palette="hand"][data-dim="1"] { --paper: #DCD6C6; --surface: #E4DECF; --ink: #22304D; --muted: #46506A; --line: #AAB2C2; --clear: #8F2520; --margin: #C98E86; }
-:root[data-palette="hand"][data-dim="2"] { --paper: #1C1C1F; --surface: #232327; --ink: #D3CFC2; --muted: #A09C91; --line: #34363E; --clear: #E59A8E; --risk: #F08F8F; --margin: #5A3431; color-scheme: dark; }
+:root[data-palette="hand"][data-dim="2"] { --paper: #BAA582; --surface: #C2AE8C; --ink: #1C2132; --muted: #3D3A38; --line: #A08B67; --clear: #6B1D10; --risk: #6B1D10; --margin: #8E4A3A; }
 :root[data-palette="hand"][data-dim="3"] { --paper: #000000; --surface: #08080A; --ink: #9E9175; --muted: #7F7562; --line: #1A1A1E; --clear: #B98A5A; --risk: #C96A4E; --margin: #2A1C18; color-scheme: dark; }
 
 /* High contrast: white and black, and black and white from Dim */
@@ -39,7 +40,7 @@
 
 /* The weather sky stays a faint wash over the paper, and goes away at Darkest */
 :root { --sky: color-mix(in srgb, var(--sky-base) 28%, var(--paper)); --board-bg: var(--surface); --board-fg: var(--ink); }
-:root[data-dim="3"] .sky-tint, :root[data-dim="3"] #sky { display: none; }
+:root[data-dim="3"] .sky-tint, :root[data-dim="3"] #sky, :root[data-dim="2"]:not([data-palette="contrast"]) .sky-tint, :root[data-dim="2"]:not([data-palette="contrast"]) #sky { display: none; } /* a still, warm page at night */
 
 /* Print, not app: square corners, hairlines, no filled pills */
 :root { --radius-selector: 2px; --radius-field: 2px; --radius-box: 2px; }
@@ -152,7 +153,7 @@ body { font-feature-settings: "kern", "liga"; }
    The numbers stay dark on the mark and keep the page colour between flashes, so they can always be read. */
 :root { --alert: #F2CF3A; --alert-ink: #1C1914; }
 :root[data-dim="1"] { --alert: #DDB92C; }
-:root[data-dim="2"] { --alert: #E3B53B; --alert-ink: #1D1A16; }
+:root[data-dim="2"] { --alert: #3A2A17; --alert-ink: #D9C39B; } /* on the warm page a dark mark stands out more than yellow */
 :root[data-dim="3"] { --alert: #9C7420; --alert-ink: #000000; }
 :root[data-palette="contrast"] { --alert: #FFD000; --alert-ink: #000000; }
 :root[data-palette="contrast"][data-dim="2"], :root[data-palette="contrast"][data-dim="3"] { --alert: #FF9F1C; }
@@ -253,3 +254,63 @@ body { font-feature-settings: "kern", "liga"; }
   #month td, #month tbody th { font-size: .88rem; }
   #month thead th { font-size: .62rem; letter-spacing: .04em; }
 }
+
+/* ---- Full screen, compact layout (touch screens under 800px, such as a 7-inch tablet) ---- */
+/* The same printed sheet: light serif numbers, ruled lines in place of a card, a thin ink rule for progress */
+.display[data-layout="times"] .dx-meta, .display .dx-meta { font-family: var(--display); font-style: italic; color: var(--muted); }
+.tm-time { font-weight: 400; }
+.tm-hm { font-family: var(--display); font-weight: 400; letter-spacing: -.03em; font-variant-numeric: lining-nums tabular-nums; }
+.tm-side { font-family: var(--display); font-weight: 400; }
+.tm-card { padding-inline: 0; padding-block: calc(var(--u) * 1.6) calc(var(--u) * 2); border-bottom: var(--rule-w) solid var(--line); }
+.tm-label { font-size: max(.8rem, calc(var(--u) * 1.8)); letter-spacing: .08em; text-transform: uppercase; }
+.tm-lh { text-transform: none; letter-spacing: 0; }
+.tm-name { font-family: var(--display); font-weight: 400; letter-spacing: -.01em; }
+.tm-k { font-size: max(.8rem, calc(var(--u) * 1.7)); letter-spacing: .07em; text-transform: uppercase; }
+.tm-pt b { font: 400 max(1.35rem, calc(var(--u) * 4.4))/1.1 var(--display); }
+.tm-pt b.tm-hl { color: var(--clear); }
+.tm-cnt { font-family: var(--display); font-weight: 400; color: var(--ink); letter-spacing: -.02em; }
+.tm-sub { font-family: var(--display); font-style: italic; }
+.tm-bar { height: 2px; min-height: 2px; border-radius: 0; background: var(--line); }
+.tm-bar span { border-radius: 0; background: var(--ink); }
+.tm-rest { gap: 0; }
+.tm-rest li { padding: calc(var(--u) * .7) 0; border-bottom: var(--rule-w) solid var(--line); }
+.tm-rest li:not(.tm-rh) span + span { font-family: var(--display); }
+.tm-rh { font-size: max(.8rem, calc(var(--u) * 1.7)); letter-spacing: .07em; text-transform: uppercase; }
+.tm-temp { font-family: var(--display); font-weight: 400; }
+.tm-st b, .tm-st > span:last-child { font-family: var(--display); }
+.tm-ar { font-family: var(--ar); }
+.tm-en { font-family: var(--display); }
+
+/* Handwritten: what is "written" (the prayer, its times, the rest of the day) in the hand; the live clock stays printed */
+:root[data-palette="hand"] .tm-name, :root[data-palette="hand"] .tm-pt b, :root[data-palette="hand"] .tm-rest li:not(.tm-rh) span { font-family: var(--hand); font-style: normal; }
+:root[data-palette="hand"] .tm-name { font-weight: 700; }
+:root[data-palette="hand"] .tm-card {
+  border: 0; padding-inline: calc(var(--u) * 3) calc(var(--u) * 1.5);
+  background:
+    linear-gradient(90deg, transparent calc(var(--u) * 1.8 - 1px), var(--margin) calc(var(--u) * 1.8 - 1px), var(--margin) calc(var(--u) * 1.8), transparent calc(var(--u) * 1.8)),
+    repeating-linear-gradient(transparent 0 calc(var(--u) * 4.2 - 1px), var(--line) calc(var(--u) * 4.2 - 1px) calc(var(--u) * 4.2)),
+    var(--surface);
+}
+
+/* Touch screens: a faint ink tint when something is tapped, in place of the browser's blue box */
+:root { -webkit-tap-highlight-color: color-mix(in srgb, var(--ink) 12%, transparent); }
+
+/* ---- Handwritten: the whole screen is the ruled sheet ---- */
+/* The lines and red margin run behind everything (the app's page and full screen), not just behind the clock card */
+:root[data-palette="hand"] { --rule-gap: 2rem; --margin-x: clamp(.9rem, 2.2vw, 1.6rem); }
+:root[data-palette="hand"] .view, :root[data-palette="hand"] .display {
+  background:
+    linear-gradient(90deg, transparent calc(var(--margin-x) - 1px), var(--margin) calc(var(--margin-x) - 1px), var(--margin) var(--margin-x), transparent var(--margin-x)),
+    linear-gradient(transparent calc(var(--margin-x) * 2.4), transparent calc(var(--margin-x) * 2.4)),
+    repeating-linear-gradient(transparent 0 calc(var(--rule-gap) - 1px), var(--line) calc(var(--rule-gap) - 1px) var(--rule-gap)),
+    var(--surface);
+}
+:root[data-palette="hand"] .tabbar, :root[data-palette="hand"] .dockbar { background: var(--paper); }
+/* the writing sits right of the margin */
+:root[data-palette="hand"] .topbar { margin-left: calc(var(--margin-x) + clamp(.9rem, 2.2vw, 1.6rem)); }
+:root[data-palette="hand"] .tab { padding-left: calc(var(--margin-x) + clamp(.9rem, 2.2vw, 1.6rem)); }
+:root[data-palette="hand"] .display { padding-left: max(calc(var(--margin-x) + clamp(.9rem, 2.2vw, 1.6rem)), env(safe-area-inset-left, 0px)); }
+/* the clock card and the full screen card are now plain writing on the sheet */
+:root[data-palette="hand"] .ck-board, :root[data-palette="hand"] .tm-card { background: transparent; padding-left: 0; }
+:root[data-palette="hand"] .tm-card { padding-inline: 0; }
+:root[data-palette="hand"] .sky-tint, :root[data-palette="hand"] #sky { display: none; }

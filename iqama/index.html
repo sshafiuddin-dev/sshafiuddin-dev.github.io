@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Iqama Times</title>
-    <meta name="description" content="Prayer and iqama times with a live clock, adhkar, adhan and alerts for each prayer, and local weather. ISCJ iqama times near the masjid, your own times anywhere else.">
+    <meta name="description" content="Prayer and iqama times with a live clock, adhkar, adhan and alerts for each prayer, and local weather. iqama times from your local masjid, or your own times anywhere else.">
     <meta name="theme-color" content="#F3EDE1">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
@@ -59,11 +59,11 @@
 
             <main class="tab" id="tab-today" aria-labelledby="tab-title">
                 <section class="iq-ask" id="ask" aria-label="Choose your location" hidden>
-                    <p>Showing times for ISCJ in Monmouth Junction, NJ. Somewhere else? Set your location for your own adhan times.</p>
+                    <p>Showing times for <span class="masjid-full"></span>. Somewhere else? Set your location for your own adhan times, and choose your masjid under Settings, Iqama times.</p>
                     <div class="iq-fields">
                         <button class="d-btn d-btn-sm d-btn-primary" type="button" id="ask-here">Use my location</button>
                         <button class="d-btn d-btn-sm" type="button" id="ask-search">Search for a city</button>
-                        <button class="d-btn d-btn-sm" type="button" id="ask-iscj">Keep ISCJ</button>
+                        <button class="d-btn d-btn-sm" type="button" id="ask-keep">Keep <span class="masjid-name"></span></button>
                     </div>
                 </section>
                 <div class="today-grid">
@@ -160,7 +160,7 @@
                 </div>
 
                 <section class="sub-pane" id="sub-location" role="tabpanel" aria-labelledby="st-location">
-                    <p class="iq-note">Adhan times are calculated for <strong id="place-name"></strong>. ISCJ iqama times are used within 40 km (25 miles) of the masjid; anywhere else you set your own.</p>
+                    <p class="iq-note">Adhan times are calculated for <strong id="place-name"></strong>. Your masjid's iqama times (Settings, Iqama times) are used within 40 km (25 miles) of it; anywhere else you set your own.</p>
                     <form class="iq-fields" id="search-form" role="search">
                         <label for="search">City or town</label>
                         <input class="d-input" id="search" type="search" placeholder="For example, Edison" autocomplete="off">
@@ -169,7 +169,7 @@
                     <ul class="iq-results" id="results"></ul>
                     <div class="iq-fields">
                         <button class="d-btn d-btn-sm" type="button" id="use-here">Use my location</button>
-                        <button class="d-btn d-btn-sm" type="button" id="use-iscj">Use ISCJ</button>
+                        <button class="d-btn d-btn-sm" type="button" id="use-masjid">Use <span class="masjid-name"></span>'s location</button>
                     </div>
                     <div class="iq-fields">
                         <label for="method">Method</label>
@@ -197,6 +197,11 @@
                 </section>
 
                 <section class="sub-pane" id="sub-iqama" role="tabpanel" aria-labelledby="st-iqama" hidden>
+                    <div class="iq-fields">
+                        <label for="masjid-pick">Your masjid</label>
+                        <select class="d-select" id="masjid-pick"></select>
+                    </div>
+                    <p class="iq-note" id="masjid-note"></p>
                     <p class="iq-note" id="iqama-note"></p>
                     <form id="iqama-form"></form>
                 </section>

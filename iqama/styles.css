@@ -99,7 +99,9 @@ body { overflow: hidden; }
   display: flex; flex-direction: column; align-items: center; gap: .35rem; min-height: 0;
   padding: max(1.25rem, env(safe-area-inset-top, 0px)) .5rem 1rem max(.5rem, env(safe-area-inset-left, 0px));
   background: var(--surface); border-right: 1px solid var(--line);
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; /* scrolls on screens too short for every tab */
 }
+.tabbar::-webkit-scrollbar { display: none; }
 .brand { width: 2.1rem; height: 2.1rem; margin-bottom: 1rem; }
 .tabbar .d-menu { width: 5.5rem; padding: 0; gap: .3rem; }
 .tabbar .d-menu a { flex-direction: column; align-items: center; gap: .25rem; padding: .6rem 0; font-size: .78rem; font-weight: 600; }
@@ -433,6 +435,15 @@ body { overflow: hidden; }
   }
   :root[data-clock="board"] .iq-today, :root[data-clock="timeline"] .iq-today { grid-area: table; }
   .ck-area { max-width: 34rem; }
+}
+/* Short landscape screens (a 7-inch tablet with the browser and system bars showing): a tighter side bar so Settings stays in view */
+@media (min-width: 48.01rem) and (max-height: 34rem) {
+  .app { grid-template-columns: 5rem minmax(0, 1fr); }
+  .tabbar { gap: .2rem; padding-top: max(.5rem, env(safe-area-inset-top, 0px)); padding-bottom: .5rem; }
+  .brand { width: 1.6rem; height: 1.6rem; margin-bottom: .35rem; flex: none; }
+  .tabbar .d-menu { width: 4.25rem; gap: .1rem; }
+  .tabbar .d-menu a { padding: .35rem 0; gap: .1rem; font-size: .7rem; }
+  .tabbar svg { width: 1.2rem; height: 1.2rem; }
 }
 /* Phones: tabs move to a bottom bar, the top bar tightens and the action buttons become icons */
 @media (max-width: 48rem) {

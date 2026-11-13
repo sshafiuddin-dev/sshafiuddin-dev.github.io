@@ -242,6 +242,11 @@ body { overflow: hidden; }
 .ck-tiles em { font: 600 clamp(.9rem, 2.8vw, 1rem)/1 var(--display); font-style: normal; font-variant-numeric: tabular-nums; }
 .ck-tiles li.is-next { background: var(--board-fg); color: var(--board-bg); }
 .ck-tiles li.is-next small { color: inherit; }
+/* Friday: the Dhuhr tile shows Jumu'ah and its khutbah times, ringed in the accent colour */
+.ck-tiles li.is-jumuah { box-shadow: inset 0 0 0 2px var(--clear); }
+.ck-tiles li.is-jumuah > span { color: var(--clear); font-weight: 700; }
+.ck-tiles li.is-jumuah.is-next > span { color: inherit; }
+.ck-tiles li.is-jumuah em { line-height: 1.15; }
 .ck-board-next { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; color: var(--b-muted); }
 .ck-board-next strong { color: var(--board-fg); font: 700 1.8rem/1 var(--display); font-variant-numeric: tabular-nums; }
 .ck-bar { height: 8px; margin-top: -.6rem; border-radius: 4px; background: color-mix(in srgb, var(--board-fg) 20%, var(--board-bg)); overflow: hidden; }
@@ -263,6 +268,7 @@ body { overflow: hidden; }
 .ck-tl-times { display: flex; gap: 1rem; align-items: baseline; font-variant-numeric: tabular-nums; }
 .ck-tl-times b { font: 600 1.1rem/1 var(--display); }
 .ck-tl-times span { min-width: 7.5rem; text-align: right; font-size: .9rem; color: var(--muted); }
+.ck-rail li[data-jumuah] strong { color: var(--clear); }
 .ck-tl-foot { color: var(--muted); font-size: .9rem; }
 
 /* Bedside keeps its own low-glare colours in every theme */
@@ -497,6 +503,7 @@ body { overflow: hidden; }
 .tm-card[data-dua] { cursor: pointer; }
 .tm-rest { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--u) * .3); font-size: max(1.125rem, calc(var(--u) * 2.3)); font-variant-numeric: tabular-nums; }
 .tm-rest li { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: .5rem; }
+.tm-name.tm-jum, .tm-rest li.tm-jum > span:first-child { color: var(--clear); }
 .tm-rh { color: var(--muted); font-size: max(1rem, calc(var(--u) * 2)); }
 
 /* Countdown in its last 15 minutes: bright for the first half of each second, dim for the second half */

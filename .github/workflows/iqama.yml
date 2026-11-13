@@ -12,7 +12,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0, pinned to a commit so the tag cannot be moved under this write-access job
       - run: node scripts/selfcheck.mjs
       - run: node scripts/fetch-iqama.mjs
       - name: Commit if the times changed

@@ -540,6 +540,7 @@ function fillForm() {
     if (mode === 'offset') $(`offset-${k}`).value = rule.slice(1);
   }
 }
+$('iqama-form').addEventListener('submit', (e) => e.preventDefault()); // Enter in a field must not reload the page
 $('iqama-form').addEventListener('change', (e) => {
   const k = e.target.dataset.k;
   if (!k) return;

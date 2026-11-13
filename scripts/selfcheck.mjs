@@ -297,3 +297,24 @@ console.log('selfcheck ok');
   assert.equal(rows[1].iqama, 510, 'the day rows used for alerts are left alone');
 }
 console.log('friday ok');
+
+// Playlist ids from the device must have the shape addList makes, since they are written into the page
+{
+  const { cleanStore, addList } = await import('../iqama/quran-logic.js');
+  const ok = addList([], 'Mine')[0];
+  assert.match(ok.id, /^[a-z0-9]{1,24}$/i);
+  const kept = cleanStore({ lists: [ok, { id: '"><img src=x onerror=alert(1)>', name: 'Bad', tracks: [] }] }).lists;
+  assert.deepEqual(kept.map(l => l.id), [ok.id], 'a playlist id that could break out of an attribute is dropped');
+}
+console.log('playlist ids ok');
+
+// CSP reports: both browser formats are read, other report types are skipped
+{
+  const { summarize } = await import('../functions/api/csp-report.js');
+  assert.deepEqual(summarize({ 'csp-report': { 'document-uri': 'https://x/', 'violated-directive': 'script-src', 'blocked-uri': 'inline' } }),
+    [{ page: 'https://x/', directive: 'script-src', blocked: 'inline', where: '' }]);
+  assert.deepEqual(summarize([{ type: 'deprecation', body: {} }, { type: 'csp-violation', body: { documentURL: 'https://x/iqama/', effectiveDirective: 'media-src', blockedURL: 'https://y/a.mp3', sourceFile: 'https://x/iqama/app.js', lineNumber: 9 } }]),
+    [{ page: 'https://x/iqama/', directive: 'media-src', blocked: 'https://y/a.mp3', where: 'https://x/iqama/app.js:9' }]);
+  assert.deepEqual(summarize(null), []);
+}
+console.log('csp reports ok');

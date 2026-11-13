@@ -85,7 +85,7 @@ export function stepPos(q, dir, repeat) {
 // When a track finishes: 'again' for repeat one, else the next pos, or -1 at the end of the queue
 export const afterEnd = (q, repeat) => (repeat === 'one' ? 'again' : stepPos(q, 1, repeat));
 
-// Everything kept on the device. Saves from the old two-dropdown player ({ reciter, surah }) are carried over as `legacy`.
+// Everything kept on the device. Playlist ids are checked against the shape addList makes, since they are written into the page. Saves from the old two-dropdown player ({ reciter, surah }) are carried over as `legacy`.
 const REPEATS = ['off', 'all', 'one'];
 const RATES = [1, 1.25, 1.5, 0.75];
 export const cleanName = (name) => String(name ?? '').replace(/\s+/g, ' ').trim().slice(0, 40);
@@ -102,7 +102,7 @@ export function cleanStore(raw) {
     riwaya: Number.isInteger(o.riwaya) ? o.riwaya : 'all',
     favR: [...new Set(Array.isArray(o.favR) ? o.favR.filter(Number.isInteger) : [])],
     favT: tracks(o.favT),
-    lists: (Array.isArray(o.lists) ? o.lists : []).filter(l => l && typeof l.id === 'string' && cleanName(l.name)).map(l => ({ id: l.id, name: cleanName(l.name), tracks: tracks(l.tracks) })),
+    lists: (Array.isArray(o.lists) ? o.lists : []).filter(l => l && typeof l.id === 'string' && /^[a-z0-9]{1,24}$/i.test(l.id) && cleanName(l.name)).map(l => ({ id: l.id, name: cleanName(l.name), tracks: tracks(l.tracks) })),
     repeat: REPEATS.includes(o.repeat) ? o.repeat : 'off',
     shuffle: o.shuffle === true,
     vol: Number.isFinite(o.vol) && o.vol >= 0 && o.vol <= 1 ? o.vol : 1,

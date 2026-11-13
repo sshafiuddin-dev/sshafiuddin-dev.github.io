@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>if (location.hostname.endsWith('.github.io')) location.replace('https://sshafiuddin.pages.dev' + location.pathname + location.search + location.hash);</script>
+<script src="boot.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="Shafiuddin Syed - Sr. Manager, Global Operations | SAP Basis & Architecture | SAP Security | Enterprise Application Access | Azure | Automation | CMMC | SOX"/>
@@ -16,9 +16,7 @@
   <meta name="twitter:description" content="20+ years designing enterprise SAP security programs, access governance, and automation." />
   <title>Shafiuddin Syed | SAP Architect & Enterprise Security Leader</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;if(localStorage.getItem('motion')==='off')document.documentElement.dataset.motion='off'}catch(e){}</script>
   <!-- hides the entrance targets until motion.js takes over; the timer shows everything if it never does -->
-  <script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('js-motion');setTimeout(function(){document.documentElement.classList.remove('js-motion')},4000)}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -365,13 +363,8 @@
     </div>
   </footer>
 <!--/site-->
-  <script>
-    window.formspree = window.formspree || function () {
-      (formspree.q = formspree.q || []).push(arguments);
-    };
-    formspree('initForm', { formElement: '#contact-form', formId: 'mrernorw' });
-  </script>
-  <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
+  <script src="formspree-init.js"></script>
+  <script src="vendor/formspree-ajax.min.js" defer></script>
   <script src="vendor/motion.min.js"></script>
   <script src="app.js"></script>
   <script src="motion.js"></script>

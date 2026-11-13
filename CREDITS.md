@@ -49,5 +49,6 @@ Iqama Times (`/iqama`) shows the same list under Settings, About.
 | What | Source | Licence | Where |
 |---|---|---|---|
 | Animation | [Motion](https://motion.dev/) © Motion B.V. | MIT, see `vendor/MOTION-LICENSE.md` | `vendor/motion.min.js` |
+| Contact form | [@formspree/ajax](https://github.com/formspree/formspree-js) 1.1.5 © Level Technologies, LLC, copied from npm | MIT, see `vendor/FORMSPREE-LICENSE` | `vendor/formspree-ajax.min.js` |
 | UI components | [daisyUI](https://daisyui.com/) 5 and [Tailwind CSS](https://tailwindcss.com/) 4, built into `iqama/daisy.css` by `scripts/daisy/build.sh` | MIT | `iqama/daisy.css` |
 | Fonts | Amiri, Bricolage Grotesque, IBM Plex Sans, IBM Plex Mono, served by [Google Fonts](https://fonts.google.com/) | SIL Open Font License 1.1 | `index.html`, `iqama/index.html` |

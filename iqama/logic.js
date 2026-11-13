@@ -84,6 +84,21 @@ export function fridayRows(rows, weekday, khutbahs) {
   return rows.map(r => (r.key === 'dhuhr' ? { ...r, iqama: k[0], jumuah: k } : r));
 }
 
+// Brightness. Level 0 is bright paper; 1 soft, 2 dim and 3 darkest are the night levels.
+export const DIM_NAMES = ['Bright', 'Soft', 'Dim', 'Darkest'];
+// Night for automatic dimming: from the Isha (or Maghrib) adhan until sunrise. from 'off' is never night.
+export function isNight(nowMin, rows, sunrise, from) {
+  if (from !== 'isha' && from !== 'maghrib') return false;
+  const start = rows[from === 'maghrib' ? 3 : 4].adhan;
+  return nowMin >= start || nowMin < sunrise;
+}
+// The level to show. s = { autoDim, nightLevel, level }; a hand-picked override { level, night } holds until day turns to night or back.
+export function dimLevel(s, night, override) {
+  if (s.autoDim === 'off') return s.level;
+  if (override && override.night === night) return override.level;
+  return night ? s.nightLevel : 0;
+}
+
 // Which extra card the small full screen shows: 'morning' from sunrise to the Dhuhr adhan, 'evening' from the Maghrib adhan to the Isha adhan, else null.
 // rows: today's Fajr to Isha rows.
 export function cardWindow(nowMin, rows, sunrise) {

@@ -5,11 +5,7 @@
   --ease: cubic-bezier(.2, .8, .2, 1);
   --paper: #E7EDF0; --surface: #F5F8F9; --ink: #0B2A33; --muted: #48626C; --line: #BFCCD2; --risk: #BE1E5A; --clear: #0B7F69;
 }
-/* Petrol, the default look; the other palettes below override these */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --paper: #07212A; --surface: #0D2E38; --ink: #E3EDEF; --muted: #9BB3BA; --line: #235058; --risk: #FF7AA5; --clear: #55D3B7; color-scheme: dark; }
-}
-:root[data-theme="dark"] { --paper: #07212A; --surface: #0D2E38; --ink: #E3EDEF; --muted: #9BB3BA; --line: #235058; --risk: #FF7AA5; --clear: #55D3B7; color-scheme: dark; }
+/* Colours for each look and brightness level are in look.css */
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.6 var(--body); -webkit-font-smoothing: antialiased; }
 h1, h2, h3, p, ul, dl, dd, figure { margin: 0; }
@@ -32,12 +28,6 @@ body { overflow: hidden; }
   --sky-l: #E7EDF0; --sky-d: #07212A; --sky-base: var(--sky-l); --night: #D6D9EA;
   --sky-rain: 11,42,51,.22; --sky-flake: 80,110,130,.45; --sky-cloud: 255,255,255,.7; --sky-star: 70,80,140,.5; --sky-sun: 255,205,110,.4;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --sky-base: var(--sky-d); --night: #0B1430;
-    --sky-rain: 200,225,235,.2; --sky-flake: 235,242,245,.55; --sky-cloud: 150,180,195,.1; --sky-star: 235,242,245,.7; --sky-sun: 255,200,110,.1;
-  }
-}
 :root[data-theme="dark"] {
   --sky-base: var(--sky-d); --night: #0B1430;
   --sky-rain: 200,225,235,.2; --sky-flake: 235,242,245,.55; --sky-cloud: 150,180,195,.1; --sky-star: 235,242,245,.7; --sky-sun: 255,200,110,.1;
@@ -50,19 +40,6 @@ body { overflow: hidden; }
 :root[data-sky="storm"] { --sky-l: #D2D8E0; --sky-d: #141C28; }
 :root[data-sky="snow"] { --sky-l: #EAF1F6; --sky-d: #2A3F52; }
 
-/* Themes. Each was contrast-checked (4.5:1 for text) on its paper, its surfaces and every weather tint. */
-:root[data-palette="petrol"][data-theme="light"] { --clear: #08604F; }
-:root[data-palette="green"][data-theme="light"] { --paper: #E8EFE9; --surface: #F6F9F6; --ink: #0E2A1F; --muted: #4A6356; --line: #C2D1C6; --clear: #6B500B; --risk: #B3243F; }
-:root[data-palette="green"][data-theme="dark"] { --paper: #0B2219; --surface: #11301F; --ink: #E6EFE8; --muted: #9DB5A6; --line: #24493A; --clear: #D9B657; --risk: #FF8A9B; }
-:root[data-palette="dusk"][data-theme="light"] { --paper: #EFE7DC; --surface: #F8F3EC; --ink: #231F45; --muted: #5A5470; --line: #D6CABB; --clear: #08605E; --risk: #B0244F; }
-:root[data-palette="dusk"][data-theme="dark"] { --paper: #1A1830; --surface: #23203E; --ink: #EDE7F2; --muted: #B4AECB; --line: #3A3560; --clear: #5ED6D0; --risk: #FF8FB0; }
-:root[data-palette="night"] {
-  --paper: #000000; --surface: #0E0B07; --ink: #D9A04A; --muted: #8C7A5B; --line: #2B2418; --clear: #E8A33D; --risk: #E3735A;
-  --sky-base: var(--paper); --night: var(--paper);
-  --sky-rain: 217,160,74,.14; --sky-flake: 217,160,74,.3; --sky-cloud: 140,122,91,.06; --sky-star: 217,160,74,.5; --sky-sun: 232,163,61,.06;
-}
-:root[data-palette="contrast"][data-theme="light"] { --paper: #FFFFFF; --surface: #FFFFFF; --ink: #000000; --muted: #262626; --line: #595959; --clear: #0037B3; --risk: #A4001D; }
-:root[data-palette="contrast"][data-theme="dark"] { --paper: #000000; --surface: #000000; --ink: #FFFFFF; --muted: #E0E0E0; --line: #9E9E9E; --clear: #FFE14D; --risk: #FF6B6B; }
 :root[data-palette="contrast"] .sky-tint, :root[data-palette="contrast"] #sky { display: none; }
 
 :root { --sky: var(--sky-base); --board-bg: var(--ink); --board-fg: var(--paper); }
@@ -86,7 +63,6 @@ body { overflow: hidden; }
 .d-btn:not(.d-btn-primary, .d-btn-soft, .d-btn-ghost, [aria-pressed="true"]) { border-color: color-mix(in srgb, var(--ink) 35%, var(--surface)); }
 .d-btn[aria-pressed="true"] { background-color: var(--clear); border-color: var(--clear); color: var(--paper); }
 :root[data-night] { --sky: color-mix(in srgb, var(--sky-base) 45%, var(--night)); }
-:root[data-palette="night"] { --board-bg: var(--surface); --board-fg: var(--ink); }
 .sky-tint { position: fixed; inset: 0; z-index: -2; pointer-events: none; background: linear-gradient(var(--sky), var(--paper) 85vh); transition: background 1s; }
 #sky {
   position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
@@ -497,7 +473,6 @@ body { overflow: hidden; }
 }
 
 /* Full screen night mode: dim amber on black, whatever look is chosen for the day */
-.display[data-night="on"] { --paper: #000; --surface: #0C0905; --ink: #C48A3A; --muted: #9A8057; --line: #2A2216; --clear: #D9973A; }
 .tm-left { display: grid; gap: calc(var(--u) * 3); min-width: 0; }
 .tm-wx { display: grid; gap: calc(var(--u) * 1.5); }
 .tm-temp { display: flex; align-items: baseline; gap: calc(var(--u) * 1.5); font-size: max(2rem, calc(var(--u) * 6)); font-weight: 700; line-height: 1; }

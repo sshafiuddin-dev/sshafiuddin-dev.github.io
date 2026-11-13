@@ -318,3 +318,18 @@ console.log('playlist ids ok');
   assert.deepEqual(summarize(null), []);
 }
 console.log('csp reports ok');
+
+// Brightness: bright by day, the chosen night level after Isha (or Maghrib) until sunrise; a hand-picked level lasts until the next switch
+{
+  const { isNight, dimLevel } = await import('../iqama/logic.js');
+  const rows = [324, 702, 861, 1002, 1080].map((adhan, i) => ({ key: PRAYERS[i], adhan }));
+  assert.deepEqual([300, 500, 1010, 1085].map(m => isNight(m, rows, 402, 'isha')), [true, false, false, true]);
+  assert.deepEqual([1010, 1085].map(m => isNight(m, rows, 402, 'maghrib')), [true, true]);
+  assert.equal(isNight(1300, rows, 402, 'off'), false);
+  const s = { autoDim: 'isha', nightLevel: 3, level: 1 };
+  assert.deepEqual([dimLevel(s, false), dimLevel(s, true)], [0, 3]);
+  assert.equal(dimLevel(s, true, { level: 1, night: true }), 1, 'a level picked at night holds for that night');
+  assert.equal(dimLevel(s, false, { level: 1, night: true }), 0, 'and ends at sunrise');
+  assert.equal(dimLevel({ ...s, autoDim: 'off' }, true), 1, 'with auto off the level stays where it is set');
+}
+console.log('brightness ok');

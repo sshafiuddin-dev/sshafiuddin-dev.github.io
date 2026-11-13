@@ -1,0 +1,139 @@
+/* Iqama Times: the printed-timetable look, the handwritten look, and four brightness levels.
+   Loaded after styles.css. app.js sets on <html>:
+     data-palette  paper | hand | contrast        (Settings, Display, Look)
+     data-dim      0 bright, 1 soft, 2 dim, 3 darkest (the brightness button, or Auto after Isha or Maghrib)
+     data-theme    light for 0 and 1, dark for 2 and 3, for the rules in styles.css that only know light and dark
+   A web page cannot change the screen's backlight, so the levels lower the page's own brightness and contrast. Text keeps
+   4.5:1 contrast on its paper at every level except Darkest, where the muted text is kept around 4:1 on purpose so nothing glows. */
+
+:root {
+  --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hand: "Kalam", "Segoe Print", "Bradley Hand", cursive;
+  --ar: "Amiri", serif;
+  --rule-w: 1px;
+}
+
+/* Printed timetable: warm paper, ink, one red */
+:root, :root[data-palette="paper"] {
+  --paper: #F3EDE1; --surface: #FBF8F1; --ink: #1C1914; --muted: #5F5647; --line: #CFC4AE; --clear: #A8321F; --risk: #9E1B1B;
+}
+:root[data-palette="paper"][data-dim="1"] { --paper: #D8CFBE; --surface: #E0D8C8; --ink: #29241C; --muted: #50483A; --line: #B3A68E; --clear: #8A2818; --risk: #7E1616; }
+:root[data-palette="paper"][data-dim="2"] { --paper: #1D1A16; --surface: #25211B; --ink: #D6CCB8; --muted: #A39883; --line: #3B352C; --clear: #E39A7C; --risk: #F08F8F; color-scheme: dark; }
+:root[data-palette="paper"][data-dim="3"] { --paper: #000000; --surface: #0A0806; --ink: #A9803F; --muted: #85683A; --line: #1E1810; --clear: #C98A3A; --risk: #C96A4E; color-scheme: dark; }
+
+/* Handwritten: blue-black pen on a ruled sheet, red pen for what matters next */
+:root[data-palette="hand"] {
+  --paper: #F6F1E4; --surface: #FCFAF3; --ink: #1F2B47; --muted: #4F5A74; --line: #C3CBDA; --clear: #B0302A; --risk: #9E1B1B; --margin: #E2A49C;
+  --ar: "Aref Ruqaa", "Amiri", serif;
+}
+:root[data-palette="hand"][data-dim="1"] { --paper: #DCD6C6; --surface: #E4DECF; --ink: #22304D; --muted: #46506A; --line: #AAB2C2; --clear: #8F2520; --margin: #C98E86; }
+:root[data-palette="hand"][data-dim="2"] { --paper: #1C1C1F; --surface: #232327; --ink: #D3CFC2; --muted: #A09C91; --line: #34363E; --clear: #E59A8E; --risk: #F08F8F; --margin: #5A3431; color-scheme: dark; }
+:root[data-palette="hand"][data-dim="3"] { --paper: #000000; --surface: #08080A; --ink: #9E9175; --muted: #7F7562; --line: #1A1A1E; --clear: #B98A5A; --risk: #C96A4E; --margin: #2A1C18; color-scheme: dark; }
+
+/* High contrast: white and black, and black and white from Dim */
+:root[data-palette="contrast"] { --paper: #FFFFFF; --surface: #FFFFFF; --ink: #000000; --muted: #262626; --line: #595959; --clear: #0037B3; --risk: #A4001D; --rule-w: 2px; }
+:root[data-palette="contrast"][data-dim="1"] { --paper: #E6E6E6; --surface: #EDEDED; }
+:root[data-palette="contrast"][data-dim="2"], :root[data-palette="contrast"][data-dim="3"] { --paper: #000000; --surface: #000000; --ink: #FFFFFF; --muted: #E0E0E0; --line: #9E9E9E; --clear: #FFE14D; --risk: #FF6B6B; color-scheme: dark; }
+:root[data-palette="contrast"][data-dim="3"] { --ink: #D0D0D0; --muted: #B0B0B0; }
+
+/* The weather sky stays a faint wash over the paper, and goes away at Darkest */
+:root { --sky: color-mix(in srgb, var(--sky-base) 28%, var(--paper)); --board-bg: var(--surface); --board-fg: var(--ink); }
+:root[data-dim="3"] .sky-tint, :root[data-dim="3"] #sky { display: none; }
+
+/* Print, not app: square corners, hairlines, no filled pills */
+:root { --radius-selector: 2px; --radius-field: 2px; --radius-box: 2px; }
+body { font-feature-settings: "kern", "liga"; }
+.tb-btn { border-radius: 2px; }
+.d-btn { box-shadow: none; text-transform: none; font-weight: 500; letter-spacing: .005em; }
+.d-btn-primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.iq-ask, .dk, .tm-card, .qp-dlg-in, .au-list li, .qp-pane { border-radius: 2px; }
+.iq-ask { background: transparent; border: 0; border-top: 2px solid var(--ink); border-bottom: var(--rule-w) solid var(--line); padding-inline: 0; }
+.dk { background: transparent; border: 0; border-top: 2px solid var(--ink); border-radius: 0; padding-inline: 0; }
+
+/* Top bar: a heading set like a printed sheet */
+.topbar h1 { font: 500 clamp(1.9rem, 3.6vw, 2.6rem)/1 var(--display); font-stretch: normal; letter-spacing: -.01em; }
+.topbar { margin-inline: clamp(1rem, 3vw, 2.5rem); padding-inline: 0; margin-bottom: 1rem; }
+#date { font-family: var(--display); font-style: italic; font-size: 1.1rem; color: var(--ink); }
+
+/* Side bar: a column of entries, the open one marked with a rule, not a filled block */
+.tabbar { background: transparent; border-right: var(--rule-w) solid var(--line); }
+.tabbar .d-menu a { border-radius: 0; font-weight: 500; color: var(--muted); }
+.tabbar .d-menu a:hover { background: transparent; color: var(--ink); }
+.tabbar .d-menu a.d-menu-active, .tabbar .d-menu a.d-menu-active:hover { background: transparent; color: var(--ink); box-shadow: inset 3px 0 0 var(--clear); }
+.brand-bg { fill: var(--ink); } .brand-sq { fill: var(--paper); } .brand-accent { fill: var(--clear); }
+.dockbar { background: var(--paper); }
+
+/* Brightness button: a sun by day, a moon at the night levels */
+.dim-btn .dim-moon, :root[data-dim="2"] .dim-btn .dim-sun, :root[data-dim="3"] .dim-btn .dim-sun, :root[data-dim="1"] .dim-btn .dim-sun { display: none; }
+:root[data-dim="1"] .dim-btn .dim-moon, :root[data-dim="2"] .dim-btn .dim-moon, :root[data-dim="3"] .dim-btn .dim-moon { display: inline; }
+.dim-btn { display: inline-flex; align-items: center; gap: .4rem; }
+.dim-btn svg { width: 1.1rem; height: 1.1rem; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.dim-range { width: 100%; max-width: 22rem; accent-color: var(--ink); }
+.dim-scale { display: flex; width: 100%; justify-content: space-between; max-width: 22rem; font-size: .8rem; color: var(--muted); }
+.set-group output { margin-left: .5rem; font-weight: 400; color: var(--muted); }
+
+/* Board clock as a printed timetable: big serif time, the five prayers as ruled columns */
+.ck-board { border-radius: 0; background: transparent; color: var(--ink); padding-inline: 0; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); --b-muted: var(--muted); }
+.ck-board-hm { font: 400 clamp(4.2rem, 15vw, 7rem)/.9 var(--display); font-stretch: normal; letter-spacing: -.03em; font-variant-numeric: lining-nums tabular-nums; }
+.ck-board-side { font: 400 1.3rem/1 var(--display); }
+.ck-board-date { font-family: var(--display); font-style: italic; font-size: 1.15rem; }
+.ck-tiles { gap: 0; border-top: var(--rule-w) solid var(--line); border-bottom: var(--rule-w) solid var(--line); }
+.ck-tiles li { background: transparent; border-radius: 0; padding: .9rem .25rem 1rem; align-content: start; }
+.ck-tiles li + li { border-left: var(--rule-w) solid var(--line); }
+.ck-tiles span { font: 500 .78rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ck-tiles strong { font: 500 clamp(1.25rem, 3.6vw, 1.6rem)/1 var(--display); }
+.ck-tiles small { font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; }
+.ck-tiles em { font: 400 clamp(1rem, 2.9vw, 1.15rem)/1 var(--display); }
+.ck-tiles li.is-next { background: transparent; color: var(--clear); }
+.ck-tiles li.is-next span, .ck-tiles li.is-next small { color: var(--clear); }
+.ck-tiles li.is-next strong { text-decoration: underline 2px; text-underline-offset: .3em; }
+.ck-tiles li.is-jumuah { box-shadow: none; }
+.ck-tiles li.is-jumuah > span { color: var(--clear); }
+.ck-board-next { color: var(--muted); }
+.ck-board-next strong { font: 400 2rem/1 var(--display); color: var(--ink); }
+.ck-bar { height: 2px; border-radius: 0; background: var(--line); }
+.ck-bar span { border-radius: 0; background: var(--ink); }
+.ck-board-foot { border-top: 0; padding-top: 0; color: var(--muted); }
+
+/* Today's table */
+#today th, #today td { border-color: var(--line); }
+#today tr.next th, #today tr.next td { color: var(--clear); background: transparent; }
+
+/* Full screen */
+.display { background: var(--paper); }
+.dx-ar { font-family: var(--ar); }
+.tm-card { background: transparent; border: 0; border-top: 2px solid var(--ink); border-radius: 0; }
+.tm-time, .tm-hm, .tm-cnt, .tm-name { font-family: var(--display); font-weight: 400; }
+
+/* Handwritten: the prayer times are written on a ruled sheet; the live clock stays printed so it reads from across the room */
+:root[data-palette="hand"] .ck-board {
+  border: 0; padding: clamp(1.25rem, 4vw, 2rem) clamp(1rem, 3vw, 1.75rem) clamp(1.25rem, 4vw, 2rem) clamp(2.25rem, 5vw, 3rem);
+  background:
+    linear-gradient(90deg, transparent calc(clamp(1.4rem, 3.6vw, 2.1rem) - 1px), var(--margin) calc(clamp(1.4rem, 3.6vw, 2.1rem) - 1px), var(--margin) clamp(1.4rem, 3.6vw, 2.1rem), transparent clamp(1.4rem, 3.6vw, 2.1rem)),
+    repeating-linear-gradient(transparent 0 calc(2rem - 1px), var(--line) calc(2rem - 1px) 2rem),
+    var(--surface);
+}
+:root[data-palette="hand"] .ck-tiles { border: 0; }
+:root[data-palette="hand"] .ck-tiles li + li { border-left: 0; }
+:root[data-palette="hand"] .ck-tiles span { font: 700 1.05rem/1 var(--hand); letter-spacing: 0; text-transform: none; color: var(--ink); }
+:root[data-palette="hand"] .ck-tiles strong { font: 400 clamp(1.5rem, 4vw, 1.9rem)/1 var(--hand); }
+:root[data-palette="hand"] .ck-tiles small { font: 400 .9rem/1 var(--hand); letter-spacing: 0; text-transform: none; }
+:root[data-palette="hand"] .ck-tiles em { font: 400 clamp(1.15rem, 3.2vw, 1.4rem)/1 var(--hand); }
+/* a small tilt per column, the way a hand drifts across a line */
+:root[data-palette="hand"] .ck-tiles li:nth-child(2n) { transform: rotate(-.6deg); }
+:root[data-palette="hand"] .ck-tiles li:nth-child(3n) { transform: rotate(.5deg) translateY(1px); }
+/* the next prayer is circled in red pen */
+:root[data-palette="hand"] .ck-tiles li { position: relative; }
+:root[data-palette="hand"] .ck-tiles li.is-next strong { text-decoration: none; }
+:root[data-palette="hand"] .ck-tiles li.is-next::after {
+  content: ""; position: absolute; inset: 1.75rem -.15rem auto; height: 3.1rem; pointer-events: none; background: var(--clear);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M64 6C30 3 6 22 7 50s27 45 57 44 50-20 49-46S88 5 52 9' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M64 6C30 3 6 22 7 50s27 45 57 44 50-20 49-46S88 5 52 9' fill='none' stroke='%23000' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+:root[data-palette="hand"] .ck-board-date, :root[data-palette="hand"] .ck-board-next > span, :root[data-palette="hand"] .ck-board-foot { font-family: var(--hand); font-style: normal; font-size: 1.1rem; }
+:root[data-palette="hand"] .ck-board { border-top: 0; border-bottom: 0; }
+:root[data-palette="hand"] .ck-bar { background: color-mix(in srgb, var(--ink) 18%, transparent); }
+:root[data-palette="hand"] #today td, :root[data-palette="hand"] #today th, :root[data-palette="hand"] .tm-rest li span { font-family: var(--hand); font-size: 1.1em; }
+:root[data-palette="hand"] .topbar h1 { font-family: var(--hand); font-weight: 700; }
+:root[data-palette="hand"] [lang="ar"] { font-family: var(--ar); }

@@ -100,7 +100,7 @@ function applyLook() {
   const dim = currentDim();
   root.dataset.palette = settings.look;
   root.dataset.dim = String(dim);
-  root.dataset.theme = dim >= 2 ? 'dark' : 'light';
+  root.dataset.theme = dim === 3 || (dim === 2 && settings.look === 'contrast') ? 'dark' : 'light'; // Dim is a warm light page, except in High contrast
   root.dataset.clock = settings.clock;
   if (dim !== shownDim) { shownDim = dim; try { localStorage.setItem('iqama-dim', String(dim)); } catch (e) {} }
   syncDim();

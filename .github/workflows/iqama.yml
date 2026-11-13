@@ -1,4 +1,4 @@
-name: Update ISCJ iqama times
+name: Update masjid iqama times
 
 on:
   schedule:
@@ -21,5 +21,5 @@ jobs:
           git diff --quiet iqama/iqama.json && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Update ISCJ iqama times"
+          git commit -am "Update masjid iqama times"
           git push

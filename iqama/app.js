@@ -6,13 +6,14 @@ import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
 import { SETS, AUDIO, pickSet, fillSets } from './adhkar.js';
 import { HISN, hisnUrl } from './hisn.js';
+import { MASJIDS, masjidById, DEFAULT_MASJID } from './masjids.js';
 import { initQuran } from './quran.js';
 
 const $ = (id) => document.getElementById(id);
 const root = document.documentElement;
 const validZone = (z) => { if (typeof z !== 'string') return false; try { new Intl.DateTimeFormat('en-US', { timeZone: z }); return true; } catch (e) { return false; } };
 const DEVICE_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-const ISCJ = { lat: 40.384, lng: -74.563, zone: 'America/New_York', name: 'ISCJ, Monmouth Junction NJ' };
+// Your masjid (Settings, Iqama times): its iqama times are used within NEAR_KM of it, and it is the place used until you set one
 const NEAR_KM = 40;
 const ADHANS = { makkah: 'Makkah (3:44)', egypt: 'Egyptian style (3:25)', aqsa: 'Masjid Al-Aqsa (4:07)', ottoman: 'Ottoman style, Shaykh Nazim (2:38)', afasy: 'Mishary Al-Afasy (4:17)' };
 const FAJR_ADHANS = { 'fajr-zahrani': 'Mansoor Az-Zahrani (3:26)', 'fajr-afasy': 'Mishary Al-Afasy (3:24)' };
@@ -29,7 +30,7 @@ const LOOKS = { paper: 'Printed timetable', hand: 'Handwritten', contrast: 'High
 const AUTO_DIM = ['isha', 'maghrib', 'off'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
-  tune: {}, hijriShift: 0, hijriMaghrib: false, clock: 'board', look: 'paper', autoDim: 'isha', nightLevel: 2, level: 0, units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
+  masjid: DEFAULT_MASJID, tune: {}, hijriShift: 0, hijriMaghrib: false, clock: 'board', look: 'paper', autoDim: 'isha', nightLevel: 2, level: 0, units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
   adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxCard: 'rest',
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -56,6 +57,7 @@ if (settings.palette !== undefined && settings.look === DEFAULTS.look) {
 for (const k of ['palette', 'mode', 'dxNight', 'dxAuto']) delete settings[k];
 if (!LOOKS[settings.look]) settings.look = DEFAULTS.look;
 settings.tune = cleanTune(settings.tune);
+if (settings.masjid !== '' && !masjidById(settings.masjid)) settings.masjid = DEFAULT_MASJID; // '' is no masjid: set your own times
 if (![-2, -1, 0, 1, 2].includes(settings.hijriShift)) settings.hijriShift = 0;
 settings.hijriMaghrib = settings.hijriMaghrib === true;
 if (!AUTO_DIM.includes(settings.autoDim)) settings.autoDim = DEFAULTS.autoDim;
@@ -111,9 +113,12 @@ function applyLook() {
 let nowMinute = 0;
 applyLook();
 
-let masjid = { iqama: {}, jumuah: [], updated: '', checked: 0, stale: false, failed: false };
-const place = () => settings.place || ISCJ;
-const near = () => km(place(), ISCJ) <= NEAR_KM;
+let masjid = { id: '', iqama: {}, jumuah: [], updated: '', checked: 0, stale: false, failed: false };
+const myMasjid = () => masjidById(settings.masjid);
+const masjidPlace = (m) => ({ lat: m.lat, lng: m.lng, zone: m.zone, name: `${m.name}, ${m.town}` });
+const place = () => settings.place || masjidPlace(myMasjid() || masjidById(DEFAULT_MASJID));
+const near = () => !!myMasjid() && km(place(), myMasjid()) <= NEAR_KM;
+const mName = () => myMasjid()?.name || 'your masjid';
 // Messages show as a toast above the tab bar and fade after a few seconds
 let toastTimer = 0;
 const say = (text) => {
@@ -143,7 +148,7 @@ try {
 } catch (e) {}
 
 function dayTimes(y, m, d) {
-  const { lat, lng, zone } = place(), useMasjid = near();
+  const { lat, lng, zone } = place(), useMasjid = near() && masjid.id === settings.masjid;
   const pt = PrayTimes(settings.method);
   pt.setMethod(settings.method);
   pt.adjust({ asr: settings.asr === 'Hanafi' ? 'Hanafi' : 'Standard' });
@@ -187,8 +192,8 @@ function loadDay(c) {
   renderWeather();
 }
 
-const jumuahMins = () => (near() ? masjid.jumuah.map(parseHM).filter(v => v != null) : []);
-// Khutbah times to show: the visitor's own khutbah time (set under Jumu'ah alerts), else ISCJ's nearby, else none
+const jumuahMins = () => (near() && masjid.id === settings.masjid ? masjid.jumuah.map(parseHM).filter(v => v != null) : []);
+// Khutbah times to show: the visitor's own khutbah time (set under Jumu'ah alerts), else your masjid's when nearby, else none
 const shownJumuah = () => { const own = parseHM(settings.alerts.jumuah.time); return own != null ? [own] : jumuahMins(); };
 const jumuah = () => shownJumuah().map(fmt).join(', ');
 // Rows the clocks show: on a Friday with khutbah times, Dhuhr is shown as Jumu'ah
@@ -211,9 +216,11 @@ function renderDay() {
   const [uy, um, ud] = masjid.updated.split('-');
   $('source').textContent =
     own.length === 5 ? 'All iqama times set by you.'
-      : !near() ? (own.length ? `${mine.trim()} Set the rest under Set your own iqama times.` : 'ISCJ iqama times only show near the masjid. Set your masjid’s times under Set your own iqama times.')
-      : masjid.failed ? `Could not load ISCJ iqama times. Set your own below.${mine}`
-      : `Iqama times from ISCJ${masjid.checked ? `, checked ${new Date(masjid.checked).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${masjid.stale ? ' (ISCJ did not answer, so this is the last copy)' : ''}` : uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
+      : !near() ? (own.length ? `${mine.trim()} Set the rest under Set your own iqama times.`
+        : myMasjid() ? `${mName()} iqama times only show within 40 km of the masjid. Choose a masjid near you, or set your own times, under Settings, Iqama times.`
+        : 'No masjid chosen. Choose yours, or set your own iqama times, under Settings, Iqama times.')
+      : masjid.failed ? `Could not load ${mName()} iqama times. Set your own below.${mine}`
+      : `Iqama times from ${mName()}${masjid.checked ? `, checked ${new Date(masjid.checked).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${masjid.stale ? ` (${mName()} did not answer, so this is the last copy)` : ''}` : uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
 
   jumuahNote();
   showHijri();
@@ -222,7 +229,7 @@ function renderDay() {
   tick();
 }
 
-// Friday khutbah for the Jumu'ah alert: the visitor's own time, else ISCJ's first khutbah nearby
+// Friday khutbah for the Jumu'ah alert: the visitor's own time, else the masjid's first khutbah nearby
 const khutbah = () => parseHM(settings.alerts.jumuah.time) ?? jumuahMins()[0] ?? null;
 const alertRows = () => (today.weekday === 'Fri' && khutbah() != null ? [...day.rows, { key: 'jumuah', adhan: khutbah(), iqama: null }] : day.rows);
 
@@ -507,7 +514,7 @@ function jumuahNote() {
   if (!el) return;
   const own = parseHM(settings.alerts.jumuah.time), first = jumuahMins()[0];
   el.textContent = own != null ? `Fridays, before your khutbah time of ${fmt(own)}.`
-    : first != null ? `Uses ISCJ’s first khutbah, ${fmt(first)}, unless you set a time.` : 'Set your khutbah time to get this alert.';
+    : first != null ? `Uses ${mName()}’s first khutbah, ${fmt(first)}, unless you set a time.` : 'Set your khutbah time to get this alert.';
 }
 $('alert-cards').addEventListener('change', (e) => {
   const k = e.target.dataset.k;
@@ -557,21 +564,21 @@ function fire({ kind, key, type, min }) {
   else if (type === 'beep' || type === 'bismillah') { if (!playing()) play(type, label); else note('message shown, sound skipped because another sound was playing'); }
 }
 
-// Your own iqama times; the first choice is ISCJ near the masjid and "Not set" elsewhere
+// Your own iqama times; the first choice is your masjid's time near it and "Not set" elsewhere
 function buildForm() {
   const nearby = near();
   $('iqama-note').textContent = nearby
-    ? 'Each prayer can follow ISCJ, a fixed time, or a number of minutes after adhan. Your choices stay on this device.'
-    : 'You are not near ISCJ, so set your masjid’s iqama times: a fixed time or a number of minutes after adhan. Your choices stay on this device.';
+    ? `Each prayer can follow ${mName()}, a fixed time, or a number of minutes after adhan. Your choices stay on this device.`
+    : `${myMasjid() ? `You are not near ${mName()}, so set` : 'Set'} your masjid’s iqama times: a fixed time or a number of minutes after adhan. Your choices stay on this device.`;
   $('iqama-form').innerHTML = PRAYERS.map(k => `
     <div class="iq-rule">
       <label for="mode-${k}">${NAMES[k]}</label>
       <select class="d-select d-select-sm" id="mode-${k}" data-k="${k}">
-        <option value="masjid">${nearby ? 'ISCJ time' : 'Not set'}</option><option value="time">Fixed time</option><option value="offset">Minutes after adhan</option>
+        <option value="masjid">${nearby ? `${mName()} time` : 'Not set'}</option><option value="time">Fixed time</option><option value="offset">Minutes after adhan</option>
       </select>
       <input class="d-input d-input-sm" type="time" id="time-${k}" data-k="${k}" aria-label="${NAMES[k]} iqama time" hidden>
       <input class="d-input d-input-sm" type="number" id="offset-${k}" data-k="${k}" min="0" max="180" step="1" inputmode="numeric" aria-label="${NAMES[k]} iqama, minutes after adhan" hidden>
-    </div>`).join('') + `<button class="d-btn d-btn-sm" type="button" id="iqama-reset">${nearby ? 'Use ISCJ times for all' : 'Clear all'}</button>`;
+    </div>`).join('') + `<button class="d-btn d-btn-sm" type="button" id="iqama-reset">${nearby ? `Use ${mName()} times for all` : 'Clear all'}</button>`;
   $('iqama-reset').addEventListener('click', () => { settings.iqama = {}; save(); fillForm(); loadDay(today); });
   fillForm();
 }
@@ -632,8 +639,29 @@ function locateMe() {
 const openLocation = () => { go('settings', 'location'); $('search').focus(); };
 $('use-here').addEventListener('click', locateMe);
 $('ask-here').addEventListener('click', locateMe);
-$('use-iscj').addEventListener('click', () => setPlace(null));
-$('ask-iscj').addEventListener('click', () => { settings.asked = true; save(); $('ask').hidden = true; });
+$('use-masjid').addEventListener('click', () => setPlace(null));
+$('ask-keep').addEventListener('click', () => { settings.asked = true; save(); $('ask').hidden = true; });
+
+// Your masjid: the list in masjids.js, or none (your own iqama times only)
+function showMasjid() {
+  const m = myMasjid();
+  document.querySelectorAll('.masjid-name').forEach(e => { e.textContent = m ? m.name : 'the masjid'; });
+  document.querySelectorAll('.masjid-full').forEach(e => { e.textContent = m ? `${m.full} (${m.name}) in ${m.town}` : 'your location'; });
+  $('use-masjid').hidden = !m;
+  $('ask-keep').hidden = !m;
+  $('masjid-note').textContent = !m ? 'No masjid: set your own iqama times below.'
+    : `${m.full}, ${m.town}. Iqama and Jumu’ah times are read from its website and used within 40 km (25 miles) of it.`;
+}
+$('masjid-pick').innerHTML = MASJIDS.map(m => `<option value="${m.id}">${m.name} · ${m.town}</option>`).join('') + '<option value="">None, I set my own times</option>';
+$('masjid-pick').value = settings.masjid;
+$('masjid-pick').addEventListener('change', () => {
+  settings.masjid = $('masjid-pick').value;
+  masjid = { id: '', iqama: {}, jumuah: [], updated: '', checked: 0, stale: false, failed: false };
+  save(); showMasjid(); buildForm(); jumuahNote();
+  if (!settings.place) { today = null; tick(); } // the default location follows the masjid
+  sync(true).then(() => { buildForm(); tick(); });
+});
+showMasjid();
 $('ask-search').addEventListener('click', openLocation);
 $('change-place').addEventListener('click', openLocation);
 $('ask').hidden = settings.asked;
@@ -964,19 +992,23 @@ addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEven
 $('install').addEventListener('click', async () => { installEvent.prompt(); await installEvent.userChoice; $('install').hidden = true; });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-// Iqama times come from our own /api/iqama (which reads iscj.org live); the daily iqama.json is the fallback.
-// Returns true when ISCJ itself answered. fresh asks the server to skip its 5 minute cache.
+// Iqama times come from our own /api/iqama?m= (which reads the chosen masjid's site live); the nightly iqama.json is the fallback.
+// Returns true when the masjid's own site answered. fresh asks the server to skip its 5 minute cache.
 const SYNC_EVERY = 15 * 60e3;
 let lastSync = 0;
 async function loadIqama(fresh) {
+  const id = settings.masjid;
+  if (!id) { masjid = { id: '', iqama: {}, jumuah: [], updated: '', checked: 0, stale: false, failed: false }; return false; }
   let j = null, live = false;
-  try { const r = await fetch(`/api/iqama${fresh ? '?fresh=1' : ''}`); if (r.ok) { j = await r.json(); live = !j.stale; } } catch (e) { /* fall back below */ }
+  try { const r = await fetch(`/api/iqama?m=${encodeURIComponent(id)}${fresh ? '&fresh=1' : ''}`); if (r.ok) { j = await r.json(); live = !j.stale; } } catch (e) { /* fall back below */ }
   if (!j || !j.iqama) {
     live = false;
-    try { const r = await fetch('iqama.json', { cache: 'no-cache' }); if (r.ok) j = await r.json(); } catch (e) { j = null; }
+    // the nightly copy: every listed masjid under "masjids", and ISCJ also at the top level (older copies of the file)
+    try { const r = await fetch('iqama.json', { cache: 'no-cache' }); if (r.ok) { const f = await r.json(); j = f.masjids?.[id] || (id === 'iscj' ? f : null); } } catch (e) { j = null; }
   }
-  if (!j || !j.iqama || typeof j.iqama !== 'object') { masjid.failed = !Object.keys(masjid.iqama).length; return false; }
-  masjid = { iqama: j.iqama, jumuah: Array.isArray(j.jumuah) ? j.jumuah : [], updated: /^\d{4}-\d{2}-\d{2}$/.test(j.updated) ? j.updated : '', checked: Number.isFinite(j.fetched) ? j.fetched : 0, stale: !!j.stale, failed: false };
+  if (id !== settings.masjid) return false; // the masjid was changed while this was loading
+  if (!j || !j.iqama || typeof j.iqama !== 'object') { masjid = { ...masjid, failed: masjid.id !== id || !Object.keys(masjid.iqama).length }; if (masjid.id !== id) masjid = { id, iqama: {}, jumuah: [], updated: '', checked: 0, stale: false, failed: true }; return false; }
+  masjid = { id, iqama: j.iqama, jumuah: Array.isArray(j.jumuah) ? j.jumuah : [], updated: /^\d{4}-\d{2}-\d{2}$/.test(j.updated) ? j.updated : '', checked: Number.isFinite(j.fetched) ? j.fetched : 0, stale: !!j.stale, failed: false };
   return live;
 }
 // Iqama times, prayer times and weather in one go: at start, every 15 minutes, on a new day, on waking, and on Sync now.
@@ -989,7 +1021,7 @@ async function sync(fresh) {
   return live;
 }
 
-// Start with calculated times at once, then fill in ISCJ's iqama times and the weather when they arrive
+// Start with calculated times at once, then fill in the masjid's iqama times and the weather when they arrive
 save();
 route();
 buildForm();
@@ -1006,5 +1038,5 @@ $('sync').addEventListener('click', async () => {
   say('Syncing iqama times, prayer times and weather…');
   const live = await sync(true);
   $('sync').disabled = false;
-  say(live && weather ? 'Synced.' : `${live ? '' : 'Could not reach ISCJ, so the iqama times are the last saved ones. '}${weather ? '' : 'Weather is not available right now.'}`.trim());
+  say(live && weather ? 'Synced.' : `${live ? '' : `Could not reach ${mName()}, so the iqama times are the last saved ones. `}${weather ? '' : 'Weather is not available right now.'}`.trim());
 });

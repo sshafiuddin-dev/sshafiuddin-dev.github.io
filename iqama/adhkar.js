@@ -1,6 +1,7 @@
 // Duas and adhkar for the Today tab and full screen, chosen by the time of day.
 // Arabic is from the Quran and hadith with the reference given; the English is a plain meaning written for this app.
 // Please have this list checked before relying on it. n is the number of repetitions (0: no counter).
+import { HISN, hisnUrl } from './hisn.js';
 
 const KURSI = 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ';
 const KURSI_EN = 'Allah: there is no god but Him, the Ever-Living, the Sustainer of all. Neither drowsiness nor sleep overtakes Him. To Him belongs whatever is in the heavens and on the earth. Who could intercede with Him except by His permission? He knows what is before them and what is behind them, and they grasp nothing of His knowledge except what He wills. His Kursi extends over the heavens and the earth, and guarding them does not tire Him. He is the Most High, the Most Great.';
@@ -54,7 +55,7 @@ export function pickSet(nowMin, rows, sunrise, weekday) {
   return { key: weekday === 'Fri' ? 'friday' : 'general', until: null };
 }
 
-// Hisn al-Muslim chapter recordings (Arabic), one file per chapter. File number is the chapter ID plus one.
+// Hisn al-Muslim chapter recordings (Arabic), one file per chapter, looked up in hisn.js (file numbers are not always chapter + 1).
 // Chapters: 15 after hearing the adhan, 25 after the prayer, 27 morning and evening, 28 before sleep.
-const hisn = (id) => `https://www.hisnmuslim.com/audio/ar/ar_7esn_AlMoslem_by_Doors_${String(id + 1).padStart(3, '0')}.mp3`;
+const hisn = (id) => hisnUrl(HISN.find(([n]) => n === id)[2]);
 export const AUDIO = { adhan: hisn(15), prayer: hisn(25), morning: hisn(27), evening: hisn(27), sleep: hisn(28) };

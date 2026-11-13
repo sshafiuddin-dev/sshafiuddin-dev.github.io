@@ -6,10 +6,10 @@ import {
   cleanStore, legacyTrack, nextRepeat, nextRate, toggle, cleanName, addList, renameList, removeList, addToList, removeFromList, moveInList, setListOrder,
 } from './quran-logic.js';
 import * as mo from './motion.js';
+import { esc } from './logic.js';
 
 const API = 'https://mp3quran.net/api/v3';
 const $ = (id) => document.getElementById(id);
-const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const svg = (d, extra = '') => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/>${extra}</svg>`;
 const num = (n) => `<text x="12" y="15.2" text-anchor="middle">${n}</text>`;
 const IC = {

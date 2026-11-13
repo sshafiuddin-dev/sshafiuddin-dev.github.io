@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
 import { normalizeItem, normalizeChapter, check, parseLoose, repairJson, parseChapterJson } from './fetch-hisn.mjs';
-import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass } from '../iqama/logic.js';
+import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass, clock, esc } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -36,6 +36,13 @@ assert.throws(() => parse(page.replace('Iqama 8:00', '')), /isha/);
 assert.throws(() => parse(page.replace('Iqama</i> 5:45', 'Iqama</i> 9:45')), /Implausible fajr/);
 
 // Time logic
+// UTC offset feeds every prayer time: New York is -5 in winter and -4 in summer, India keeps its half hour
+assert.equal(clock(new Date(Date.UTC(2026, 0, 15, 17)), 'America/New_York').offset, -5);
+assert.equal(clock(new Date(Date.UTC(2026, 6, 15, 17)), 'America/New_York').offset, -4);
+assert.equal(clock(new Date(Date.UTC(2026, 0, 15, 17)), 'Asia/Kolkata').offset, 5.5);
+assert.deepEqual((({ y, m, d, weekday, sec }) => ({ y, m, d, weekday, sec }))(clock(new Date(Date.UTC(2026, 0, 15, 4, 30, 5)), 'America/New_York')),
+  { y: 2026, m: 1, d: 14, weekday: 'Wed', sec: 23 * 3600 + 30 * 60 + 5 }, 'a time just before midnight UTC-5 is still the day before');
+assert.equal(esc(`<a href="x">'&'</a>`), '&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;');
 assert.equal(parseHM('05:45'), 345);
 assert.equal(parseHM('25:00'), null);
 assert.equal(iqamaAt('+10', 300), 310);

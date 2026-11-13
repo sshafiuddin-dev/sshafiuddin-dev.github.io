@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -102,16 +102,6 @@ try {
   const ref = new URL(document.referrer);
   $('back').hidden = !(ref.origin === location.origin && !ref.pathname.startsWith('/iqama') && !matchMedia('(display-mode: standalone)').matches);
 } catch (e) {}
-
-// Wall clock at the prayer location
-const formatters = {};
-function clock(date, zone) {
-  const f = formatters[zone] ||= new Intl.DateTimeFormat('en-US', { timeZone: zone, hourCycle: 'h23', weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
-  const parts = {};
-  for (const { type, value } of f.formatToParts(date)) parts[type] = value;
-  const [y, m, d, h, mi, s] = ['year', 'month', 'day', 'hour', 'minute', 'second'].map(k => +parts[k]);
-  return { y, m, d, weekday: parts.weekday, sec: h * 3600 + mi * 60 + s, offset: Math.round((Date.UTC(y, m - 1, d, h, mi, s) - date.getTime()) / 9e5) / 4 };
-}
 
 function dayTimes(y, m, d) {
   const { lat, lng, zone } = place(), useMasjid = near();
@@ -284,7 +274,7 @@ function syncSound() {
   document.querySelectorAll('.au-play').forEach(b => { b.textContent = playing() && audio.src === b.dataset.src ? 'Stop' : (b.dataset.label || 'Play'); });
 }
 // The Quran player has its own audio element. It steps aside for any sound played here and comes back when that sound is over.
-const quran = initQuran({ say, stopOthers: () => { pending = null; if (playing()) audio.pause(); } });
+const quran = initQuran({ say, stopOthers: () => { pending = null; if (playing() && !audio.muted) audio.pause(); } }); // a muted sound is the silent unlock, which must finish
 const soundOver = () => { syncSound(); if (!playing()) quran.resume(); };
 audio.addEventListener('ended', soundOver);
 audio.addEventListener('pause', soundOver);
@@ -299,9 +289,11 @@ function unlockSound(e) {
   const late = pending && Date.now() - pending.at < 120000 ? pending : null; // a stale alert is not played late
   const file = late && late.file;
   pending = null;
+  const tapped = (sel) => !!(e && e.target.closest && e.target.closest(sel));
   // a tap on a button that starts its own sound unlocks through that sound, so a missed alert does not replay over it
-  if (e && e.target.closest && e.target.closest('[data-q="toggle"], [data-q="prev"], [data-q="next"], [data-q="jump"], [data-act="play"], [data-act="play-all"], #dk-listen, .au-play, [data-try]')) return;
-  if (file) return play(file, late.label);
+  if (tapped('#dk-listen, .au-play, [data-try]')) return;
+  // a Quran button plays on the Quran's own element: the missed alert is dropped, but this element still needs the silent unlock
+  if (file && !tapped('[data-q="toggle"], [data-q="prev"], [data-q="next"], [data-q="jump"], [data-act="play"], [data-act="play-all"]')) return play(file, late.label);
   if (playing()) return;
   audio.muted = true; // a silent start that lets later alerts play on their own
   audio.src = 'audio/beep.mp3';
@@ -355,7 +347,6 @@ async function loadHisnText() {
   hisnText = (await r.json()).chapters || {};
   return hisnText;
 }
-const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const hisnItems = (items) => items.map((it, i) => `<article class="au-dua"><div class="au-meta"><span>Dua ${i + 1} of ${items.length}</span>${it.n ? `<span>Read ${it.n} ${it.n === 1 ? 'time' : 'times'}</span>` : ''}</div>`
   + `${it.ar ? `<p class="au-ar" lang="ar" dir="rtl">${esc(it.ar)}</p>` : ''}${it.tr ? `<p class="au-tr">${esc(it.tr)}</p>` : ''}${it.en ? `<p class="au-en">${esc(it.en)}</p>` : ''}`
   + `${it.audio ? `<button class="d-btn d-btn-sm d-btn-soft d-btn-primary au-play" type="button" data-src="${esc(it.audio)}" aria-label="Play dua ${i + 1}">Play</button>` : ''}</article>`).join('');
@@ -633,9 +624,13 @@ function syncMode() {
 modeInputs.forEach(r => r.addEventListener('change', () => { settings.mode = r.value; save(); applyLook(); }));
 
 // Weather, for the header, the backdrop and the Weather panel; the page works the same without it
+let wxReq = 0;
 async function loadWeather() {
-  const { lat, lng } = place();
-  try { weather = await fetchWeather(lat, lng, settings.units); } catch (e) { weather = null; }
+  const { lat, lng } = place(), n = ++wxReq;
+  let w = null;
+  try { w = await fetchWeather(lat, lng, settings.units); } catch (e) {}
+  if (n !== wxReq) return; // a newer request (new place or units) has started; this answer is stale
+  weather = w;
   renderWeather();
   tick();
 }

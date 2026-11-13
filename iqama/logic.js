@@ -2,6 +2,18 @@
 export const PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 export const NAMES = { fajr: 'Fajr', sunrise: 'Sunrise', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' };
 
+// Wall clock at a place: its date, weekday, seconds after midnight, and UTC offset in hours (to the quarter hour)
+const formatters = {};
+export function clock(date, zone) {
+  const f = formatters[zone] ||= new Intl.DateTimeFormat('en-US', { timeZone: zone, hourCycle: 'h23', weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
+  const parts = {};
+  for (const { type, value } of f.formatToParts(date)) parts[type] = value;
+  const [y, m, d, h, mi, s] = ['year', 'month', 'day', 'hour', 'minute', 'second'].map(k => +parts[k]);
+  return { y, m, d, weekday: parts.weekday, sec: h * 3600 + mi * 60 + s, offset: Math.round((Date.UTC(y, m - 1, d, h, mi, s) - date.getTime()) / 9e5) / 4 };
+}
+
+export const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 export function parseHM(s) {
   const m = /^(\d{1,2}):(\d{2})$/.exec(s);
   return m && +m[1] < 24 && +m[2] < 60 ? m[1] * 60 + +m[2] : null;

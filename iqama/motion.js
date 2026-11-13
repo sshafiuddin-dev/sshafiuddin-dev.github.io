@@ -15,7 +15,7 @@ export const T = {
 };
 export const calm = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const spring = (name) => (M ? { type: M.spring, ...T.spring[name] } : { duration: T.dur.normal, ease: T.ease });
-export const stagger = () => (M ? M.stagger(T.gap) : 0);
+const stagger = () => (M ? M.stagger(T.gap) : 0);
 
 // animate(el or [els], keyframes, options). Returns the Motion animation (it has a .finished promise), or null.
 export function animate(target, keyframes, options = {}) {

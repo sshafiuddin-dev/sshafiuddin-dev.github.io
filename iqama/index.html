@@ -12,11 +12,12 @@
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Kalam:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
     <!-- shares the portfolio's tokens, type and buttons -->
     <!-- daisyUI components, built once (see ../scripts/daisy) and committed, so the site needs no build step -->
     <link rel="stylesheet" href="daisy.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="look.css">
 </head>
 <body>
     <div class="sky-tint" aria-hidden="true"></div>
@@ -35,6 +36,7 @@
                     <h1 id="tab-title">Today</h1>
                     <p class="topbar-meta">
                         <span class="iq-date" id="date"></span>
+                        <span class="iq-hijri" id="hijri" hidden></span>
                         <span class="iq-place"><span id="place"></span> <button class="link-btn" type="button" id="change-place">Change</button></span>
                         <span class="iq-time" id="now"></span>
                         <button class="link-btn iq-weather" type="button" id="weather" hidden></button>
@@ -42,6 +44,7 @@
                 </div>
                 <div class="topbar-actions">
                     <button class="d-btn d-btn-sm tb-btn" type="button" id="install" hidden>Install app</button>
+                    <button class="d-btn d-btn-sm d-btn-outline tb-btn dim-btn" type="button" id="dim-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="dim-sun" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><path class="dim-moon" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Bright</span></button>
                     <button class="d-btn d-btn-sm d-btn-outline tb-btn" type="button" id="awake" aria-pressed="false">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>
                         <span id="awake-label">Keep screen on</span>
@@ -140,7 +143,7 @@
                 </div>
                 <div class="table-scroll month-scroll">
                     <table id="month">
-                        <thead><tr><th scope="col">Day</th><th scope="col">Fajr</th><th scope="col">Sunrise</th><th scope="col">Dhuhr</th><th scope="col">Asr</th><th scope="col">Maghrib</th><th scope="col">Isha</th></tr></thead>
+                        <thead><tr><th scope="col">Day</th><th scope="col">Hijri</th><th scope="col">Fajr</th><th scope="col">Sunrise</th><th scope="col">Dhuhr</th><th scope="col">Asr</th><th scope="col">Maghrib</th><th scope="col">Isha</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -173,6 +176,23 @@
                         <label for="asr">Asr</label>
                         <select class="d-select" id="asr"><option value="Standard">Standard</option><option value="Hanafi">Hanafi (later Asr)</option></select>
                     </div>
+                    <div class="set-group">
+                        <span class="iq-label" id="lbl-tune">Adjust adhan times</span>
+                        <p class="iq-note">Add or take away minutes if your masjid's adhan times differ from the calculation. Use a minus sign for earlier, up to 30 minutes either way.</p>
+                        <form class="tune-form" id="tune-form" aria-labelledby="lbl-tune"></form>
+                        <button class="d-btn d-btn-sm" type="button" id="tune-reset">Reset all to 0</button>
+                    </div>
+                    <div class="iq-fields">
+                        <label for="hijri-shift">Hijri date</label>
+                        <select class="d-select" id="hijri-shift">
+                            <option value="-2">2 days earlier</option><option value="-1">1 day earlier</option><option value="0">Umm al-Qura calendar</option><option value="1">1 day later</option><option value="2">2 days later</option>
+                        </select>
+                    </div>
+                    <p class="iq-note">Move the Hijri date a day if the local moon sighting differs from the Umm al-Qura calendar.</p>
+                    <div class="iq-fields">
+                        <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="set-hijri-maghrib"> Start the Hijri day at Maghrib</label>
+                    </div>
+                    <p class="iq-note">The Islamic day begins at sunset, so after the Maghrib adhan the Hijri date moves to the next day. Off, it changes at midnight.</p>
                 </section>
 
                 <section class="sub-pane" id="sub-iqama" role="tabpanel" aria-labelledby="st-iqama" hidden>
@@ -208,22 +228,32 @@
                         <div class="ck-picker" id="clock-style"></div>
                     </div>
                     <div class="set-group" role="radiogroup" aria-labelledby="lbl-theme">
-                        <span class="iq-label" id="lbl-theme">Theme</span>
+                        <span class="iq-label" id="lbl-theme">Look <output id="look-name"></output></span>
                         <div class="sw-picker" id="palette"></div>
                     </div>
-                    <fieldset class="set-group" id="mode">
-                        <legend class="iq-label">Light or dark</legend>
+                    <div class="set-group">
+                        <label class="iq-label" for="set-dim">Brightness now <output id="set-dim-out" for="set-dim"></output></label>
+                        <input class="d-range d-range-sm dim-range" type="range" id="set-dim" min="0" max="3" step="1" list="dim-stops">
+                        <datalist id="dim-stops"><option value="0" label="Bright"></option><option value="1" label="Soft"></option><option value="2" label="Dim"></option><option value="3" label="Darkest"></option></datalist>
+                        <p class="dim-scale" aria-hidden="true"><span>Bright</span><span>Soft</span><span>Dim</span><span>Darkest</span></p>
+                    </div>
+                    <fieldset class="set-group">
+                        <legend class="iq-label">Dim automatically</legend>
                         <div class="d-join">
-                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="mode" value="auto" aria-label="Match my device">
-                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="mode" value="light" aria-label="Light">
-                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="mode" value="dark" aria-label="Dark">
+                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="autodim" value="isha" aria-label="After Isha">
+                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="autodim" value="maghrib" aria-label="After Maghrib">
+                            <input class="d-join-item d-btn d-btn-sm" type="radio" name="autodim" value="off" aria-label="Off">
                         </div>
                     </fieldset>
-                    <p class="iq-note" id="mode-note"></p>
+                    <div class="set-group" id="night-row">
+                        <label class="iq-label" for="set-night">At night <output id="set-night-out" for="set-night"></output></label>
+                        <input class="d-range d-range-sm dim-range" type="range" id="set-night" min="1" max="3" step="1">
+                        <p class="dim-scale dim-scale-3" aria-hidden="true"><span>Soft</span><span>Dim</span><span>Darkest</span></p>
+                    </div>
+                    <p class="iq-note" id="dim-note"></p>
                     <div class="iq-fields">
                         <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="set-adhkar"> Show duas and adhkar</label>
                         <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="set-translit"> Show transliteration</label>
-                        <label class="check"><input class="d-toggle d-toggle-success" type="checkbox" role="switch" id="set-dxauto"> Dim full screen from sunset to sunrise</label>
                     </div>
                     <div class="set-group">
                         <label class="iq-label" for="set-dxlayout">Full screen layout</label>
@@ -281,7 +311,7 @@
                 <span class="dx-awake" id="dx-awake" hidden><span class="dx-dot"></span>Screen stays on</span>
                 <button class="d-btn d-btn-error dx-stop" type="button" id="dx-stop" hidden>Stop</button>
                 <button class="d-btn d-btn-sm d-btn-outline dx-sound" type="button" id="dx-sound" hidden>Tap to enable sound</button>
-                <button class="d-btn d-btn-sm d-btn-outline" type="button" id="dx-night" aria-pressed="false">Night mode</button>
+                <button class="d-btn d-btn-sm d-btn-outline dim-btn" type="button" id="dx-dim"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="dim-sun" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><path class="dim-moon" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Bright</span></button>
                 <button class="d-btn d-btn-sm d-btn-outline" type="button" id="dx-exit">Exit full screen</button>
             </div>
         </div>

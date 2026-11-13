@@ -1,7 +1,7 @@
 // Offline support for Iqama Times. Network first, so a new deploy or new iqama times show at once;
 // the cached copy is used only when the network fails.
-const CACHE = 'iqama-v21';
-const SHELL = ['./', 'boot.js', 'daisy.css', 'styles.css', 'app.js', 'logic.js', 'sky.js', 'clocks.js', 'weather.js', 'adhkar.js', 'hisn.js', 'quran.js', 'quran-logic.js', 'motion.js', '../vendor/motion.min.js', 'lib/PrayTimes.js', 'lib/CalculationMethods.js', 'iqama.json', 'hisn-text.json', 'manifest.webmanifest', 'icon-192.png', '../favicon.svg'];
+const CACHE = 'iqama-v22';
+const SHELL = ['./', 'boot.js', 'daisy.css', 'styles.css', 'look.css', 'app.js', 'logic.js', 'sky.js', 'clocks.js', 'weather.js', 'adhkar.js', 'hisn.js', 'quran.js', 'quran-logic.js', 'motion.js', '../vendor/motion.min.js', 'lib/PrayTimes.js', 'lib/CalculationMethods.js', 'iqama.json', 'hisn-text.json', 'manifest.webmanifest', 'icon-192.png', '../favicon.svg'];
 
 self.addEventListener('install', (e) => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener('activate', (e) => e.waitUntil(

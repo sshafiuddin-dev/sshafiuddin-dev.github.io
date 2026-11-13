@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, fridayRows, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
+import { PRAYERS, NAMES, DIM_NAMES, isNight, dimLevel, hijriNow, cleanTune, parseHM, iqamaAt, fmt, nextEvent, fridayRows, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -25,12 +25,12 @@ const SOUND_SRC = { beep: URL.createObjectURL(new Blob([beepWav()], { type: 'aud
 const SOUND_KEYS = [...Object.keys(SOUNDS), ...Object.keys(RECORDINGS)];
 const soundName = (t) => t === 'adhan' ? 'Adhan recording' : SOUNDS[t] ? SOUNDS[t].split(',')[0] : `${RECORDINGS[t].replace(/ \(.*/, '')} adhan`;
 const ALERT_KEYS = [...PRAYERS, 'jumuah'];
-const PALETTES = { petrol: 'Petrol', green: 'Masjid green', dusk: 'Dusk', night: 'Night', contrast: 'High contrast' };
-const MODES = ['auto', 'light', 'dark'];
+const LOOKS = { paper: 'Printed timetable', hand: 'Handwritten', contrast: 'High contrast' };
+const AUTO_DIM = ['isha', 'maghrib', 'off'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
-  clock: 'board', palette: 'petrol', mode: 'auto', units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
-  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxNight: false, dxAuto: false, dxCard: 'rest',
+  tune: {}, hijriShift: 0, hijriMaghrib: false, clock: 'board', look: 'paper', autoDim: 'isha', nightLevel: 2, level: 0, units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
+  adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxCard: 'rest',
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -47,16 +47,26 @@ if (settings.place) settings.asked = true;
 if (!ADHANS[settings.adhan]) settings.adhan = DEFAULTS.adhan;
 if (!FAJR_ADHANS[settings.fajrAdhan]) settings.fajrAdhan = DEFAULTS.fajrAdhan;
 if (!CLOCKS[settings.clock]) settings.clock = DEFAULTS.clock;
-if (!PALETTES[settings.palette]) settings.palette = DEFAULTS.palette;
-if (!MODES.includes(settings.mode)) settings.mode = DEFAULTS.mode;
+// Saves from before the timetable look: High contrast stays, the always-dark Night theme or a fixed dark mode become a fixed dim level
+if (settings.palette !== undefined && settings.look === DEFAULTS.look) {
+  if (settings.palette === 'contrast') settings.look = 'contrast';
+  if (settings.palette === 'night') Object.assign(settings, { autoDim: 'off', level: 3 });
+  else if (settings.mode === 'dark') Object.assign(settings, { autoDim: 'off', level: 2 });
+}
+for (const k of ['palette', 'mode', 'dxNight', 'dxAuto']) delete settings[k];
+if (!LOOKS[settings.look]) settings.look = DEFAULTS.look;
+settings.tune = cleanTune(settings.tune);
+if (![-2, -1, 0, 1, 2].includes(settings.hijriShift)) settings.hijriShift = 0;
+settings.hijriMaghrib = settings.hijriMaghrib === true;
+if (!AUTO_DIM.includes(settings.autoDim)) settings.autoDim = DEFAULTS.autoDim;
+if (![1, 2, 3].includes(settings.nightLevel)) settings.nightLevel = DEFAULTS.nightLevel;
+if (![0, 1, 2, 3].includes(settings.level)) settings.level = DEFAULTS.level;
 if (settings.units !== 'F' && settings.units !== 'C') settings.units = DEFAULTS.units;
 settings.muted = settings.muted === true;
 settings.adhkar = settings.adhkar !== false;
 settings.translit = settings.translit !== false;
 if (!['s', 'm', 'l'].includes(settings.arSize)) settings.arSize = DEFAULTS.arSize;
 settings.awake = settings.awake === true;
-settings.dxNight = settings.dxNight === true;
-settings.dxAuto = settings.dxAuto === true;
 if (!['rest', 'duas'].includes(settings.dxCard)) settings.dxCard = DEFAULTS.dxCard;
 if (!['auto', 'times', 'full'].includes(settings.dxLayout)) settings.dxLayout = DEFAULTS.dxLayout;
 
@@ -75,17 +85,30 @@ const savedAlerts = settings.alerts && typeof settings.alerts === 'object' ? set
 settings.alerts = Object.fromEntries(ALERT_KEYS.map(k => [k, cleanAlert(k, savedAlerts[k])]));
 const save = () => { try { localStorage.setItem('iqama-settings', JSON.stringify(settings)); } catch (e) {} };
 
-// Theme and clock style
-const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+// Look, brightness and clock style. Brightness follows the prayer times once they are known; until then, the last level shown.
+// A level picked by hand (the brightness button or slider) holds until day turns to night or back, then Auto takes over again.
+let dimOverride = null, shownDim = null, timesKnown = false;
+try { const d = +localStorage.getItem('iqama-dim'); if ([0, 1, 2, 3].includes(d)) shownDim = d; } catch (e) {}
+const nightNow = () => timesKnown && isNight(nowMinute, day.rows, day.sunrise, settings.autoDim);
+const currentDim = () => (timesKnown || settings.autoDim === 'off' ? dimLevel(settings, nightNow(), dimOverride) : shownDim ?? 0);
+function setDim(level) {
+  if (settings.autoDim === 'off') { settings.level = level; save(); dimOverride = null; }
+  else dimOverride = { level, night: nightNow() };
+  applyLook();
+}
 function applyLook() {
-  root.dataset.palette = settings.palette;
-  root.dataset.theme = settings.palette === 'night' ? 'dark' : settings.mode === 'auto' ? (darkMQ.matches ? 'dark' : 'light') : settings.mode;
+  const dim = currentDim();
+  root.dataset.palette = settings.look;
+  root.dataset.dim = String(dim);
+  root.dataset.theme = dim >= 2 ? 'dark' : 'light';
   root.dataset.clock = settings.clock;
+  if (dim !== shownDim) { shownDim = dim; try { localStorage.setItem('iqama-dim', String(dim)); } catch (e) {} }
+  syncDim();
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = getComputedStyle(root).getPropertyValue('--paper').trim() || '#0B2A33';
   redrawSky();
 }
-darkMQ.addEventListener?.('change', applyLook);
+let nowMinute = 0;
 applyLook();
 
 let masjid = { iqama: {}, jumuah: [], updated: '', checked: 0, stale: false, failed: false };
@@ -126,7 +149,7 @@ function dayTimes(y, m, d) {
   pt.adjust({ asr: settings.asr === 'Hanafi' ? 'Hanafi' : 'Standard' });
   // shortcut: one UTC offset per day (taken at midday), so times before 2 AM on a clock-change day are an hour off
   const t = pt.getTimes([y, m, d], [lat, lng], clock(new Date(Date.UTC(y, m - 1, d, 17)), zone).offset, 0, 'Float');
-  const min = (k) => Math.round(t[k] * 60);
+  const min = (k) => Math.round(t[k] * 60) + (settings.tune[k] || 0); // the visitor's own adjustment, Settings, Location
   return {
     sunrise: min('sunrise'),
     rows: PRAYERS.map(key => {
@@ -136,14 +159,30 @@ function dayTimes(y, m, d) {
   };
 }
 
+// Hijri date for the top bar, the clock and full screen; with the Maghrib setting on it turns over at the Maghrib adhan
+function setHijri(nowMin) {
+  const h = hijriNow(today.y, today.m, today.d, settings.hijriShift, settings.hijriMaghrib, nowMin, day.rows[3].adhan);
+  if (h === today.hijri) return false;
+  today.hijri = h;
+  today.full = h ? `${today.long} · ${h}` : today.long;
+  return true;
+}
+function showHijri() {
+  $('dx-date').textContent = today.full;
+  $('hijri').textContent = today.hijri;
+  $('hijri').hidden = !today.hijri;
+}
+
 let today = null, day = null, tomorrow = null, lastSec = null, weather = null;
 
 function loadDay(c) {
   today = c;
   day = dayTimes(c.y, c.m, c.d);
+  timesKnown = true;
   const n = new Date(Date.UTC(c.y, c.m - 1, c.d + 1));
   tomorrow = dayTimes(n.getUTCFullYear(), n.getUTCMonth() + 1, n.getUTCDate());
   today.long = new Intl.DateTimeFormat('en-US', { timeZone: place().zone, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
+  setHijri(c.sec / 60);
   renderDay();
   renderWeather();
 }
@@ -177,7 +216,7 @@ function renderDay() {
       : `Iqama times from ISCJ${masjid.checked ? `, checked ${new Date(masjid.checked).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${masjid.stale ? ' (ISCJ did not answer, so this is the last copy)' : ''}` : uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
 
   jumuahNote();
-  $('dx-date').textContent = today.long;
+  showHijri();
   $('dx-place').textContent = place().name;
   if (tab === 'month') { renderMonth(); $('tab-title').textContent = monthTitle(); }
   tick();
@@ -195,11 +234,12 @@ function tick() {
   if (!today || c.d !== today.d) { const later = !!today; loadDay(c); if (later) sync(); return; }
   const nowMin = c.sec / 60, rows = shownRows(), ev = nextEvent(rows, tomorrow.rows[0].adhan, nowMin, day.sunrise);
   $('now').textContent = fmt(Math.floor(nowMin));
-  const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, jumuah: shownJumuah(), date: today.long });
+  const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, jumuah: shownJumuah(), date: today.full });
   $('clock').innerHTML = html;
   nowMinute = nowMin;
+  if (setHijri(nowMin)) showHijri();
+  if (currentDim() !== shownDim) applyLook();
   if (displayOpen) {
-    applyNight();
     if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats(), card: dxCardFor(nowMin) });
     else {
       $('dx-clock').innerHTML = html;
@@ -220,12 +260,17 @@ function monthRows() {
   const n = new Date(Date.UTC(today.y, today.m, 0)).getUTCDate();
   return Array.from({ length: n }, (_, i) => {
     const t = dayTimes(today.y, today.m, i + 1);
-    return { d: i + 1, weekday: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(today.y, today.m - 1, i + 1)).getUTCDay()], times: [t.rows[0].adhan, t.sunrise, ...t.rows.slice(1).map(r => r.adhan)] };
+    return { d: i + 1, hijri: hijriNow(today.y, today.m, i + 1, settings.hijriShift, false, 0, 0), weekday: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(today.y, today.m - 1, i + 1)).getUTCDay()], times: [t.rows[0].adhan, t.sunrise, ...t.rows.slice(1).map(r => r.adhan)] };
   });
 }
 function renderMonth() {
-  $('month').tBodies[0].innerHTML = monthRows().map(r =>
-    `<tr${r.d === today.d ? ' class="today"' : ''}><th scope="row">${r.weekday} ${r.d}</th>${r.times.map(t => `<td>${fmt(t)}</td>`).join('')}</tr>`).join('');
+  // Hijri column: the day number, with the month's name on the first row and wherever a new Hijri month begins
+  $('month').tBodies[0].innerHTML = monthRows().map((r, i) => {
+    const [hd, ...rest] = r.hijri.split(' '), hm = rest.slice(0, -1).join(' ');
+    const h = !r.hijri ? '' : i === 0 || hd === '1' ? `${hd} <span class="mo-hm">${hm}</span>` : hd;
+    const cls = [r.d === today.d ? 'today' : '', r.weekday === 'Fri' ? 'friday' : ''].filter(Boolean).join(' ');
+    return `<tr${cls ? ` class="${cls}"` : ''}><th scope="row">${r.weekday} ${r.d}</th><td class="mo-hijri">${h}</td>${r.times.map(t => `<td>${fmt(t).replace(/ ([AP]M)$/, '<span class="mo-ap"> $1</span>')}</td>`).join('')}</tr>`;
+  }).join('');
 }
 const monthTitle = () => (today ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(Date.UTC(today.y, today.m - 1, 15))) : 'This month');
 
@@ -629,10 +674,25 @@ $('asr').value = settings.asr === 'Hanafi' ? 'Hanafi' : 'Standard';
 const recalc = () => { save(); today = null; tick(); };
 $('method').addEventListener('change', () => { settings.method = $('method').value; recalc(); });
 $('asr').addEventListener('change', () => { settings.asr = $('asr').value; recalc(); });
+// Adhan time offsets and the Hijri day shift
+$('tune-form').innerHTML = PRAYERS.map(k => `<label class="tune-row"><span>${NAMES[k]}</span><input class="d-input d-input-sm" type="number" inputmode="numeric" min="-30" max="30" step="1" data-k="${k}" value="${settings.tune[k]}" aria-label="${NAMES[k]} adhan, minutes earlier or later"><small>min</small></label>`).join('');
+$('tune-form').addEventListener('submit', (e) => e.preventDefault());
+$('tune-form').addEventListener('change', (e) => {
+  const k = e.target.dataset.k, v = Math.round(+e.target.value);
+  if (!k) return;
+  settings.tune = cleanTune({ ...settings.tune, [k]: Number.isFinite(v) ? Math.max(-30, Math.min(30, v)) : 0 });
+  e.target.value = settings.tune[k];
+  recalc();
+});
+$('tune-reset').addEventListener('click', () => { settings.tune = cleanTune({}); $('tune-form').querySelectorAll('input').forEach(i => { i.value = 0; }); recalc(); });
+$('hijri-shift').value = String(settings.hijriShift);
+$('hijri-shift').addEventListener('change', () => { settings.hijriShift = +$('hijri-shift').value; recalc(); });
+$('set-hijri-maghrib').checked = settings.hijriMaghrib;
+$('set-hijri-maghrib').addEventListener('change', () => { settings.hijriMaghrib = $('set-hijri-maghrib').checked; recalc(); });
 
 // Clock style and theme
 // decorative swatches: the theme's dark paper beside its accent
-const SWATCH = { petrol: ['#0B2A33', '#5BD6B8'], green: ['#0B2219', '#D9B657'], dusk: ['#1A1830', '#5ED6D0'], night: ['#000000', '#E8A33D'], contrast: ['#000000', '#FFFFFF'] };
+const SWATCH = { paper: ['#F3EDE1', '#A8321F'], hand: ['#F6F1E4', '#24345C'], contrast: ['#FFFFFF', '#000000'] };
 function fillPicker(id, map, current, label, onPick) {
   const box = $(id);
   box.innerHTML = Object.entries(map).map(([k, name]) => `<button type="button" role="radio" data-v="${k}" aria-checked="${k === current}" ${label(k, name)}</button>`).join('');
@@ -644,13 +704,35 @@ function fillPicker(id, map, current, label, onPick) {
   });
 }
 fillPicker('clock-style', CLOCKS, settings.clock, (k, name) => `class="d-btn d-btn-sm">${name}`, (v) => { settings.clock = v; save(); applyLook(); tick(); });
-fillPicker('palette', PALETTES, settings.palette, (k, name) => `class="swatch" style="--a:${SWATCH[k][0]};--b:${SWATCH[k][1]}" aria-label="${name}" title="${name}">`, (v) => { settings.palette = v; save(); applyLook(); syncMode(); });
-const modeInputs = document.querySelectorAll('input[name="mode"]');
-function syncMode() {
-  modeInputs.forEach(r => { r.checked = r.value === settings.mode; r.disabled = settings.palette === 'night'; });
-  $('mode-note').textContent = settings.palette === 'night' ? 'Night is always dark, for low glare.' : '';
+fillPicker('palette', LOOKS, settings.look, (k, name) => `class="swatch" style="--a:${SWATCH[k][0]};--b:${SWATCH[k][1]}" aria-label="${name}" title="${name}">`, (v) => { settings.look = v; save(); applyLook(); $('look-name').textContent = LOOKS[v]; });
+$('look-name').textContent = LOOKS[settings.look];
+// Brightness: the button in the top bar and in full screen steps through the four levels; Settings has the sliders and Auto
+function syncDim() {
+  const dim = Number(root.dataset.dim) || 0, name = DIM_NAMES[dim];
+  for (const id of ['dim-btn', 'dx-dim']) {
+    const b = $(id);
+    if (!b) continue;
+    b.querySelector('span').textContent = name;
+    b.dataset.level = String(dim);
+    b.setAttribute('aria-label', `Brightness: ${name}. Tap for ${DIM_NAMES[(dim + 1) % 4].toLowerCase()}`);
+  }
+  if (!$('set-dim')) return;
+  $('set-dim').value = String(dim); $('set-dim-out').textContent = name;
+  $('set-night').value = String(settings.nightLevel); $('set-night-out').textContent = DIM_NAMES[settings.nightLevel];
+  document.querySelectorAll('input[name="autodim"]').forEach(r => { r.checked = r.value === settings.autoDim; });
+  $('night-row').hidden = settings.autoDim === 'off';
+  $('dim-note').textContent = settings.autoDim === 'off' ? 'Brightness stays where you set it.'
+    : `Bright from sunrise; ${DIM_NAMES[settings.nightLevel].toLowerCase()} after ${settings.autoDim === 'isha' ? 'Isha' : 'Maghrib'}.${dimOverride ? ' Your change holds until the next switch.' : ''}`;
 }
-modeInputs.forEach(r => r.addEventListener('change', () => { settings.mode = r.value; save(); applyLook(); }));
+for (const id of ['dim-btn', 'dx-dim']) $(id)?.addEventListener('click', () => setDim(((Number(root.dataset.dim) || 0) + 1) % 4));
+$('set-dim').addEventListener('input', () => setDim(+$('set-dim').value));
+$('set-night').addEventListener('input', () => { settings.nightLevel = +$('set-night').value; save(); if (dimOverride?.night) dimOverride = null; applyLook(); });
+document.querySelectorAll('input[name="autodim"]').forEach(r => r.addEventListener('change', () => {
+  settings.autoDim = r.value;
+  if (r.value === 'off') settings.level = Number(root.dataset.dim) || 0; // turning Auto off keeps what is showing now
+  dimOverride = null; save(); applyLook();
+}));
+syncDim();
 
 // Weather, for the header, the backdrop and the Weather panel; the page works the same without it
 let wxReq = 0;
@@ -851,7 +933,6 @@ function applyLayout() {
 }
 async function openDisplay() {
   displayOpen = true;
-  autoPaused = false;
   applyLayout();
   $('display').hidden = false;
   dkSig = '';
@@ -872,24 +953,6 @@ function closeDisplay() {
 }
 $('fullscreen').addEventListener('click', openDisplay);
 $('dx-exit').addEventListener('click', closeDisplay);
-// Night mode is on by hand, or from sunset to sunrise when the setting is on.
-// shortcut: without weather data sunset is taken as the Maghrib adhan, which is a few minutes later, fine for dimming.
-let nowMinute = 0, autoPaused = false;
-const isDark = () => !!day && (nowMinute < day.sunrise || nowMinute >= (weather?.today?.sunset ?? day.rows[3].adhan));
-const nightOn = () => settings.dxNight || (settings.dxAuto && !autoPaused && isDark());
-function applyNight() {
-  const on = nightOn();
-  $('display').dataset.night = on ? 'on' : 'off';
-  $('dx-night').setAttribute('aria-pressed', String(on));
-}
-$('dx-night').addEventListener('click', () => {
-  // switching off while the sunset timer is dimming pauses the timer until full screen is opened again
-  if (nightOn()) { settings.dxNight = false; autoPaused = true; } else settings.dxNight = true;
-  save(); applyNight();
-});
-$('set-dxauto').checked = settings.dxAuto;
-$('set-dxauto').addEventListener('change', () => { settings.dxAuto = $('set-dxauto').checked; autoPaused = false; save(); applyNight(); });
-applyNight();
 document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) requestAnimationFrame(fitDisplay); else closeDisplay(); });
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && displayOpen) closeDisplay(); });
 addEventListener('resize', () => { if (displayOpen) { applyLayout(); fitDisplay(); } });
@@ -933,7 +996,6 @@ buildForm();
 buildAlerts();
 showAlertLog();
 syncSound();
-syncMode();
 tick();
 updateLock();
 setInterval(tick, 1000);

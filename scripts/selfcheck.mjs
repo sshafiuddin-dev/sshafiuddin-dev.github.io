@@ -318,3 +318,37 @@ console.log('playlist ids ok');
   assert.deepEqual(summarize(null), []);
 }
 console.log('csp reports ok');
+
+// Brightness: bright by day, the chosen night level after Isha (or Maghrib) until sunrise; a hand-picked level lasts until the next switch
+{
+  const { isNight, dimLevel } = await import('../iqama/logic.js');
+  const rows = [324, 702, 861, 1002, 1080].map((adhan, i) => ({ key: PRAYERS[i], adhan }));
+  assert.deepEqual([300, 500, 1010, 1085].map(m => isNight(m, rows, 402, 'isha')), [true, false, false, true]);
+  assert.deepEqual([1010, 1085].map(m => isNight(m, rows, 402, 'maghrib')), [true, true]);
+  assert.equal(isNight(1300, rows, 402, 'off'), false);
+  const s = { autoDim: 'isha', nightLevel: 3, level: 1 };
+  assert.deepEqual([dimLevel(s, false), dimLevel(s, true)], [0, 3]);
+  assert.equal(dimLevel(s, true, { level: 1, night: true }), 1, 'a level picked at night holds for that night');
+  assert.equal(dimLevel(s, false, { level: 1, night: true }), 0, 'and ends at sunrise');
+  assert.equal(dimLevel({ ...s, autoDim: 'off' }, true), 1, 'with auto off the level stays where it is set');
+}
+console.log('brightness ok');
+
+// Hijri date (Umm al-Qura) with a day shift, and adhan offsets
+{
+  const { hijri, cleanTune } = await import('../iqama/logic.js');
+  assert.equal(hijri(2026, 2, 18), '1 Ramadan 1447');
+  assert.equal(hijri(2026, 2, 18, -1), '29 Shaban 1447'); // Shaban 1447 has 29 days in Umm al-Qura
+  assert.equal(hijri(2026, 3, 20), '1 Shawwal 1447');
+  assert.deepEqual(cleanTune({ fajr: 2, dhuhr: 31, asr: 'x', isha: -3 }), { fajr: 2, dhuhr: 0, asr: 0, maghrib: 0, isha: -3 });
+}
+console.log('hijri and offsets ok');
+
+// The Hijri day can begin at the Maghrib adhan
+{
+  const { hijriNow } = await import('../iqama/logic.js');
+  assert.equal(hijriNow(2026, 2, 17, 0, true, 1000, 1060), '29 Shaban 1447', 'before Maghrib');
+  assert.equal(hijriNow(2026, 2, 17, 0, true, 1061, 1060), '1 Ramadan 1447', 'after Maghrib the evening is the next Hijri day');
+  assert.equal(hijriNow(2026, 2, 17, 0, false, 1061, 1060), '29 Shaban 1447', 'off: midnight');
+}
+console.log('hijri at maghrib ok');

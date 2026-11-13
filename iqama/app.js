@@ -1,10 +1,10 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
-import { SETS, AUDIO, pickSet } from './adhkar.js';
+import { SETS, AUDIO, pickSet, fillSets } from './adhkar.js';
 import { HISN, hisnUrl } from './hisn.js';
 import { initQuran } from './quran.js';
 
@@ -19,6 +19,8 @@ const FAJR_ADHANS = { 'fajr-zahrani': 'Mansoor Az-Zahrani (3:26)', 'fajr-afasy':
 // What an alert can do: show a message only, play a short sound, or play an adhan recording (the default one from the pickers above, or a named one)
 const SOUNDS = { message: 'Message only', beep: 'Soft beep', bismillah: 'Bismillah, spoken', adhan: 'Adhan, your default recording' };
 const RECORDINGS = { ...ADHANS, ...FAJR_ADHANS };
+// The beep is made in the page; the spoken Bismillah is hisnmuslim.com's recording of Hisn al-Muslim ch. 8 (before wudu), so it needs a connection
+const SOUND_SRC = { beep: URL.createObjectURL(new Blob([beepWav()], { type: 'audio/wav' })), bismillah: 'https://www.hisnmuslim.com/audio/ar/12.mp3' };
 const SOUND_KEYS = [...Object.keys(SOUNDS), ...Object.keys(RECORDINGS)];
 const soundName = (t) => t === 'adhan' ? 'Adhan recording' : SOUNDS[t] ? SOUNDS[t].split(',')[0] : `${RECORDINGS[t].replace(/ \(.*/, '')} adhan`;
 const ALERT_KEYS = [...PRAYERS, 'jumuah'];
@@ -296,7 +298,7 @@ function unlockSound(e) {
   if (file && !tapped('[data-q="toggle"], [data-q="prev"], [data-q="next"], [data-q="jump"], [data-act="play"], [data-act="play-all"]')) return play(file, late.label);
   if (playing()) return;
   audio.muted = true; // a silent start that lets later alerts play on their own
-  audio.src = 'audio/beep.mp3';
+  audio.src = SOUND_SRC.beep;
   audio.play().then(() => { if (audio.muted) { audio.pause(); audio.muted = false; } markUnlocked(); }, () => {});
 }
 GESTURES.forEach(g => addEventListener(g, unlockSound, true));
@@ -306,7 +308,7 @@ function play(file, label) {
   if (label) quran.closeDialogs();
   alertNow = label || null;
   audio.muted = false;
-  audio.src = /^https:/.test(file) ? file : `audio/${file}.mp3`;
+  audio.src = SOUND_SRC[file] || (/^https:/.test(file) ? file : `audio/${file}.mp3`);
   audio.addEventListener('playing', syncSound, { once: true });
   audio.play().then(markUnlocked, (err) => {
     if (err && err.name === 'AbortError') return; // another sound took over
@@ -656,7 +658,7 @@ let duaTap = 0;
 function dxCardFor(nowMin) {
   const w = cardWindow(nowMin, day.rows, day.sunrise);
   if (!w) return null;
-  if (settings.dxCard === 'duas' && settings.adhkar) {
+  if (settings.dxCard === 'duas' && settings.adhkar && SETS[w].items[0].ar) { // the text has loaded
     const set = SETS[w], i = (Math.floor(nowMin / 3) + duaTap) % set.items.length;
     return { kind: 'dua', title: set.title, item: set.items[i], pos: `${i + 1} / ${set.items.length}` };
   }
@@ -694,10 +696,11 @@ function renderAdhkar(nowMin) {
   if (pick.key !== dk.key) dk = { key: pick.key, i: pick.key === 'general' ? Math.floor(Date.UTC(today.y, today.m - 1, today.d) / 864e5) % set.items.length : 0 };
   dk.until = pick.until;
   const it = dkItem(), c = dkCounts()[`${dk.key}.${dk.i}`] || 0, done = it.n > 0 && c >= it.n;
-  const sig = [dk.key, dk.i, dk.until, c, settings.adhkar, settings.translit, settings.arSize].join('|');
+  const show = settings.adhkar && !!(it.ar || it.en); // hidden until the Hisn al-Muslim text has loaded
+  const sig = [dk.key, dk.i, dk.until, c, show, settings.translit, settings.arSize].join('|');
   if (sig === dkSig) return;
   dkSig = sig;
-  $('adhkar').hidden = !settings.adhkar;
+  $('adhkar').hidden = !show;
   $('adhkar').dataset.size = settings.arSize;
   $('dk-title').textContent = set.title;
   $('dk-when').textContent = dk.until != null ? `${set.when}, until ${fmt(dk.until)}` : set.when;
@@ -717,7 +720,7 @@ function renderAdhkar(nowMin) {
   $('dk-tr-toggle').textContent = settings.translit ? 'Hide transliteration' : 'Show transliteration';
   $('dk-tr-toggle').hidden = !it.tr;
   $('dk-listen').hidden = !AUDIO[dk.key];
-  $('dx-dhikr').hidden = !settings.adhkar;
+  $('dx-dhikr').hidden = !show;
   $('dx-ar').textContent = it.ar;
   $('dx-ar').hidden = !it.ar;
   $('dx-en').textContent = it.en;
@@ -904,6 +907,8 @@ syncMode();
 tick();
 updateLock();
 setInterval(tick, 1000);
+// the Today tab's duas are entries of Hisn al-Muslim, so their text comes from the same file as the Adhkar tab
+loadHisnText().then(fillSets).then(() => { dkSig = ''; tick(); }).catch((e) => console.warn('Iqama Times: adhkar text failed', e));
 sync();
 setInterval(sync, SYNC_EVERY);
 $('sync').addEventListener('click', async () => {

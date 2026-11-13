@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: node scripts/selfcheck.mjs
       - run: node scripts/fetch-hisn.mjs
+      - run: node scripts/selfcheck.mjs # again: the Today tab's duas must still point at the right entries in the new text
       - name: Commit if the text changed
         run: |
           git add iqama/hisn-text.json

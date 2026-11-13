@@ -1,0 +1,16 @@
+PrayTimes.js: Prayer Times Calculator (ver 2.3)
+Copyright (C) 2007-2011 PrayTimes.org
+Developer: Hamid Zarrabi-Zadeh
+https://praytimes.org/
+
+PrayTimes.js in this folder is a modified copy (as adapted in Adhan Clock, see ADHANCLOCK-LICENSE).
+It is licensed under the GNU Lesser General Public License, version 3:
+https://www.gnu.org/licenses/lgpl-3.0.txt
+which builds on the GNU General Public License, version 3:
+https://www.gnu.org/licenses/gpl-3.0.txt
+
+Terms of use from the original: permission is granted to use this code, with or without modification,
+in any website or application provided that credit is given to the original work with a link back to
+PrayTimes.org. This app gives that credit under Settings, About.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.

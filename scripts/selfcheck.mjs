@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
 import { normalizeItem, normalizeChapter, check, parseLoose, repairJson, parseChapterJson } from './fetch-hisn.mjs';
-import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass, clock, esc } from '../iqama/logic.js';
+import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass, clock, esc, beepWav } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -42,6 +42,13 @@ assert.equal(clock(new Date(Date.UTC(2026, 6, 15, 17)), 'America/New_York').offs
 assert.equal(clock(new Date(Date.UTC(2026, 0, 15, 17)), 'Asia/Kolkata').offset, 5.5);
 assert.deepEqual((({ y, m, d, weekday, sec }) => ({ y, m, d, weekday, sec }))(clock(new Date(Date.UTC(2026, 0, 15, 4, 30, 5)), 'America/New_York')),
   { y: 2026, m: 1, d: 14, weekday: 'Wed', sec: 23 * 3600 + 30 * 60 + 5 }, 'a time just before midnight UTC-5 is still the day before');
+{
+  // the generated beep is a valid WAV: right header and length, never clips, fades to silence
+  const w = beepWav(), v = new DataView(w.buffer), tag = (at) => String.fromCharCode(...w.slice(at, at + 4));
+  assert.deepEqual([tag(0), tag(8), tag(36), v.getUint32(24, true), v.getUint32(40, true)], ['RIFF', 'WAVE', 'data', 22050, w.length - 44]);
+  const samples = Array.from({ length: (w.length - 44) / 2 }, (_, i) => v.getInt16(44 + i * 2, true));
+  assert.ok(Math.max(...samples.map(Math.abs)) < 0.36 * 32767 && Math.abs(samples.at(-1)) < 0.05 * 32767, 'beep stays soft and ends quietly');
+}
 assert.equal(esc(`<a href="x">'&'</a>`), '&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;');
 assert.equal(parseHM('05:45'), 345);
 assert.equal(parseHM('25:00'), null);
@@ -218,7 +225,25 @@ assert.equal(at(18, 30), 'adhan', 'between Isha adhan and iqama');
 assert.equal(at(21, 0), 'sleep');
 assert.equal(at(3, 0), 'sleep');
 assert.equal(pickSet(600, day.map(r => ({ ...r, iqama: null })), 399, 'Tue').key, 'general', 'no iqama times set');
-for (const [k, s] of Object.entries(SETS)) for (const it of s.items) assert.ok(it.en && it.src && Number.isInteger(it.n), `adhkar entry in ${k} is complete`);
+// Today-tab duas point into hisn-text.json by chapter and entry. If the monthly copy ever reorders entries, this fails
+// (the workflow runs it again after fetching), so the card can never show the wrong dua.
+{
+  const { fillSets } = await import('../iqama/adhkar.js');
+  const { readFileSync } = await import('node:fs');
+  fillSets(JSON.parse(readFileSync(new URL('../iqama/hisn-text.json', import.meta.url), 'utf8')).chapters);
+  const bare = (s) => s.replace(/[ً-ٰٟۖ-ۭـؐ-ؚ]/g, '').replace(/[ٱأإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/\s+/g, ' ');
+  const KEY = {
+    '15.3': 'رب هذه الدعوة', '15.4': 'بين الاذان والاقامة', '25.0': 'انت السلام', '25.3': 'والحمد لله، والله اكبر', '25.5': 'الحي القيوم',
+    '27.3': 'اللهم بك اصبحنا', '27.11': 'لا يضر مع اسمه', '27.16': 'سبحان الله وبحمده', '27.18': 'وحده لا شريك له', '27.22': 'بكلمات الله التامات',
+    '27.9': 'العفو والعافية', '28.6': 'باسمك اللهم اموت', '28.1': 'الحي القيوم', '28.7': 'والله اكبر', '23.0': 'صل علي محمد', '23.1': 'صل علي محمد',
+    '24.2': 'ظلمت نفسي', '117.0': 'اتنا في الدنيا حسنة', '34.1': 'الهم والحزن', '130.2': 'كلمتان خفيفتان',
+  };
+  for (const [k, s] of Object.entries(SETS)) for (const it of s.items) {
+    const key = KEY[`${it.ch}.${it.i}`];
+    assert.ok(key, `adhkar ${k}: Hisn ${it.ch}.${it.i} has a key phrase in this check`);
+    assert.ok(bare(it.ar).includes(bare(key)) && it.en && it.src.startsWith(`Hisn al-Muslim, ch. ${it.ch}`), `adhkar ${k}: Hisn ${it.ch}.${it.i} is still the expected dua`);
+  }
+}
 // Hisn al-Muslim text: fields are matched by meaning, text is copied untouched, http audio links become https
 {
   const raw = { ID: 1, ARABIC_TEXT: ' \u0627\u0644\u062d\u0645\u062f ', LANGUAGE_ARABIC_TRANSLATED_TEXT: 'Alhamdu', TRANSLATED_TEXT: 'Praise be.', REPEAT: '3', AUDIO: 'http://www.hisnmuslim.com/audio/ar/1.mp3' };

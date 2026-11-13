@@ -1,6 +1,6 @@
 // The six clock styles. Each takes the same snapshot of the day and returns its markup; app.js redraws every second.
 // d = { sec, now (minutes, fractional), rows: [{ key, adhan, iqama }], sunrise, next: { key, kind, at }, jumuah: [minutes], date }
-import { NAMES, fmt, fmtSpan } from './logic.js';
+import { NAMES, fmt, fmtSpan, esc } from './logic.js';
 
 export const CLOCKS = { board: 'Masjid board', dial: '24-hour dial', analog: 'Analog clock face', sun: 'Sun path', timeline: 'Day timeline', bedside: 'Bedside, low glare' };
 
@@ -131,7 +131,7 @@ export function renderTimes(d) {
   const card = !k
     ? `<p class="tm-label">Current prayer</p><p class="tm-name">${NAMES[cur.key]}</p><p class="tm-pt"><span><span class="tm-k">Adhan</span><b>${fmt(cur.adhan)}</b></span><span><span class="tm-k">Iqama</span><b class="${d.next.kind === 'iqama' ? 'tm-hl' : ''}">${cur.iqama == null ? 'Not set' : fmt(cur.iqama)}</b></span></p>`
     : k.kind === 'dua'
-      ? `<p class="tm-label tm-lh"><span>${k.title}</span><span>${k.pos}</span></p><p class="tm-ar" lang="ar" dir="rtl">${k.item.ar}</p><p class="tm-en">${k.item.en}</p><p class="tm-src">${k.item.src} · tap: next</p>`
+      ? `<p class="tm-label tm-lh"><span>${k.title}</span><span>${k.pos}</span></p><p class="tm-ar" lang="ar" dir="rtl">${esc(k.item.ar)}</p><p class="tm-en">${esc(k.item.en)}</p><p class="tm-src">${esc(k.item.src)} · tap: next</p>`
       : `<p class="tm-label">Rest of today</p><ul class="tm-rest"><li class="tm-rh"><span></span><span>Adhan</span><span>Iqama</span></li>${left.map(r => `<li><span>${NAMES[r.key]}</span><span>${fmt(r.adhan)}</span><span>${r.iqama == null ? '–' : fmt(r.iqama)}</span></li>`).join('')}</ul>${jum}`;
   return `<div class="tm"><div class="tm-left"><p class="tm-time"><span class="tm-hm">${hm(m)}</span><span class="tm-side"><span>:${String(Math.floor(d.sec % 60)).padStart(2, '0')}</span><span>${ampm(m)}</span></span></p>${d.wx || ''}</div>`
     + `<div class="tm-right"><div class="tm-card"${k?.kind === 'dua' ? ' data-dua' : ''}>${card}</div>`

@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, fridayRows, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -149,7 +149,11 @@ function loadDay(c) {
 }
 
 const jumuahMins = () => (near() ? masjid.jumuah.map(parseHM).filter(v => v != null) : []);
-const jumuah = () => jumuahMins().map(fmt).join(', ');
+// Khutbah times to show: the visitor's own khutbah time (set under Jumu'ah alerts), else ISCJ's nearby, else none
+const shownJumuah = () => { const own = parseHM(settings.alerts.jumuah.time); return own != null ? [own] : jumuahMins(); };
+const jumuah = () => shownJumuah().map(fmt).join(', ');
+// Rows the clocks show: on a Friday with khutbah times, Dhuhr is shown as Jumu'ah
+const shownRows = () => fridayRows(day.rows, today.weekday, shownJumuah());
 
 function renderDay() {
   $('date').textContent = `${today.weekday}, ${MONTHS[today.m - 1]} ${today.d}`;
@@ -189,14 +193,14 @@ function tick() {
   if (tickedAt && nowMs - tickedAt > 100e3) logAlert({ gaps: [{ from: stamp(tickedAt), to: stamp(nowMs) }, ...alertLog.gaps].slice(0, 3) });
   tickedAt = nowMs;
   if (!today || c.d !== today.d) { const later = !!today; loadDay(c); if (later) sync(); return; }
-  const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrow.rows[0].adhan, nowMin, day.sunrise);
+  const nowMin = c.sec / 60, rows = shownRows(), ev = nextEvent(rows, tomorrow.rows[0].adhan, nowMin, day.sunrise);
   $('now').textContent = fmt(Math.floor(nowMin));
-  const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, jumuah: jumuahMins(), date: today.long });
+  const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, jumuah: shownJumuah(), date: today.long });
   $('clock').innerHTML = html;
   nowMinute = nowMin;
   if (displayOpen) {
     applyNight();
-    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows: day.rows, sunrise: day.sunrise, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats(), card: dxCardFor(nowMin), jumuah: jumuahMins(), friday: today.weekday === 'Fri' });
+    if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats(), card: dxCardFor(nowMin) });
     else {
       $('dx-clock').innerHTML = html;
       if (c.sec % 10 === 0) fitDisplay(); // re-fit after late font loads or a change in what the clock shows

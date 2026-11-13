@@ -76,6 +76,14 @@ export function nextEvent(rows, tomorrowFajrAdhan, nowMin, sunrise) {
   return { key: 'fajr', kind: 'adhan', at: tomorrowFajrAdhan + 1440 };
 }
 
+// On a Friday with known khutbah times (minutes), the Dhuhr row becomes Jumu'ah: it carries the khutbahs and
+// counts down to the first one in place of the Dhuhr iqama. Any other day, or no khutbah times, leaves rows as they are.
+export function fridayRows(rows, weekday, khutbahs) {
+  const k = (khutbahs || []).filter(v => v != null).sort((a, b) => a - b);
+  if (weekday !== 'Fri' || !k.length) return rows;
+  return rows.map(r => (r.key === 'dhuhr' ? { ...r, iqama: k[0], jumuah: k } : r));
+}
+
 // Which extra card the small full screen shows: 'morning' from sunrise to the Dhuhr adhan, 'evening' from the Maghrib adhan to the Isha adhan, else null.
 // rows: today's Fajr to Isha rows.
 export function cardWindow(nowMin, rows, sunrise) {

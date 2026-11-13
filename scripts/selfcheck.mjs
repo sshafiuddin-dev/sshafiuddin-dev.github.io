@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parse } from '../functions/_lib/parse.js';
 import { handle } from '../functions/api/iqama.js';
 import { normalizeItem, normalizeChapter, check, parseLoose, repairJson, parseChapterJson } from './fetch-hisn.mjs';
-import { PRAYERS, cardWindow, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass, clock, esc, beepWav, alertLogText } from '../iqama/logic.js';
+import { PRAYERS, cardWindow, fridayRows, outlook, dayName, parseHM, iqamaAt, fmt, fmtSpan, nextEvent, km, alertsBetween, cleanStep, weatherKind, dayKind, uvLevel, aqiLevel, compass, clock, esc, beepWav, alertLogText } from '../iqama/logic.js';
 
 // Page parser, against markup shaped like iscj.org's prayer times block
 const page = `<nav>Fajr Institute</nav><style>.x{}</style><div><span>Fajr</span><b>5:12 AM</b><i>Iqama</i> 5:45</div>
@@ -285,3 +285,15 @@ assert.equal(pickSet(600, day.map(r => ({ ...r, iqama: null })), 399, 'Tue').key
   assert.throws(() => parseChapterJson('{"no list here": 5'), 'a file with no list still fails');
 }
 console.log('selfcheck ok');
+
+// Friday: Dhuhr shows as Jumu'ah only when khutbah times are known, and counts down to the first khutbah
+{
+  const rows = PRAYERS.map((key, i) => ({ key, adhan: 300 + i * 180, iqama: 330 + i * 180 }));
+  assert.equal(fridayRows(rows, 'Thu', [720]), rows, 'not on other days');
+  assert.equal(fridayRows(rows, 'Fri', []), rows, 'not without khutbah times');
+  const f = fridayRows(rows, 'Fri', [790, 720]);
+  assert.deepEqual(f[1], { key: 'dhuhr', adhan: 480, iqama: 720, jumuah: [720, 790] });
+  assert.deepEqual(nextEvent(f, 300, 600, 400), { key: 'dhuhr', kind: 'iqama', at: 720 }, 'counts down to the first khutbah');
+  assert.equal(rows[1].iqama, 510, 'the day rows used for alerts are left alone');
+}
+console.log('friday ok');

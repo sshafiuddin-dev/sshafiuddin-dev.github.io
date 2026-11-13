@@ -18,7 +18,7 @@ Iqama Times (`/iqama`) shows the same list under Settings, About.
 | Book | *Hisn al-Muslim* (Fortress of the Muslim) by Saʿid ibn ʿAli ibn Wahf al-Qahtani | Adhkar tab, Today tab, full screen |
 | Arabic text, transliteration, English translation, repeat counts | [hisnmuslim.com](https://www.hisnmuslim.com/) ([index](https://www.hisnmuslim.com/api/en/husn_en.json)), copied unchanged into `iqama/hisn-text.json` by `scripts/fetch-hisn.mjs` | `iqama/hisn-text.json`, `iqama/adhkar.js` |
 | Arabic chapter and dua recordings | hisnmuslim.com, streamed from their site | `iqama/hisn.js`, `iqama/adhkar.js`, `iqama/app.js` |
-| Spoken Bismillah alert sound | hisnmuslim.com's recording of chapter 8, entry 1 (`audio/ar/12.mp3`), saved unchanged so it plays offline | `iqama/audio/bismillah.mp3` |
+| Spoken Bismillah alert sound | hisnmuslim.com's recording of chapter 8, entry 1 (`audio/ar/12.mp3`), saved unchanged so it plays offline; the app plays only 5.5–6.6 s, where "Bismillah" is said on its own | `iqama/audio/bismillah.mp3` |
 | Hadith and verse references beside Today-tab duas | Given in `iqama/adhkar.js` where known. Every dua also names its Hisn al-Muslim chapter. | `iqama/adhkar.js` |
 
 ### Adhan and alert sounds

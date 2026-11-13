@@ -19,8 +19,9 @@ const FAJR_ADHANS = { 'fajr-zahrani': 'Mansoor Az-Zahrani (3:26)', 'fajr-afasy':
 // What an alert can do: show a message only, play a short sound, or play an adhan recording (the default one from the pickers above, or a named one)
 const SOUNDS = { message: 'Message only', beep: 'Soft beep', bismillah: 'Bismillah, spoken', adhan: 'Adhan, your default recording' };
 const RECORDINGS = { ...ADHANS, ...FAJR_ADHANS };
-// The beep is made in the page. audio/bismillah.mp3 is hisnmuslim.com's recording of Hisn al-Muslim ch. 8 (before wudu), kept here so it plays offline.
-const SOUND_SRC = { beep: URL.createObjectURL(new Blob([beepWav()], { type: 'audio/wav' })) };
+// The beep is made in the page. audio/bismillah.mp3 is hisnmuslim.com's recording of Hisn al-Muslim ch. 8 (before wudu), kept here so it plays offline;
+// the recording says more, so only 5.5 to 6.6 s plays, where "Bismillah" is said on its own (the browser stops at the end of the range)
+const SOUND_SRC = { beep: URL.createObjectURL(new Blob([beepWav()], { type: 'audio/wav' })), bismillah: 'audio/bismillah.mp3#t=5.5,6.6' };
 const SOUND_KEYS = [...Object.keys(SOUNDS), ...Object.keys(RECORDINGS)];
 const soundName = (t) => t === 'adhan' ? 'Adhan recording' : SOUNDS[t] ? SOUNDS[t].split(',')[0] : `${RECORDINGS[t].replace(/ \(.*/, '')} adhan`;
 const ALERT_KEYS = [...PRAYERS, 'jumuah'];

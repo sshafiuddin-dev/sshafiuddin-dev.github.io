@@ -343,3 +343,12 @@ console.log('brightness ok');
   assert.deepEqual(cleanTune({ fajr: 2, dhuhr: 31, asr: 'x', isha: -3 }), { fajr: 2, dhuhr: 0, asr: 0, maghrib: 0, isha: -3 });
 }
 console.log('hijri and offsets ok');
+
+// The Hijri day can begin at the Maghrib adhan
+{
+  const { hijriNow } = await import('../iqama/logic.js');
+  assert.equal(hijriNow(2026, 2, 17, 0, true, 1000, 1060), '29 Shaban 1447', 'before Maghrib');
+  assert.equal(hijriNow(2026, 2, 17, 0, true, 1061, 1060), '1 Ramadan 1447', 'after Maghrib the evening is the next Hijri day');
+  assert.equal(hijriNow(2026, 2, 17, 0, false, 1061, 1060), '29 Shaban 1447', 'off: midnight');
+}
+console.log('hijri at maghrib ok');

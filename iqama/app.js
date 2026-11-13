@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, DIM_NAMES, isNight, dimLevel, hijri, cleanTune, parseHM, iqamaAt, fmt, nextEvent, fridayRows, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
+import { PRAYERS, NAMES, DIM_NAMES, isNight, dimLevel, hijriNow, cleanTune, parseHM, iqamaAt, fmt, nextEvent, fridayRows, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -29,7 +29,7 @@ const LOOKS = { paper: 'Printed timetable', hand: 'Handwritten', contrast: 'High
 const AUTO_DIM = ['isha', 'maghrib', 'off'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
-  tune: {}, hijriShift: 0, clock: 'board', look: 'paper', autoDim: 'isha', nightLevel: 2, level: 0, units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
+  tune: {}, hijriShift: 0, hijriMaghrib: false, clock: 'board', look: 'paper', autoDim: 'isha', nightLevel: 2, level: 0, units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
   adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxCard: 'rest',
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -57,6 +57,7 @@ for (const k of ['palette', 'mode', 'dxNight', 'dxAuto']) delete settings[k];
 if (!LOOKS[settings.look]) settings.look = DEFAULTS.look;
 settings.tune = cleanTune(settings.tune);
 if (![-2, -1, 0, 1, 2].includes(settings.hijriShift)) settings.hijriShift = 0;
+settings.hijriMaghrib = settings.hijriMaghrib === true;
 if (!AUTO_DIM.includes(settings.autoDim)) settings.autoDim = DEFAULTS.autoDim;
 if (![1, 2, 3].includes(settings.nightLevel)) settings.nightLevel = DEFAULTS.nightLevel;
 if (![0, 1, 2, 3].includes(settings.level)) settings.level = DEFAULTS.level;
@@ -158,6 +159,20 @@ function dayTimes(y, m, d) {
   };
 }
 
+// Hijri date for the top bar, the clock and full screen; with the Maghrib setting on it turns over at the Maghrib adhan
+function setHijri(nowMin) {
+  const h = hijriNow(today.y, today.m, today.d, settings.hijriShift, settings.hijriMaghrib, nowMin, day.rows[3].adhan);
+  if (h === today.hijri) return false;
+  today.hijri = h;
+  today.full = h ? `${today.long} · ${h}` : today.long;
+  return true;
+}
+function showHijri() {
+  $('dx-date').textContent = today.full;
+  $('hijri').textContent = today.hijri;
+  $('hijri').hidden = !today.hijri;
+}
+
 let today = null, day = null, tomorrow = null, lastSec = null, weather = null;
 
 function loadDay(c) {
@@ -167,8 +182,7 @@ function loadDay(c) {
   const n = new Date(Date.UTC(c.y, c.m - 1, c.d + 1));
   tomorrow = dayTimes(n.getUTCFullYear(), n.getUTCMonth() + 1, n.getUTCDate());
   today.long = new Intl.DateTimeFormat('en-US', { timeZone: place().zone, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
-  today.hijri = hijri(c.y, c.m, c.d, settings.hijriShift);
-  today.full = today.hijri ? `${today.long} · ${today.hijri}` : today.long;
+  setHijri(c.sec / 60);
   renderDay();
   renderWeather();
 }
@@ -202,9 +216,7 @@ function renderDay() {
       : `Iqama times from ISCJ${masjid.checked ? `, checked ${new Date(masjid.checked).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${masjid.stale ? ' (ISCJ did not answer, so this is the last copy)' : ''}` : uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
 
   jumuahNote();
-  $('dx-date').textContent = today.full;
-  $('hijri').textContent = today.hijri;
-  $('hijri').hidden = !today.hijri;
+  showHijri();
   $('dx-place').textContent = place().name;
   if (tab === 'month') { renderMonth(); $('tab-title').textContent = monthTitle(); }
   tick();
@@ -225,6 +237,7 @@ function tick() {
   const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, jumuah: shownJumuah(), date: today.full });
   $('clock').innerHTML = html;
   nowMinute = nowMin;
+  if (setHijri(nowMin)) showHijri();
   if (currentDim() !== shownDim) applyLook();
   if (displayOpen) {
     if (timesLayout()) $('dx-small').innerHTML = renderTimes({ sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, tomorrowFajr: tomorrow.rows[0], wx: wxStats(), card: dxCardFor(nowMin) });
@@ -669,6 +682,8 @@ $('tune-form').addEventListener('change', (e) => {
 $('tune-reset').addEventListener('click', () => { settings.tune = cleanTune({}); $('tune-form').querySelectorAll('input').forEach(i => { i.value = 0; }); recalc(); });
 $('hijri-shift').value = String(settings.hijriShift);
 $('hijri-shift').addEventListener('change', () => { settings.hijriShift = +$('hijri-shift').value; recalc(); });
+$('set-hijri-maghrib').checked = settings.hijriMaghrib;
+$('set-hijri-maghrib').addEventListener('change', () => { settings.hijriMaghrib = $('set-hijri-maghrib').checked; recalc(); });
 
 // Clock style and theme
 // decorative swatches: the theme's dark paper beside its accent

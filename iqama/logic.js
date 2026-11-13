@@ -85,7 +85,7 @@ export function fridayRows(rows, weekday, khutbahs) {
 }
 
 // Hijri date from the Umm al-Qura calendar built into the browser (no network), moved by `shift` days for local moon sighting.
-// The day turns at midnight, like the Gregorian date beside it.
+// The day turns at midnight, like the Gregorian date beside it; hijriNow can turn it at Maghrib instead.
 export const HIJRI_MONTHS = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Ula', 'Jumada al-Akhirah', 'Rajab', 'Shaban', 'Ramadan', 'Shawwal', 'Dhu al-Qadah', 'Dhu al-Hijjah'];
 let hijriFmt = null;
 export function hijri(y, m, d, shift = 0) {
@@ -98,6 +98,9 @@ export function hijri(y, m, d, shift = 0) {
     return `${hd} ${HIJRI_MONTHS[hm - 1]} ${hy}`;
   } catch (e) { return ''; } // a browser without the Islamic calendar shows no Hijri date rather than a wrong one
 }
+
+// The Hijri date to show now: with atMaghrib on, the Islamic day begins at the Maghrib adhan, so the evening shows tomorrow's date.
+export const hijriNow = (y, m, d, shift, atMaghrib, nowMin, maghrib) => hijri(y, m, d, shift + (atMaghrib && nowMin >= maghrib ? 1 : 0));
 
 // The visitor's own minutes added to each calculated adhan time; anything outside -30 to 30 is ignored.
 export const cleanTune = (t) => Object.fromEntries(PRAYERS.map(k => [k, Number.isInteger(t?.[k]) && Math.abs(t[k]) <= 30 ? t[k] : 0]));

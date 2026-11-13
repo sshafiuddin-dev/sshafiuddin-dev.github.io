@@ -253,3 +253,43 @@ body { font-feature-settings: "kern", "liga"; }
   #month td, #month tbody th { font-size: .88rem; }
   #month thead th { font-size: .62rem; letter-spacing: .04em; }
 }
+
+/* ---- Full screen, compact layout (touch screens under 800px, such as a 7-inch tablet) ---- */
+/* The same printed sheet: light serif numbers, ruled lines in place of a card, a thin ink rule for progress */
+.display[data-layout="times"] .dx-meta, .display .dx-meta { font-family: var(--display); font-style: italic; color: var(--muted); }
+.tm-time { font-weight: 400; }
+.tm-hm { font-family: var(--display); font-weight: 400; letter-spacing: -.03em; font-variant-numeric: lining-nums tabular-nums; }
+.tm-side { font-family: var(--display); font-weight: 400; }
+.tm-card { padding-inline: 0; padding-block: calc(var(--u) * 1.6) calc(var(--u) * 2); border-bottom: var(--rule-w) solid var(--line); }
+.tm-label { font-size: max(.8rem, calc(var(--u) * 1.8)); letter-spacing: .08em; text-transform: uppercase; }
+.tm-lh { text-transform: none; letter-spacing: 0; }
+.tm-name { font-family: var(--display); font-weight: 400; letter-spacing: -.01em; }
+.tm-k { font-size: max(.8rem, calc(var(--u) * 1.7)); letter-spacing: .07em; text-transform: uppercase; }
+.tm-pt b { font: 400 max(1.35rem, calc(var(--u) * 4.4))/1.1 var(--display); }
+.tm-pt b.tm-hl { color: var(--clear); }
+.tm-cnt { font-family: var(--display); font-weight: 400; color: var(--ink); letter-spacing: -.02em; }
+.tm-sub { font-family: var(--display); font-style: italic; }
+.tm-bar { height: 2px; min-height: 2px; border-radius: 0; background: var(--line); }
+.tm-bar span { border-radius: 0; background: var(--ink); }
+.tm-rest { gap: 0; }
+.tm-rest li { padding: calc(var(--u) * .7) 0; border-bottom: var(--rule-w) solid var(--line); }
+.tm-rest li:not(.tm-rh) span + span { font-family: var(--display); }
+.tm-rh { font-size: max(.8rem, calc(var(--u) * 1.7)); letter-spacing: .07em; text-transform: uppercase; }
+.tm-temp { font-family: var(--display); font-weight: 400; }
+.tm-st b, .tm-st > span:last-child { font-family: var(--display); }
+.tm-ar { font-family: var(--ar); }
+.tm-en { font-family: var(--display); }
+
+/* Handwritten: what is "written" (the prayer, its times, the rest of the day) in the hand; the live clock stays printed */
+:root[data-palette="hand"] .tm-name, :root[data-palette="hand"] .tm-pt b, :root[data-palette="hand"] .tm-rest li:not(.tm-rh) span { font-family: var(--hand); font-style: normal; }
+:root[data-palette="hand"] .tm-name { font-weight: 700; }
+:root[data-palette="hand"] .tm-card {
+  border: 0; padding-inline: calc(var(--u) * 3) calc(var(--u) * 1.5);
+  background:
+    linear-gradient(90deg, transparent calc(var(--u) * 1.8 - 1px), var(--margin) calc(var(--u) * 1.8 - 1px), var(--margin) calc(var(--u) * 1.8), transparent calc(var(--u) * 1.8)),
+    repeating-linear-gradient(transparent 0 calc(var(--u) * 4.2 - 1px), var(--line) calc(var(--u) * 4.2 - 1px) calc(var(--u) * 4.2)),
+    var(--surface);
+}
+
+/* Touch screens: a faint ink tint when something is tapped, in place of the browser's blue box */
+:root { -webkit-tap-highlight-color: color-mix(in srgb, var(--ink) 12%, transparent); }

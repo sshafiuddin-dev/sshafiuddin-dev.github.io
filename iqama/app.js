@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav } from './logic.js';
+import { PRAYERS, NAMES, parseHM, iqamaAt, fmt, nextEvent, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -100,6 +100,19 @@ const say = (text) => {
   if (text) toastTimer = setTimeout(() => $('status').classList.remove('show'), 5000);
 };
 
+// A short record under Settings, Adhan and alerts, so a missed alert can be explained: the last alert and what became of its message and sound,
+// the times this page's clock stopped (a sleeping or frozen tab skips alerts), and when the page started. Kept on this device.
+let alertLog = { last: null, gaps: [] }, tickedAt = 0;
+try { const j = JSON.parse(localStorage.getItem('iqama-alertlog') || '{}'); if (j && typeof j === 'object') alertLog = { last: j.last || null, gaps: Array.isArray(j.gaps) ? j.gaps : [] }; } catch (e) {}
+const stamp = (ms = Date.now()) => { const c = clock(new Date(ms), place().zone); return `${MONTHS[c.m - 1]} ${c.d}, ${fmt(c.sec / 60)}`; };
+const startedAt = stamp();
+const showAlertLog = () => { $('alert-log').textContent = alertLogText(alertLog, startedAt); };
+function logAlert(patch) {
+  alertLog = { ...alertLog, ...patch };
+  try { localStorage.setItem('iqama-alertlog', JSON.stringify(alertLog)); } catch (e) {}
+  showAlertLog();
+}
+
 // Back link only for visitors who came from the portfolio, never in the installed app
 try {
   const ref = new URL(document.referrer);
@@ -171,7 +184,10 @@ const khutbah = () => parseHM(settings.alerts.jumuah.time) ?? jumuahMins()[0] ??
 const alertRows = () => (today.weekday === 'Fri' && khutbah() != null ? [...day.rows, { key: 'jumuah', adhan: khutbah(), iqama: null }] : day.rows);
 
 function tick() {
-  const c = clock(new Date(), place().zone);
+  const c = clock(new Date(), place().zone), nowMs = Date.now();
+  // over 100 s since the last tick (alerts skip anything over 90 s late): the page was asleep, frozen or discarded
+  if (tickedAt && nowMs - tickedAt > 100e3) logAlert({ gaps: [{ from: stamp(tickedAt), to: stamp(nowMs) }, ...alertLog.gaps].slice(0, 3) });
+  tickedAt = nowMs;
   if (!today || c.d !== today.d) { const later = !!today; loadDay(c); if (later) sync(); return; }
   const nowMin = c.sec / 60, ev = nextEvent(day.rows, tomorrow.rows[0].adhan, nowMin, day.sunrise);
   $('now').textContent = fmt(Math.floor(nowMin));
@@ -311,16 +327,19 @@ function play(file, label) {
   audio.muted = false;
   audio.src = SOUND_SRC[file] || (/^https:/.test(file) ? file : `audio/${file}.mp3`);
   audio.addEventListener('playing', syncSound, { once: true });
-  audio.play().then(markUnlocked, (err) => {
+  const outcome = (r) => { if (label) logAlert({ last: { ...alertLog.last, result: `message shown, ${r}` } }); };
+  audio.play().then(() => { markUnlocked(); outcome('sound played'); }, (err) => {
     if (err && err.name === 'AbortError') return; // another sound took over
     if (err && err.name === 'NotAllowedError') {
       soundLocked = true;
       pending = { file, label, at: Date.now() };
       say('Sound is blocked until you tap the page. Tap anywhere to turn it on.');
+      outcome('sound blocked until the page is tapped');
       soundOver();
     } else {
       console.warn('Iqama Times: the sound could not play', err);
       say('The sound could not play.');
+      outcome('sound could not play');
       soundOver();
     }
   });
@@ -476,15 +495,17 @@ const MESSAGES = {
   iqama: (n, m) => `${n} iqama in ${m} minutes.`,
 };
 function fire({ kind, key, type, min }) {
-  if (settings.muted) return;
-  const text = MESSAGES[kind](key === 'jumuah' ? 'Jumu’ah' : NAMES[key], min, key);
+  const name = key === 'jumuah' ? 'Jumu’ah' : NAMES[key], label = kind === 'adhan' ? `${name} adhan` : `${name} alert`;
+  const note = (result) => logAlert({ last: { what: label, when: stamp(), result } });
+  if (settings.muted) return note('skipped, alerts are off');
+  const text = MESSAGES[kind](name, min, key);
   say(text);
   if (document.hidden) notify(text);
-  const name = key === 'jumuah' ? 'Jumu’ah' : NAMES[key], label = kind === 'adhan' ? `${name} adhan` : `${name} alert`;
+  note('message shown'); // play() adds what became of the sound
   // a recording takes over whatever is playing; a short sound waits its turn rather than cut an adhan off
   if (type === 'adhan') play(key === 'fajr' ? settings.fajrAdhan : settings.adhan, label);
   else if (RECORDINGS[type]) play(type, label);
-  else if ((type === 'beep' || type === 'bismillah') && !playing()) play(type, label);
+  else if (type === 'beep' || type === 'bismillah') { if (!playing()) play(type, label); else note('message shown, sound skipped because another sound was playing'); }
 }
 
 // Your own iqama times; the first choice is ISCJ near the masjid and "Not set" elsewhere
@@ -905,6 +926,7 @@ save();
 route();
 buildForm();
 buildAlerts();
+showAlertLog();
 syncSound();
 syncMode();
 tick();

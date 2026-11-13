@@ -26,7 +26,20 @@ export function beepWav(rate = 22050, sec = 0.45, hz = 880) {
   return new Uint8Array(v.buffer);
 }
 
-export const esc =(t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// The text under Settings, Adhan and alerts that explains a missed alert, from what the page saved on this device:
+// log = { last: { what, when, result }, gaps: [{ from, to }] }, started = when this page started. Anything malformed is ignored.
+export function alertLogText(log, started) {
+  const txt = (v) => String(v ?? '').slice(0, 80);
+  const last = log && log.last && typeof log.last === 'object' ? log.last : null;
+  const gaps = (Array.isArray(log && log.gaps) ? log.gaps : []).filter(g => g && g.from && g.to).slice(0, 3);
+  return [
+    last ? `Last alert: ${txt(last.what)}, ${txt(last.when)}: ${txt(last.result)}.` : 'No alert has gone off on this device yet.',
+    gaps.length ? `This page’s clock stopped, so alerts in between were skipped: ${gaps.map(g => `${txt(g.from)} to ${txt(g.to)}`).join('; ')}.` : '',
+    started ? `This page started ${txt(started)}.` : '',
+  ].filter(Boolean).join('\n');
+}
+
+export const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export function parseHM(s) {
   const m = /^(\d{1,2}):(\d{2})$/.exec(s);

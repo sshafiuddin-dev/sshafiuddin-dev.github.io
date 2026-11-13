@@ -419,3 +419,26 @@ console.log('masjid api ok');
   assert.equal(merge(b, { iscj: { iqama: { fajr: '05:45' }, jumuah: ['12:00'] }, nbic: new Error('x') }, '2026-11-15'), null, 'unchanged: no rewrite');
 }
 console.log('nightly copy ok');
+
+// More masjids: ICEB (labelled adhan and iqamah, Jumu'ah from its khutbah lines) and two more Masjidal widgets
+{
+  const { parseLabelled, parseMasjidal, readSource } = await import('../functions/_lib/parse.js');
+  const { masjidById } = await import('../iqama/masjids.js');
+  // ICEB (icebnj.net), as its home page reads: a Jumu'ah block near the top, the day's times further down
+  const iceb = `<h2>Jumma&#8217; Salaat Timings</h2><h3>First Jummah</h3><p>English Bayan: 12:00 pm</p><p>Khutbah: 12:25 pm</p><p>Iqamah: 12:30 pm</p>
+    <h3>Second Jummah</h3><p>English Bayan: 1:00 pm</p><p>Khutbah: 1:25 pm</p><p>Iqamah: 1:30 pm</p><a>Donate</a>
+    <div>Fajr</div><div>5:23 AM</div><div>Iqamah: 5:45 AM</div><div>Zuhr</div><div>11:42 AM</div><div>Iqamah: 1:30 PM</div><div>Asr</div><div>3:02 PM</div><div>Iqamah: 3:30 PM</div>
+    <div>Magrib</div><div>4:42 PM</div><div>Iqamah: 4:47 PM</div><div>Isha</div><div>6:00 PM</div><div>Iqamah: 8:00 PM</div>
+    <div>Jummah 1 / 2</div><div>12:00 PM / 1:00 PM</div><div>Iqamah: 12:30 PM / 1:30 PM</div><h2>Up-Coming Events</h2><p>November 13, 2026 7:30 pm</p>`;
+  assert.deepEqual(parseLabelled(iceb), { iqama: { fajr: '05:45', dhuhr: '13:30', asr: '15:30', maghrib: '16:47', isha: '20:00' }, jumuah: ['12:25', '13:25'] });
+  assert.deepEqual(readSource(masjidById('iceb').source, iceb).jumuah, ['12:25', '13:25']);
+  const plain = iceb.slice(iceb.indexOf('<div>Fajr</div>')); // a page with no khutbah lines: the times after "Jummah"
+  assert.deepEqual(parseLabelled(plain).jumuah, ['12:00', '13:00'], 'the start times, not the iqamah times after them');
+  // MAS Youth Center and ICSR: Masjidal widgets with the same 13 cells a day (their 13 November rows)
+  const row = (v) => `<tr>${v.map(x => `<td class="regCell"> <span>${x} </span></td>`).join('')}</tr>`;
+  const masyc = row([13, 3, 'FRI', '5:24', '5:45', '6:42', '11:42', '12:15', '2:21', '2:30', '4:42', '6:00', '8:00']) + '<td class="jumuah">12:15 PM</td><td class="jumuah">1:15 PM</td>';
+  assert.deepEqual(parseMasjidal(masyc, '2026-11-13'), { iqama: { fajr: '05:45', dhuhr: '12:15', asr: '14:30', isha: '20:00' }, jumuah: ['12:15', '13:15'] });
+  const icsr = row([13, 3, 'FRI', '5:23', '5:45', '6:41', '11:42', '1:15', '2:21', '3:00', '4:42', '6:00', '7:30']) + '<td class="jumuah">1:20 PM</td>';
+  assert.deepEqual(parseMasjidal(icsr, '2026-11-13'), { iqama: { fajr: '05:45', dhuhr: '13:15', asr: '15:00', isha: '19:30' }, jumuah: ['13:20'] });
+}
+console.log('more masjids ok');

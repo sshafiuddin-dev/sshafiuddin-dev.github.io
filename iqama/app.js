@@ -652,7 +652,7 @@ function showMasjid() {
   $('masjid-note').textContent = !m ? 'No masjid: set your own iqama times below.'
     : `${m.full}, ${m.town}. Iqama and Jumu’ah times are read from its website and used within 40 km (25 miles) of it.`;
 }
-$('masjid-pick').innerHTML = MASJIDS.map(m => `<option value="${m.id}">${m.name} · ${m.town}</option>`).join('') + '<option value="">None, I set my own times</option>';
+$('masjid-pick').innerHTML = [...MASJIDS].sort((a, b) => a.name.localeCompare(b.name)).map(m => `<option value="${m.id}">${m.name} · ${m.town}</option>`).join('') + '<option value="">None, I set my own times</option>';
 $('masjid-pick').value = settings.masjid;
 $('masjid-pick').addEventListener('change', () => {
   settings.masjid = $('masjid-pick').value;

@@ -84,6 +84,24 @@ export function fridayRows(rows, weekday, khutbahs) {
   return rows.map(r => (r.key === 'dhuhr' ? { ...r, iqama: k[0], jumuah: k } : r));
 }
 
+// Hijri date from the Umm al-Qura calendar built into the browser (no network), moved by `shift` days for local moon sighting.
+// The day turns at midnight, like the Gregorian date beside it.
+export const HIJRI_MONTHS = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Ula', 'Jumada al-Akhirah', 'Rajab', 'Shaban', 'Ramadan', 'Shawwal', 'Dhu al-Qadah', 'Dhu al-Hijjah'];
+let hijriFmt = null;
+export function hijri(y, m, d, shift = 0) {
+  try {
+    hijriFmt ||= new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { timeZone: 'UTC', day: 'numeric', month: 'numeric', year: 'numeric' });
+    const parts = {};
+    for (const { type, value } of hijriFmt.formatToParts(new Date(Date.UTC(y, m - 1, d + shift, 12)))) parts[type] = value;
+    const hm = parseInt(parts.month, 10), hy = parseInt(parts.year, 10), hd = parseInt(parts.day, 10);
+    if (!(hm >= 1 && hm <= 12 && hd >= 1 && hd <= 30 && hy > 1300)) return '';
+    return `${hd} ${HIJRI_MONTHS[hm - 1]} ${hy}`;
+  } catch (e) { return ''; } // a browser without the Islamic calendar shows no Hijri date rather than a wrong one
+}
+
+// The visitor's own minutes added to each calculated adhan time; anything outside -30 to 30 is ignored.
+export const cleanTune = (t) => Object.fromEntries(PRAYERS.map(k => [k, Number.isInteger(t?.[k]) && Math.abs(t[k]) <= 30 ? t[k] : 0]));
+
 // Brightness. Level 0 is bright paper; 1 soft, 2 dim and 3 darkest are the night levels.
 export const DIM_NAMES = ['Bright', 'Soft', 'Dim', 'Darkest'];
 // Night for automatic dimming: from the Isha (or Maghrib) adhan until sunrise. from 'off' is never night.

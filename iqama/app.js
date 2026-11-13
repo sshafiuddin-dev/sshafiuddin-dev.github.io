@@ -1,6 +1,6 @@
 import PrayTimes from './lib/PrayTimes.js';
 import { CalculationMethods } from './lib/CalculationMethods.js';
-import { PRAYERS, NAMES, DIM_NAMES, isNight, dimLevel, parseHM, iqamaAt, fmt, nextEvent, fridayRows, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
+import { PRAYERS, NAMES, DIM_NAMES, isNight, dimLevel, hijri, cleanTune, parseHM, iqamaAt, fmt, nextEvent, fridayRows, km, alertsBetween, cleanStep, outlook, cardWindow, clock, esc, beepWav, alertLogText } from './logic.js';
 import { setSky, redrawSky } from './sky.js';
 import { CLOCKS, renderClock, renderTimes } from './clocks.js';
 import { fetchWeather, weatherHtml } from './weather.js';
@@ -29,7 +29,7 @@ const LOOKS = { paper: 'Printed timetable', hand: 'Handwritten', contrast: 'High
 const AUTO_DIM = ['isha', 'maghrib', 'off'];
 const DEFAULTS = {
   method: 'ISNA', asr: 'Standard', place: null, asked: false, iqama: {}, adhan: 'makkah', fajrAdhan: 'fajr-zahrani', muted: false, alerts: null,
-  clock: 'board', look: 'paper', autoDim: 'isha', nightLevel: 2, level: 0, units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
+  tune: {}, hijriShift: 0, clock: 'board', look: 'paper', autoDim: 'isha', nightLevel: 2, level: 0, units: /-US$/i.test(navigator.language || '') ? 'F' : 'C',
   adhkar: true, translit: true, arSize: 'm', awake: false, dxLayout: 'auto', dxCard: 'rest',
 };
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -55,6 +55,8 @@ if (settings.palette !== undefined && settings.look === DEFAULTS.look) {
 }
 for (const k of ['palette', 'mode', 'dxNight', 'dxAuto']) delete settings[k];
 if (!LOOKS[settings.look]) settings.look = DEFAULTS.look;
+settings.tune = cleanTune(settings.tune);
+if (![-2, -1, 0, 1, 2].includes(settings.hijriShift)) settings.hijriShift = 0;
 if (!AUTO_DIM.includes(settings.autoDim)) settings.autoDim = DEFAULTS.autoDim;
 if (![1, 2, 3].includes(settings.nightLevel)) settings.nightLevel = DEFAULTS.nightLevel;
 if (![0, 1, 2, 3].includes(settings.level)) settings.level = DEFAULTS.level;
@@ -146,7 +148,7 @@ function dayTimes(y, m, d) {
   pt.adjust({ asr: settings.asr === 'Hanafi' ? 'Hanafi' : 'Standard' });
   // shortcut: one UTC offset per day (taken at midday), so times before 2 AM on a clock-change day are an hour off
   const t = pt.getTimes([y, m, d], [lat, lng], clock(new Date(Date.UTC(y, m - 1, d, 17)), zone).offset, 0, 'Float');
-  const min = (k) => Math.round(t[k] * 60);
+  const min = (k) => Math.round(t[k] * 60) + (settings.tune[k] || 0); // the visitor's own adjustment, Settings, Location
   return {
     sunrise: min('sunrise'),
     rows: PRAYERS.map(key => {
@@ -165,6 +167,8 @@ function loadDay(c) {
   const n = new Date(Date.UTC(c.y, c.m - 1, c.d + 1));
   tomorrow = dayTimes(n.getUTCFullYear(), n.getUTCMonth() + 1, n.getUTCDate());
   today.long = new Intl.DateTimeFormat('en-US', { timeZone: place().zone, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
+  today.hijri = hijri(c.y, c.m, c.d, settings.hijriShift);
+  today.full = today.hijri ? `${today.long} · ${today.hijri}` : today.long;
   renderDay();
   renderWeather();
 }
@@ -198,7 +202,9 @@ function renderDay() {
       : `Iqama times from ISCJ${masjid.checked ? `, checked ${new Date(masjid.checked).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${masjid.stale ? ' (ISCJ did not answer, so this is the last copy)' : ''}` : uy ? `, last changed ${MONTHS[um - 1]} ${+ud}, ${uy}` : ''}.${mine}`;
 
   jumuahNote();
-  $('dx-date').textContent = today.long;
+  $('dx-date').textContent = today.full;
+  $('hijri').textContent = today.hijri;
+  $('hijri').hidden = !today.hijri;
   $('dx-place').textContent = place().name;
   if (tab === 'month') { renderMonth(); $('tab-title').textContent = monthTitle(); }
   tick();
@@ -216,7 +222,7 @@ function tick() {
   if (!today || c.d !== today.d) { const later = !!today; loadDay(c); if (later) sync(); return; }
   const nowMin = c.sec / 60, rows = shownRows(), ev = nextEvent(rows, tomorrow.rows[0].adhan, nowMin, day.sunrise);
   $('now').textContent = fmt(Math.floor(nowMin));
-  const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, jumuah: shownJumuah(), date: today.long });
+  const html = renderClock(settings.clock, { sec: c.sec, now: nowMin, rows, sunrise: day.sunrise, next: ev, jumuah: shownJumuah(), date: today.full });
   $('clock').innerHTML = html;
   nowMinute = nowMin;
   if (currentDim() !== shownDim) applyLook();
@@ -650,6 +656,19 @@ $('asr').value = settings.asr === 'Hanafi' ? 'Hanafi' : 'Standard';
 const recalc = () => { save(); today = null; tick(); };
 $('method').addEventListener('change', () => { settings.method = $('method').value; recalc(); });
 $('asr').addEventListener('change', () => { settings.asr = $('asr').value; recalc(); });
+// Adhan time offsets and the Hijri day shift
+$('tune-form').innerHTML = PRAYERS.map(k => `<label class="tune-row"><span>${NAMES[k]}</span><input class="d-input d-input-sm" type="number" inputmode="numeric" min="-30" max="30" step="1" data-k="${k}" value="${settings.tune[k]}" aria-label="${NAMES[k]} adhan, minutes earlier or later"><small>min</small></label>`).join('');
+$('tune-form').addEventListener('submit', (e) => e.preventDefault());
+$('tune-form').addEventListener('change', (e) => {
+  const k = e.target.dataset.k, v = Math.round(+e.target.value);
+  if (!k) return;
+  settings.tune = cleanTune({ ...settings.tune, [k]: Number.isFinite(v) ? Math.max(-30, Math.min(30, v)) : 0 });
+  e.target.value = settings.tune[k];
+  recalc();
+});
+$('tune-reset').addEventListener('click', () => { settings.tune = cleanTune({}); $('tune-form').querySelectorAll('input').forEach(i => { i.value = 0; }); recalc(); });
+$('hijri-shift').value = String(settings.hijriShift);
+$('hijri-shift').addEventListener('change', () => { settings.hijriShift = +$('hijri-shift').value; recalc(); });
 
 // Clock style and theme
 // decorative swatches: the theme's dark paper beside its accent

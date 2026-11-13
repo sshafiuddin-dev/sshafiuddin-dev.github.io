@@ -137,3 +137,32 @@ body { font-feature-settings: "kern", "liga"; }
 :root[data-palette="hand"] #today td, :root[data-palette="hand"] #today th, :root[data-palette="hand"] .tm-rest li span { font-family: var(--hand); font-size: 1.1em; }
 :root[data-palette="hand"] .topbar h1 { font-family: var(--hand); font-weight: 700; }
 :root[data-palette="hand"] [lang="ar"] { font-family: var(--ar); }
+
+/* Hijri date beside the Gregorian one */
+.iq-hijri { font-family: var(--display); font-style: italic; color: var(--muted); }
+
+/* Adhan offsets: one short row per prayer */
+.tune-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: .5rem 1.25rem; width: 100%; max-width: 40rem; }
+.tune-row { display: flex; align-items: center; gap: .5rem; }
+.tune-row span { min-width: 4.2rem; font-weight: 500; }
+.tune-row input { width: 4.5rem; text-align: right; font-variant-numeric: tabular-nums; }
+.tune-row small { color: var(--muted); }
+
+/* The last 15 minutes before an adhan or iqama: the countdown is marked with a highlighter that flashes once a second.
+   The numbers stay dark on the mark and keep the page colour between flashes, so they can always be read. */
+:root { --alert: #F2CF3A; --alert-ink: #1C1914; }
+:root[data-dim="1"] { --alert: #DDB92C; }
+:root[data-dim="2"] { --alert: #E3B53B; --alert-ink: #1D1A16; }
+:root[data-dim="3"] { --alert: #9C7420; --alert-ink: #000000; }
+:root[data-palette="contrast"] { --alert: #FFD000; --alert-ink: #000000; }
+:root[data-palette="contrast"][data-dim="2"], :root[data-palette="contrast"][data-dim="3"] { --alert: #FF9F1C; }
+@keyframes ck-mark { 0%, 49% { background-color: var(--alert); color: var(--alert-ink); } 50%, 100% { background-color: transparent; } }
+:root .ck-blink { display: inline-block; opacity: 1; padding: .02em .22em; margin: -.02em -.22em; border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; animation: ck-mark 1s infinite; }
+@media (prefers-reduced-motion: reduce) { :root .ck-blink { animation: none; background-color: var(--alert); color: var(--alert-ink); } }
+
+/* Keep the top bar to one row on a tablet: the date line wraps under itself instead of pushing the buttons down */
+@media (min-width: 48.01rem) {
+  .topbar { flex-wrap: nowrap; align-items: flex-start; }
+  .topbar-title { flex: 1 1 auto; }
+  .topbar-actions { flex: none; flex-wrap: nowrap; }
+}

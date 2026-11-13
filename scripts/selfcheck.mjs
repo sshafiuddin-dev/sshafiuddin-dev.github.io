@@ -333,3 +333,13 @@ console.log('csp reports ok');
   assert.equal(dimLevel({ ...s, autoDim: 'off' }, true), 1, 'with auto off the level stays where it is set');
 }
 console.log('brightness ok');
+
+// Hijri date (Umm al-Qura) with a day shift, and adhan offsets
+{
+  const { hijri, cleanTune } = await import('../iqama/logic.js');
+  assert.equal(hijri(2026, 2, 18), '1 Ramadan 1447');
+  assert.equal(hijri(2026, 2, 18, -1), '29 Shaban 1447'); // Shaban 1447 has 29 days in Umm al-Qura
+  assert.equal(hijri(2026, 3, 20), '1 Shawwal 1447');
+  assert.deepEqual(cleanTune({ fajr: 2, dhuhr: 31, asr: 'x', isha: -3 }), { fajr: 2, dhuhr: 0, asr: 0, maghrib: 0, isha: -3 });
+}
+console.log('hijri and offsets ok');

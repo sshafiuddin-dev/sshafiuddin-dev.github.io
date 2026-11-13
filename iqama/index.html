@@ -36,6 +36,7 @@
                     <h1 id="tab-title">Today</h1>
                     <p class="topbar-meta">
                         <span class="iq-date" id="date"></span>
+                        <span class="iq-hijri" id="hijri" hidden></span>
                         <span class="iq-place"><span id="place"></span> <button class="link-btn" type="button" id="change-place">Change</button></span>
                         <span class="iq-time" id="now"></span>
                         <button class="link-btn iq-weather" type="button" id="weather" hidden></button>
@@ -175,6 +176,19 @@
                         <label for="asr">Asr</label>
                         <select class="d-select" id="asr"><option value="Standard">Standard</option><option value="Hanafi">Hanafi (later Asr)</option></select>
                     </div>
+                    <div class="set-group">
+                        <span class="iq-label" id="lbl-tune">Adjust adhan times</span>
+                        <p class="iq-note">Add or take away minutes if your masjid's adhan times differ from the calculation. Use a minus sign for earlier, up to 30 minutes either way.</p>
+                        <form class="tune-form" id="tune-form" aria-labelledby="lbl-tune"></form>
+                        <button class="d-btn d-btn-sm" type="button" id="tune-reset">Reset all to 0</button>
+                    </div>
+                    <div class="iq-fields">
+                        <label for="hijri-shift">Hijri date</label>
+                        <select class="d-select" id="hijri-shift">
+                            <option value="-2">2 days earlier</option><option value="-1">1 day earlier</option><option value="0">Umm al-Qura calendar</option><option value="1">1 day later</option><option value="2">2 days later</option>
+                        </select>
+                    </div>
+                    <p class="iq-note">Move the Hijri date a day if the local moon sighting differs from the Umm al-Qura calendar.</p>
                 </section>
 
                 <section class="sub-pane" id="sub-iqama" role="tabpanel" aria-labelledby="st-iqama" hidden>

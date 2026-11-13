@@ -1,0 +1,26 @@
+# Security headers for every page on sshafiuddin.pages.dev (Cloudflare Pages reads this file; GitHub Pages ignores it).
+#
+# Content-Security-Policy is in REPORT-ONLY mode: browsers log what it would block, to the console and to /api/csp-report
+# (Cloudflare dashboard: Workers & Pages, sshafiuddin, Functions, Real-time logs), but block nothing yet.
+# Once a few days pass with no unexpected reports, rename the header to Content-Security-Policy to enforce it.
+#
+# What the policy allows, and why:
+#   script-src   only this site's own files (all inline scripts were moved to boot.js and formspree-init.js), plus the
+#                Cloudflare Web Analytics beacon in case analytics is switched on for the project
+#   style-src    this site, Google Fonts' stylesheet, and inline styles: the clocks, progress bars and letter animations set
+#                style="" in markup they build, and the Formspree script adds a small <style>. Scripts stay strict.
+#   font-src     Google Fonts' files
+#   media-src    the adhan recordings here, the generated alert beep (blob:), mp3quran.net recitations, hisnmuslim.com duas
+#   connect-src  /api/iqama here, Formspree (contact form), Open-Meteo (weather, air quality, place search), the mp3quran.net
+#                reciter list, and the Cloudflare analytics beacon
+#   form-action  the contact form posts to Formspree if its script has not loaded
+#   frame-ancestors 'none'  no other site may show these pages in a frame (clickjacking)
+/*
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' blob: https://mp3quran.net https://*.mp3quran.net https://www.hisnmuslim.com; connect-src 'self' https://formspree.io https://*.open-meteo.com https://mp3quran.net https://cloudflareinsights.com; manifest-src 'self'; worker-src 'self'; form-action 'self' https://formspree.io; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests; report-uri /api/csp-report; report-to csp
+  Reporting-Endpoints: csp="/api/csp-report"
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), payment=(), usb=(), serial=(), hid=(), midi=(), geolocation=(self), fullscreen=(self), screen-wake-lock=(self)
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000

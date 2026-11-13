@@ -21,7 +21,8 @@ export async function handle(url, cache, get, now = Date.now()) {
     return json(fresh, 200, { 'cache-control': 'public, max-age=60' });
   } catch (e) {
     if (saved) return json({ ...saved, stale: true }, 200, { 'cache-control': 'no-store' });
-    return json({ error: String(e.message || e) }, 502, { 'cache-control': 'no-store' });
+    console.error('iqama: no copy and iscj.org failed:', e); // the detail goes to the Worker log, not to visitors
+    return json({ error: 'ISCJ iqama times are not available right now.' }, 502, { 'cache-control': 'no-store' });
   }
 }
 

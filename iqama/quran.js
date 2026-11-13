@@ -348,7 +348,7 @@ export function initQuran({ say, stopOthers }) {
   function openAdd(track, name) {
     const rowsHtml = store.lists.map(l => {
       const has = l.tracks.includes(track);
-      return `<li><button class="qp-pick" type="button" data-d="pick" data-id="${l.id}"${has ? ' disabled' : ''}><b>${esc(l.name)}</b><small>${has ? 'Already in this playlist' : count(l.tracks.length, 'surah')}</small></button></li>`;
+      return `<li><button class="qp-pick" type="button" data-d="pick" data-id="${esc(l.id)}"${has ? ' disabled' : ''}><b>${esc(l.name)}</b><small>${has ? 'Already in this playlist' : count(l.tracks.length, 'surah')}</small></button></li>`;
     }).join('');
     showDlg(`<h3 id="qp-dlg-h">Add to a playlist</h3><p class="qp-dlg-sub">${esc(name)}</p>`
       + (rowsHtml ? `<ul class="qp-picks">${rowsHtml}</ul>` : '<p class="iq-note">You have no playlists yet. Name one below.</p>')
@@ -359,14 +359,14 @@ export function initQuran({ say, stopOthers }) {
   function openName(id) {
     const l = id && listById(id);
     showDlg(`<h3 id="qp-dlg-h">${l ? 'Rename playlist' : 'New playlist'}</h3>`
-      + `<form class="qp-form" data-d="${l ? 'rename' : 'create'}" data-id="${l ? l.id : ''}"><input class="d-input" name="name" maxlength="40" value="${l ? esc(l.name) : ''}" placeholder="Playlist name" aria-label="Playlist name" autocomplete="off"><button class="d-btn d-btn-primary" type="submit">Save</button></form>`
+      + `<form class="qp-form" data-d="${l ? 'rename' : 'create'}" data-id="${l ? esc(l.id) : ''}"><input class="d-input" name="name" maxlength="40" value="${l ? esc(l.name) : ''}" placeholder="Playlist name" aria-label="Playlist name" autocomplete="off"><button class="d-btn d-btn-primary" type="submit">Save</button></form>`
       + '<div class="qp-dlg-foot"><button class="d-btn d-btn-ghost" type="button" data-d="cancel">Cancel</button></div>', 'input');
   }
   function openDelete(id) {
     const l = listById(id);
     if (!l) return;
     showDlg(`<h3 id="qp-dlg-h">Delete “${esc(l.name)}”?</h3><p class="qp-dlg-sub">This removes the playlist and its list of ${count(l.tracks.length, 'surah')} from this device. It cannot be undone.</p>`
-      + `<div class="qp-dlg-foot"><button class="d-btn d-btn-ghost" type="button" data-d="cancel">Keep it</button><button class="d-btn d-btn-error" type="button" data-d="delete" data-id="${l.id}">Delete playlist</button></div>`, '[data-d="cancel"]');
+      + `<div class="qp-dlg-foot"><button class="d-btn d-btn-ghost" type="button" data-d="cancel">Keep it</button><button class="d-btn d-btn-error" type="button" data-d="delete" data-id="${esc(l.id)}">Delete playlist</button></div>`, '[data-d="cancel"]');
   }
   dlg.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-d]');
@@ -437,7 +437,7 @@ export function initQuran({ say, stopOthers }) {
         + `<h3 class="qp-h">Surahs</h3>${ts.length ? `<ul class="qp-rows">${ts.map(i => trackRow(i.id, i.n, i.title, sub(i))).join('')}</ul>` : empty('Tap the heart beside a surah, or in the player, to keep it here.')}`;
     } else {
       html = `<button class="d-btn d-btn-primary qp-new" type="button" data-act="new-list">New playlist</button>`
-        + (store.lists.length ? `<ul class="qp-rows">${store.lists.map(l => `<li class="qp-row${detail?.type === 'list' && detail.id === l.id ? ' is-open' : ''}">${main('open-list', `data-id="${l.id}"`, null, l.name, count(l.tracks.length, 'surah'))}</li>`).join('')}</ul>`
+        + (store.lists.length ? `<ul class="qp-rows">${store.lists.map(l => `<li class="qp-row${detail?.type === 'list' && detail.id === l.id ? ' is-open' : ''}">${main('open-list', `data-id="${esc(l.id)}"`, null, l.name, count(l.tracks.length, 'surah'))}</li>`).join('')}</ul>`
           : empty('A playlist is your own list of surahs, from any reciters, in the order you choose.'));
     }
     listEl.innerHTML = html;

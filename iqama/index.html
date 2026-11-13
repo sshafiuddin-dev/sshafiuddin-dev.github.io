@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>if (location.hostname.endsWith('.github.io')) location.replace('https://sshafiuddin.pages.dev' + location.pathname + location.search + location.hash);</script>
+<script src="boot.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Iqama Times</title>
     <meta name="description" content="Prayer and iqama times with a live clock, adhkar, adhan and alerts for each prayer, and local weather. ISCJ iqama times near the masjid, your own times anywhere else.">
     <meta name="theme-color" content="#0B2A33">
-    <!-- apply the saved theme and clock style before first paint -->
-    <script>try{var s=JSON.parse(localStorage.getItem('iqama-settings')||'{}'),d=document.documentElement,m=s.mode||'auto';d.dataset.palette=s.palette||'petrol';d.dataset.clock=s.clock||'board';d.dataset.theme=s.palette==='night'?'dark':m==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):m}catch(e){}</script>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="../favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -179,7 +177,7 @@
 
                 <section class="sub-pane" id="sub-iqama" role="tabpanel" aria-labelledby="st-iqama" hidden>
                     <p class="iq-note" id="iqama-note"></p>
-                    <form id="iqama-form" onsubmit="return false"></form>
+                    <form id="iqama-form"></form>
                 </section>
 
                                 <section class="sub-pane" id="sub-alerts" role="tabpanel" aria-labelledby="st-alerts" hidden>

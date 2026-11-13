@@ -10,7 +10,7 @@ const D = {
   notRejected: H(15, 4, 'Abu Dawud 521, Tirmidhi 212'),
   afterSalah: H(25, 0, 'Muslim 591'),
   tasbih: H(25, 3),
-  kursi: H(25, 5, 'Quran 2:255'),
+  kursi: H(28, 1, 'Quran 2:255'), // the same verse as ch. 25 entry 5, whose English is only the instruction to recite it
   bika: H(27, 3, 'Tirmidhi 3391'),
   bismillah: H(27, 11, 'Abu Dawud 5088, Tirmidhi 3388'),
   bihamdihi: H(27, 16, 'Muslim 2692'),

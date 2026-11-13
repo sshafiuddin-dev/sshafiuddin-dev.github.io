@@ -260,12 +260,17 @@ function monthRows() {
   const n = new Date(Date.UTC(today.y, today.m, 0)).getUTCDate();
   return Array.from({ length: n }, (_, i) => {
     const t = dayTimes(today.y, today.m, i + 1);
-    return { d: i + 1, weekday: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(today.y, today.m - 1, i + 1)).getUTCDay()], times: [t.rows[0].adhan, t.sunrise, ...t.rows.slice(1).map(r => r.adhan)] };
+    return { d: i + 1, hijri: hijriNow(today.y, today.m, i + 1, settings.hijriShift, false, 0, 0), weekday: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(today.y, today.m - 1, i + 1)).getUTCDay()], times: [t.rows[0].adhan, t.sunrise, ...t.rows.slice(1).map(r => r.adhan)] };
   });
 }
 function renderMonth() {
-  $('month').tBodies[0].innerHTML = monthRows().map(r =>
-    `<tr${r.d === today.d ? ' class="today"' : ''}><th scope="row">${r.weekday} ${r.d}</th>${r.times.map(t => `<td>${fmt(t)}</td>`).join('')}</tr>`).join('');
+  // Hijri column: the day number, with the month's name on the first row and wherever a new Hijri month begins
+  $('month').tBodies[0].innerHTML = monthRows().map((r, i) => {
+    const [hd, ...rest] = r.hijri.split(' '), hm = rest.slice(0, -1).join(' ');
+    const h = !r.hijri ? '' : i === 0 || hd === '1' ? `${hd} <span class="mo-hm">${hm}</span>` : hd;
+    const cls = [r.d === today.d ? 'today' : '', r.weekday === 'Fri' ? 'friday' : ''].filter(Boolean).join(' ');
+    return `<tr${cls ? ` class="${cls}"` : ''}><th scope="row">${r.weekday} ${r.d}</th><td class="mo-hijri">${h}</td>${r.times.map(t => `<td>${fmt(t).replace(/ ([AP]M)$/, '<span class="mo-ap"> $1</span>')}</td>`).join('')}</tr>`;
+  }).join('');
 }
 const monthTitle = () => (today ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(Date.UTC(today.y, today.m - 1, 15))) : 'This month');
 

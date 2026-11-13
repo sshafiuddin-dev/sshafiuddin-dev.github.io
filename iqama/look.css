@@ -166,3 +166,90 @@ body { font-feature-settings: "kern", "liga"; }
   .topbar-title { flex: 1 1 auto; }
   .topbar-actions { flex: none; flex-wrap: nowrap; }
 }
+
+/* ---- The other tabs, set like the same printed sheet ---- */
+
+/* Segmented choices (°F/°C, Settings sections, Quran views): square, underlined when chosen, no filled pills */
+.seg { background: transparent; border-bottom: var(--rule-w) solid var(--line); border-radius: 0; padding: 0; gap: 0; }
+.seg .d-tab { border-radius: 0; font-weight: 500; padding-inline: .9rem; }
+.seg .d-tab[aria-selected="true"] { background: transparent; box-shadow: inset 0 -2px 0 var(--clear); color: var(--ink); }
+.wx-units { gap: 0; }
+.wx-units .d-btn, .d-join .d-btn { border-radius: 0; box-shadow: none; }
+.wx-units .d-btn[aria-pressed="true"], .d-join .d-btn:checked, .d-join input.d-btn:checked { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* Weather: a forecast column from a newspaper */
+.wx-temp { font: 400 3.6rem/1 var(--display); font-stretch: normal; letter-spacing: -.02em; }
+.wx-cond { font: 400 1.35rem/1.2 var(--display); font-style: italic; }
+.wx-now svg, .wx-hours svg { stroke: currentColor; stroke-width: 1.3; }
+.wx-grid { gap: 0 1.5rem; border-top: 2px solid var(--ink); padding-top: .25rem; }
+.wx-grid > div { padding: .6rem 0; border-bottom: var(--rule-w) solid var(--line); }
+.wx-grid dt { font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; }
+.wx-grid dd { font: 400 1.15rem/1.3 var(--display); }
+.wx-aqi strong { font: 400 1.8rem/1 var(--display); }
+.wx-aqi-dot { border-radius: 0; width: .8rem; height: .8rem; }
+.wx-hours ol { gap: 0; border-top: var(--rule-w) solid var(--line); border-bottom: var(--rule-w) solid var(--line); padding: 0; }
+.wx-hours li { border-radius: 0; padding: .7rem .2rem; }
+.wx-hours li + li { border-left: var(--rule-w) solid var(--line); }
+.wx-hours li.has-prayer { background: transparent; box-shadow: inset 0 3px 0 var(--clear); }
+.wx-prayer { color: var(--clear); }
+.wx-t { font: 400 1.05rem/1 var(--display); }
+.wx-days { gap: 0; border-top: 2px solid var(--ink); }
+.wx-days li { background: transparent; border-radius: 0; border-bottom: var(--rule-w) solid var(--line); padding-inline: 0; }
+.wx-dn { font-weight: 500; }
+.wx-dt { font-family: var(--display); font-size: 1.05rem; }
+
+/* Adhkar: the book's table of contents; an open chapter reads like the page */
+.au-list { gap: 0; border-top: 2px solid var(--ink); max-width: 40rem; }
+.au-list li { border: 0; border-bottom: var(--rule-w) solid var(--line); border-radius: 0; }
+.au-row { padding-right: 0; }
+.au-toggle { padding-inline: 0; }
+.au-no { opacity: 1; color: var(--muted); font: 400 1rem/1 var(--display); min-width: 2.4rem; }
+.au-title { font-weight: 500; }
+.au-body { border-top: 0; padding-inline: 2.4rem 0; }
+.au-dua + .au-dua { border-top: var(--rule-w) solid var(--line); }
+.au-meta { opacity: 1; color: var(--muted); font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; }
+.au-ar { font-family: var(--ar); font-size: 1.75rem; }
+.au-tr { opacity: 1; color: var(--muted); font-family: var(--display); }
+.au-en { font-family: var(--display); font-size: 1.08rem; line-height: 1.55; }
+.au-row .au-play { background: transparent; color: var(--ink); border: var(--rule-w) solid var(--ink); }
+.au-search, .qp-search { max-width: 40rem; }
+
+/* Quran: sections underlined like a contents page; lists ruled, not boxed */
+.qp-tabs { gap: 0; border-bottom: var(--rule-w) solid var(--line); }
+.qp-tabs .d-btn, .qp-tabs .d-btn:hover { border: 0; border-radius: 0; background: transparent; color: var(--muted); font-weight: 500; }
+.qp-tabs .d-btn[aria-selected="true"] { background: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--clear); }
+.qp-pane { border: 0; border-top: 2px solid var(--ink); border-radius: 0; padding-inline: 0; background: transparent; }
+.qp-panes { gap: 1.5rem; }
+.qp-rows { gap: 0; }
+.qp-row { border-radius: 0; border-bottom: var(--rule-w) solid var(--line); }
+.qp-row:hover, .qp-row.is-open { background: transparent; }
+.qp-row.is-open .qp-main b { color: var(--clear); }
+.qp-main, .qp-meta { border-radius: 0; }
+.qp-letter { font: 400 1.4rem/1 var(--display); color: var(--muted); padding-top: .9rem; border-bottom: 0; }
+.qp-no { font: 400 1rem/1 var(--display); color: var(--muted); }
+.qp-h, .iqama .tab .qp-h { background: var(--paper); font: 500 .72rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.qp-dlg-in, .qp-pick { border-radius: 0; }
+
+/* Month: the printed salah calendar from the masjid; Fridays in red, today marked with rules */
+#month { font-variant-numeric: tabular-nums; border-collapse: collapse; }
+#month thead th { font: 500 .72rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--ink); }
+#month tbody th { font-weight: 500; }
+#month td { font-family: var(--display); font-size: 1.08rem; }
+#month tbody tr { border-bottom: var(--rule-w) solid var(--line); }
+#month tr.friday th, #month tr.friday .mo-hijri { color: var(--clear); }
+#month tr.today { background: transparent; font-weight: inherit; box-shadow: inset 0 2px 0 var(--ink), inset 0 -2px 0 var(--ink); }
+#month tr.today th { font-weight: 700; }
+#month .mo-hijri { color: var(--muted); white-space: nowrap; }
+#month .mo-hm { font-style: italic; font-size: .85em; }
+
+/* Handwritten: the same tabs, with the hand only where something is written in, not on controls */
+:root[data-palette="hand"] #month td, :root[data-palette="hand"] .wx-t, :root[data-palette="hand"] .wx-dt, :root[data-palette="hand"] .wx-temp, :root[data-palette="hand"] .wx-grid dd { font-family: var(--hand); }
+:root[data-palette="hand"] .au-no, :root[data-palette="hand"] .qp-no, :root[data-palette="hand"] .qp-letter { font-family: var(--hand); }
+
+/* Phones: the month table keeps every column on screen; the Hijri month name gives way to the day number */
+@media (max-width: 40rem) {
+  #month .mo-hm, #month .mo-ap { display: none; } /* the column order (Fajr, Sunrise, Dhuhr...) already says morning or afternoon */
+  #month th, #month td { padding-inline: .2rem; }
+  #month td, #month tbody th { font-size: .88rem; }
+  #month thead th { font-size: .62rem; letter-spacing: .04em; }
+}

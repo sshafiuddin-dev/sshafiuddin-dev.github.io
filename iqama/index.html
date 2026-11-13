@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Iqama Times</title>
     <meta name="description" content="Prayer and iqama times with a live clock, adhkar, adhan and alerts for each prayer, and local weather. ISCJ iqama times near the masjid, your own times anywhere else.">
-    <meta name="theme-color" content="#0B2A33">
+    <meta name="theme-color" content="#F3EDE1">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Kalam:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap">
@@ -25,7 +26,7 @@
 
     <div class="app iqama">
         <nav class="tabbar" aria-label="Sections">
-            <svg class="brand" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" class="brand-bg"/><rect x="5" y="5" width="6" height="6" rx="1" class="brand-sq"/><rect x="13" y="13" width="6" height="6" rx="1" class="brand-sq"/><rect x="21" y="21" width="6" height="6" rx="1" class="brand-accent"/></svg>
+            <svg class="brand" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" class="brand-bg"/><path d="M8 29V15C8 9.5 12.5 6.5 16 3.5C19.5 6.5 24 9.5 24 15V29Z" class="brand-sq"/><rect x="11" y="16.5" width="10" height="2.6" class="brand-accent"/><rect x="11" y="22" width="10" height="2.2" class="brand-bg"/></svg>
             <ul class="d-menu"><li><a href="#today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"/></svg><span>Today</span></a></li><li><a href="#weather"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z"/></svg><span>Weather</span></a></li><li><a href="#adhkar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg><span>Adhkar</span></a></li><li><a href="#quran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/></svg><span>Quran</span></a></li><li><a href="#month"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 10h16M8 3v4M16 3v4"/></svg><span>Month</span></a></li><li><a href="#settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4"/></svg><span>Settings</span></a></li></ul>
         </nav>
         <nav class="dockbar d-dock d-dock-sm" aria-label="Sections"><a href="#today"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2"/></svg><span class="d-dock-label">Today</span></a><a href="#weather"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11 3.5 3.5 0 0 0 7 18z"/></svg><span class="d-dock-label">Weather</span></a><a href="#adhkar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg><span class="d-dock-label">Adhkar</span></a><a href="#quran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2H3zM21 5h-7a2 2 0 0 0-2 2v13a2 2 0 0 1 2-2h7z"/></svg><span class="d-dock-label">Quran</span></a><a href="#month"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 10h16M8 3v4M16 3v4"/></svg><span class="d-dock-label">Month</span></a><a href="#settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1M15 4v4M9 10v4M17 16v4"/></svg><span class="d-dock-label">Settings</span></a></nav>

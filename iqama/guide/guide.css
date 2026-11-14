@@ -1,0 +1,146 @@
+/* Iqama Times guide: one short page per chapter, in the app's printed-timetable look.
+   Colours come from ../look.css (paper, handwritten or high contrast, and the four brightness levels), so the guide
+   matches whatever look the app is set to on this tablet. Pages are built by scripts/guide/build.mjs. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body.g { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.65 var(--body); -webkit-font-smoothing: antialiased; }
+.g h1, .g h2, .g h3, .g p, .g ol, .g ul, .g figure { margin: 0; }
+.g a { color: inherit; text-underline-offset: .18em; text-decoration-thickness: 1px; }
+.g a:hover { color: var(--clear); }
+.g :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+.g [hidden] { display: none !important; }
+.g-ar { font-family: var(--ar); font-size: 1.15em; line-height: 1.2; }
+
+/* Top bar: brand on the left, a way back to the app on the right */
+.g-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem clamp(1rem, 4vw, 2.5rem); border-bottom: var(--rule-w) solid var(--line); }
+.g-brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; font: 500 1.15rem/1 var(--display); }
+.g-brand svg { width: 1.75rem; height: 1.75rem; flex: none; }
+.g-brand em { font-style: italic; color: var(--muted); }
+.g-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 2.75rem; padding: .5rem .95rem; border: 1px solid var(--ink); border-radius: 2px; background: transparent; color: var(--ink); font: 500 .95rem/1.2 var(--body); text-decoration: none; cursor: pointer; }
+.g-btn:hover { background: var(--ink); color: var(--paper); }
+.g .g-btn-ink { background: var(--ink); color: var(--paper); }
+.g .g-btn-ink:hover { background: transparent; color: var(--ink); }
+.g .g-btn:hover { color: var(--paper); }
+.g .g-btn-ink:hover { color: var(--ink); }
+
+/* Layout: contents in a side column on wide screens, a fold-down list above the chapter on phones */
+.g-wrap { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 72rem; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.5rem) 3rem; }
+@media (min-width: 60rem) { .g-wrap { grid-template-columns: 15rem minmax(0, 1fr); column-gap: 3.5rem; } }
+
+.g-toc { padding-top: 1rem; }
+.g-toc summary { display: flex; align-items: center; justify-content: space-between; min-height: 2.75rem; padding: .4rem 0; border-bottom: var(--rule-w) solid var(--line); cursor: pointer; list-style: none; font: 500 .9rem/1.3 var(--body); color: var(--muted); }
+.g-toc summary::-webkit-details-marker { display: none; }
+.g-toc summary::after { content: "Contents ▾"; font-weight: 500; color: var(--ink); }
+.g-toc[open] summary::after { content: "Close ▴"; }
+.g-toc ol { list-style: none; padding: .35rem 0 .75rem; counter-reset: ch; }
+.g-toc li { counter-increment: ch; }
+.g-toc li a { display: grid; grid-template-columns: 1.6rem 1fr; padding: .5rem 0; text-decoration: none; color: var(--muted); line-height: 1.35; border-bottom: var(--rule-w) solid color-mix(in srgb, var(--line) 55%, transparent); }
+.g-toc li a::before { content: counter(ch); font: 400 .95rem/1.35 var(--display); font-variant-numeric: lining-nums; }
+.g-toc li.g-home { counter-increment: none; }
+.g-toc li.g-home a::before { content: ""; }
+.g-toc li a:hover { color: var(--ink); }
+.g-toc li a[aria-current="page"] { color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--clear); padding-left: .6rem; }
+@media (min-width: 60rem) {
+  .g-toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding-top: 2rem; }
+  .g-toc summary { pointer-events: none; border-bottom: 2px solid var(--ink); color: var(--ink); font: 500 1.05rem/1.2 var(--display); }
+  .g-toc summary::after, .g-toc[open] summary::after { content: none; }
+}
+
+/* The chapter itself */
+.g-main { min-width: 0; max-width: 44rem; padding-top: clamp(1.25rem, 4vw, 2.25rem); }
+.g .g-kicker { font: 500 .78rem/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--clear); margin-bottom: .75rem; }
+.g-main h1 { font: 500 clamp(2rem, 6.5vw, 3rem)/1.05 var(--display); letter-spacing: -.015em; text-wrap: balance; }
+.g .g-lead { margin-top: .9rem; font: 400 clamp(1.1rem, 2.8vw, 1.25rem)/1.5 var(--display); color: var(--muted); text-wrap: pretty; }
+.g-main h2 { margin-top: 2.5rem; padding-top: .7rem; border-top: 2px solid var(--ink); font: 500 1.45rem/1.2 var(--display); }
+.g-main h3 { margin-top: 1.6rem; font: 600 1.05rem/1.3 var(--body); }
+.g-main p, .g-main > ul, .g-main > ol, .g-panel > ul, .g-panel > ol { margin-top: .8rem; text-wrap: pretty; }
+.g-main ul { padding-left: 1.2rem; }
+.g-main li + li { margin-top: .35rem; }
+.g-path { font-weight: 600; }
+.g-path span { font-weight: 400; color: var(--muted); padding: 0 .2em; }
+.g-ui { font: 500 .88em/1 var(--body); padding: .15em .45em; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); white-space: nowrap; }
+
+/* Numbered steps; the numbers match the pins on the screenshot above them */
+.g-steps { list-style: none; padding: 0 !important; counter-reset: st; margin-top: 1rem; }
+.g-steps > li { counter-increment: st; position: relative; padding: .7rem 0 .7rem 2.6rem; border-top: var(--rule-w) solid var(--line); }
+.g-steps > li:last-child { border-bottom: var(--rule-w) solid var(--line); }
+.g-steps > li + li { margin-top: 0; }
+.g-steps > li::before { content: counter(st); position: absolute; left: 0; top: .72rem; width: 1.75rem; height: 1.75rem; display: grid; place-items: center; border-radius: 50%; background: var(--clear); color: var(--paper); font: 600 .9rem/1 var(--body); }
+.g-steps strong { font-weight: 600; }
+
+/* Screenshot with numbered pins laid over it; tap it to open the full-size picture */
+.g-shot { margin-top: 1.25rem; }
+.g-shot-frame { position: relative; display: block; border: var(--rule-w) solid var(--line); background: var(--surface); line-height: 0; }
+.g-shot img { display: block; width: 100%; height: auto; }
+.g-crop { overflow: hidden; }
+.g-pin { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); width: 1.6rem; height: 1.6rem; display: grid; place-items: center; border-radius: 50%; background: var(--clear); color: #fff; font: 600 .85rem/1 var(--body); box-shadow: 0 0 0 2px var(--paper), 0 1px 4px rgb(0 0 0 / .35); pointer-events: none; }
+@media (max-width: 30rem) { .g-pin { width: 1.3rem; height: 1.3rem; font-size: .72rem; } }
+.g-shot figcaption { margin-top: .5rem; font: italic 400 .95rem/1.4 var(--display); color: var(--muted); }
+.g-shot figcaption .g-zoom { font-style: normal; font-family: var(--body); font-size: .85rem; white-space: nowrap; }
+
+/* Generic drawing of a tablet's settings screen (no real device pictured) */
+.g-device { margin-top: 1.25rem; max-width: 26rem; }
+.g-device svg { display: block; width: 100%; height: auto; }
+.g-device .dv-body { fill: var(--ink); }
+.g-device .dv-screen { fill: var(--surface); }
+.g-device .dv-row { fill: none; stroke: var(--line); }
+.g-device .dv-text { fill: var(--ink); font: 500 13px var(--body); }
+.g-device .dv-muted { fill: var(--muted); font: 400 11px var(--body); }
+.g-device .dv-title { fill: var(--ink); font: 600 15px var(--body); }
+.g-device .dv-hi { fill: color-mix(in srgb, var(--clear) 14%, transparent); stroke: var(--clear); stroke-width: 2; }
+.g-device .dv-on { fill: var(--clear); }
+.g-device .dv-knob { fill: #fff; }
+.g-device figcaption { margin-top: .4rem; font: italic 400 .9rem/1.4 var(--display); color: var(--muted); }
+
+/* "Good to know" and warning boxes */
+.g-note { margin-top: 1.75rem; padding: .8rem 1rem 1rem; border-top: 2px solid var(--ink); border-bottom: var(--rule-w) solid var(--line); background: var(--surface); }
+.g-note h3 { margin-top: 0; font: 600 .8rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.g-note ul { margin-top: .5rem; }
+.g-note p { margin-top: .5rem; }
+.g-warn { border-top-color: var(--clear); }
+.g-warn h3 { color: var(--clear); }
+
+/* Device picker: tabs when guide.js runs, all three sections one after another when it does not */
+.g-tabs { display: none; flex-wrap: wrap; gap: .5rem; margin-top: 1.1rem; }
+.js .g-tabs { display: flex; }
+.g-tabs button { min-height: 2.75rem; padding: .45rem 1.1rem; border: 1px solid var(--ink); border-radius: 2px; background: transparent; color: var(--ink); font: 500 1rem/1 var(--body); cursor: pointer; }
+.g-tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+.g-panel > h3:first-child { margin-top: 1.5rem; }
+.js .g-panel > .g-panel-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+/* Prayer names table */
+.g-table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
+.g-table th, .g-table td { padding: .55rem .5rem .55rem 0; border-bottom: var(--rule-w) solid var(--line); text-align: left; vertical-align: baseline; }
+.g-table thead th { border-bottom: 2px solid var(--ink); font: 500 .75rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.g-table .g-ar { text-align: right; padding-right: 0; }
+
+/* Previous and next, at the foot of every chapter */
+.g-pager { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 3rem; padding-top: 1rem; border-top: 2px solid var(--ink); }
+.g-pager a { display: flex; flex-direction: column; justify-content: center; gap: .2rem; min-height: 4rem; padding: .7rem .9rem; border: var(--rule-w) solid var(--line); text-decoration: none; background: var(--surface); }
+.g-pager a:hover { border-color: var(--ink); color: var(--ink); }
+.g-pager small { font: 500 .75rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.g-pager span { font: 500 1.05rem/1.25 var(--display); }
+.g-pager .g-next { grid-column: 2; text-align: right; }
+
+/* Home page: the tagline and the chapters as cards */
+.g-hero h1 { font-size: clamp(2.2rem, 7.5vw, 3.6rem); }
+.g-cards { list-style: none; padding: 0 !important; margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .75rem; }
+.g-cards li + li { margin-top: 0; }
+.g-cards a { display: block; height: 100%; padding: .9rem 1rem 1rem; border: var(--rule-w) solid var(--line); background: var(--surface); text-decoration: none; }
+.g-cards a:hover { border-color: var(--ink); color: var(--ink); }
+.g-cards b { display: block; font: 500 .75rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--clear); }
+.g-cards strong { display: block; margin-top: .4rem; font: 500 1.15rem/1.25 var(--display); }
+.g-cards span { display: block; margin-top: .3rem; font-size: .92rem; line-height: 1.45; color: var(--muted); }
+
+.g-foot { max-width: 72rem; margin: 0 auto; padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 2rem; border-top: var(--rule-w) solid var(--line); font-size: .85rem; color: var(--muted); }
+
+@media print { .g-top .g-btn, .g-toc, .g-pager { display: none; } .g-wrap { display: block; } }
+
+/* Clock styles side by side: two across on a phone, three on a tablet */
+.g-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: 1.25rem 1rem; margin-top: 1rem; }
+@media (max-width: 30rem) { .g-gallery { grid-template-columns: 1fr 1fr; gap: 1rem .75rem; } }
+.g-gallery .g-shot { margin-top: 0; }
+.g-gallery figcaption { font-size: .88rem; }
+.g-gallery figcaption strong { font-style: normal; font-weight: 600; color: var(--ink); }
+.g-gallery .g-zoom { display: none; }

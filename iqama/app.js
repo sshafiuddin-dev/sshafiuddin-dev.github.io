@@ -282,6 +282,9 @@ function go(t, s) {
   if (s) sub = s;
   if (location.hash.slice(1) === t) route(); else location.hash = t;
 }
+// The Help button opens the guide's chapter for the screen in view (guide/, built by scripts/guide/build.mjs)
+const HELP_TAB = { today: 'today', weather: 'weather', adhkar: 'adhkar', quran: 'quran', month: 'adhkar' };
+const HELP_SUB = { location: 'location', iqama: 'iqama', alerts: 'alerts', display: 'display', about: '' };
 function route() {
   let h = location.hash.slice(1);
   if (h === 'alerts') { h = 'settings'; sub = 'alerts'; } // the old address for the alerts screen
@@ -294,6 +297,7 @@ function route() {
     a.classList.toggle('d-dock-active', on && !!a.closest('.dockbar'));
   });
   $('tab-title').textContent = tab === 'month' ? monthTitle() : TITLES[tab];
+  $('help').href = `guide/${tab === 'settings' ? HELP_SUB[sub] : HELP_TAB[tab]}`;
   document.querySelectorAll('[data-sub]').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === sub));
   document.querySelectorAll('.sub-pane').forEach(p => { p.hidden = p.id !== `sub-${sub}`; });
   if (tab === 'month' && today) renderMonth();

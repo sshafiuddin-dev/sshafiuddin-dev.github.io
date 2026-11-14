@@ -94,11 +94,11 @@ body.g { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.062
 .g-device figcaption { margin-top: .4rem; font: italic 400 .9rem/1.4 var(--display); color: var(--muted); }
 
 /* "Good to know" and warning boxes */
-.g-note { margin-top: 1.75rem; padding: .9rem 1rem 1rem; border-left: 3px solid var(--ink); background: var(--surface); }
+.g-note { margin-top: 1.75rem; padding: .8rem 1rem 1rem; border-top: 2px solid var(--ink); border-bottom: var(--rule-w) solid var(--line); background: var(--surface); }
 .g-note h3 { margin-top: 0; font: 600 .8rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .g-note ul { margin-top: .5rem; }
 .g-note p { margin-top: .5rem; }
-.g-warn { border-left-color: var(--clear); }
+.g-warn { border-top-color: var(--clear); }
 .g-warn h3 { color: var(--clear); }
 
 /* Device picker: tabs when guide.js runs, all three sections one after another when it does not */

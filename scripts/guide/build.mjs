@@ -33,18 +33,29 @@ const BRAND = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" heig
 // Screenshots are 800×469. crop="x0,y0,x1,y1" (pixels) shows only that part, so it reads larger on a phone;
 // pins="1@x,y 2@x,y" are pixel positions on the full screenshot.
 const SW = 800, SH = 469;
+// Width and height of a JPEG in iqama/guide/img, read from its header
+function jpegSize(file) {
+  const b = readFileSync(join(out, 'img', file));
+  for (let i = 2; i < b.length;) {
+    const m = b[i + 1], len = b.readUInt16BE(i + 2);
+    if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) return [b.readUInt16BE(i + 7), b.readUInt16BE(i + 5)];
+    i += 2 + len;
+  }
+  return [SW, SH];
+}
 const pct = (v) => +(v * 100).toFixed(2);
 function shots(html) {
   return html.replace(/<shot\s+([^>]*)>([\s\S]*?)<\/shot>/g, (_, attrs, cap) => {
     const a = Object.fromEntries([...attrs.matchAll(/(\w+)="([^"]*)"/g)].map(m => [m[1], m[2]]));
-    const [x0, y0, x1, y1] = (a.crop || `0,0,${SW},${SH}`).split(',').map(Number), cw = x1 - x0, ch = y1 - y0;
+    const [W, H] = jpegSize(a.src);
+    const [x0, y0, x1, y1] = (a.crop || `0,0,${W},${H}`).split(',').map(Number), cw = x1 - x0, ch = y1 - y0;
     const marks = (a.pins || '').trim() ? a.pins.trim().split(/\s+/).map(p => {
       const [n, at] = p.split('@'), [x, y] = at.split(',').map(Number);
       return `<span class="g-pin" style="--x:${pct((x - x0) / cw)}%;--y:${pct((y - y0) / ch)}%" aria-hidden="true">${n}</span>`;
     }).join('') : '';
     const cropped = a.crop ? ` style="aspect-ratio:${cw}/${ch}"` : '';
-    const imgStyle = a.crop ? ` style="position:absolute;max-width:none;width:${pct(SW / cw)}%;left:${pct(-x0 / cw)}%;top:${pct(-y0 / ch)}%"` : '';
-    return `<figure class="g-shot"><a class="g-shot-frame${a.crop ? ' g-crop' : ''}" href="img/${a.src}"${cropped}><img src="img/${a.src}" alt="${a.alt}" width="${SW}" height="${SH}" loading="lazy" decoding="async"${imgStyle}>${marks}</a>`
+    const imgStyle = a.crop ? ` style="position:absolute;max-width:none;width:${pct(W / cw)}%;left:${pct(-x0 / cw)}%;top:${pct(-y0 / ch)}%"` : '';
+    return `<figure class="g-shot"><a class="g-shot-frame${a.crop ? ' g-crop' : ''}" href="img/${a.src}"${cropped}><img src="img/${a.src}" alt="${a.alt}" width="${W}" height="${H}" loading="lazy" decoding="async"${imgStyle}>${marks}</a>`
       + `<figcaption>${cap.trim()} <span class="g-zoom">(tap to see the whole screen)</span></figcaption></figure>`;
   });
 }

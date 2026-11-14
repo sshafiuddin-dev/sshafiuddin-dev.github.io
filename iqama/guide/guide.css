@@ -136,3 +136,11 @@ body.g { margin: 0; background: var(--paper); color: var(--ink); font: 400 1.062
 .g-foot { max-width: 72rem; margin: 0 auto; padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 2rem; border-top: var(--rule-w) solid var(--line); font-size: .85rem; color: var(--muted); }
 
 @media print { .g-top .g-btn, .g-toc, .g-pager { display: none; } .g-wrap { display: block; } }
+
+/* Clock styles side by side: two across on a phone, three on a tablet */
+.g-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: 1.25rem 1rem; margin-top: 1rem; }
+@media (max-width: 30rem) { .g-gallery { grid-template-columns: 1fr 1fr; gap: 1rem .75rem; } }
+.g-gallery .g-shot { margin-top: 0; }
+.g-gallery figcaption { font-size: .88rem; }
+.g-gallery figcaption strong { font-style: normal; font-weight: 600; color: var(--ink); }
+.g-gallery .g-zoom { display: none; }

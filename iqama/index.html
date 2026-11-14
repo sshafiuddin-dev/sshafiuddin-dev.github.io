@@ -279,10 +279,23 @@
                     <a class="back-link" id="back" href="/" hidden>Back to portfolio</a>
                     <p class="about-tag">Give an old tablet or iPad a new job.</p>
                     <p>Iqama Times turns a spare tablet into a prayer hub for your home: a large clock with today’s adhan and iqama times, alerts, the weather, a daily dua, adhkar and Quran recitation. The guide shows you how to set it up and how to use every screen.</p>
-                    <p>There is no account. Everything you set, from your location and iqama times to alerts, favourites and playlists, is saved locally on this device, in this browser. None of it is uploaded or kept anywhere else; your location is only used to work out prayer times and fetch the weather.</p>
+                    <p>There is no account. Everything you set, from your location and iqama times to alerts, favourites and playlists, is saved locally on this device, in this browser. None of it is stored anywhere else, and clearing this site’s data in the browser removes it all. Below is exactly what the app sends out.</p>
                     <div class="iq-fields">
                         <a class="d-btn d-btn-sm d-btn-primary" href="guide/">Read the guide</a>
                         <button class="d-btn d-btn-sm" type="button" id="share-app">Share the app</button>
+                    </div>
+                    <div class="iq-credits" id="privacy">
+                        <h2>What leaves this device</h2>
+                        <p>Prayer times are worked out on the device. These are the only things the app sends out, and why:</p>
+                        <ul class="iq-list">
+                            <li><strong>Weather and air quality:</strong> the latitude and longitude of your place go to <a href="https://open-meteo.com/">Open-Meteo</a>. With <em>Use my location</em>, they are rounded to about 100 m first.</li>
+                            <li><strong>City search:</strong> the name you type goes to Open-Meteo, to find the place.</li>
+                            <li><strong>ISCJ iqama times:</strong> the app asks this site’s own server, which reads iscj.org. Nothing about you is in that request.</li>
+                            <li><strong>Quran and adhkar audio:</strong> the reciter list and recitations stream from mp3quran.net, and adhkar recordings from hisnmuslim.com, when you play them.</li>
+                            <li><strong>Fonts:</strong> the lettering is loaded from Google Fonts.</li>
+                            <li><strong>Security reports:</strong> if the browser blocks something on a page for safety, it tells this site’s server log which page and which address. Nothing else is in the report.</li>
+                        </ul>
+                        <p>Each of these services, and Cloudflare, which hosts this site, sees your device’s internet address, as any website does. There are no accounts, ads or tracking in the app.</p>
                     </div>
                     <div class="iq-credits">
                         <h2>Sources &amp; credits</h2>

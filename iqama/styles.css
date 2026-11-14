@@ -339,6 +339,12 @@ body { overflow: hidden; }
 .iq-results { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0 0; padding: 0; list-style: none; }
 .iq-results:empty { display: none; }
 #iqama-reset { margin-top: 1.1rem; }
+/* About: the tagline above the description */
+.about-tag { font: italic 400 clamp(1.35rem, 3vw, 1.6rem)/1.25 var(--display); color: var(--ink); }
+#sub-about > p { max-width: 40rem; }
+#sub-about a.d-btn { text-decoration: none; }
+.iq-list { display: grid; gap: .35rem; margin: .2rem 0 .3rem; padding-left: 1.1rem; list-style: disc; }
+.iq-list strong { color: var(--ink); font-weight: 600; }
 .iq-credits { display: grid; gap: .3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--muted); }
 .iq-credits h2 { margin: 0; font: 650 1rem/1.3 var(--body); color: var(--ink); }
 .iq-credits h3 { margin: .6rem 0 0; font: 600 .85rem/1.3 var(--body); color: var(--ink); }

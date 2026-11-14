@@ -97,7 +97,7 @@ body { overflow: hidden; }
 .topbar h1 { font: 750 clamp(1.7rem, 3.4vw, 2.3rem)/1 var(--display); font-stretch: 80%; letter-spacing: -.02em; }
 .topbar-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .9rem; font-size: .95rem; }
 .topbar-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
-.tb-btn { height: 2.6rem; padding-inline: 1rem; border-radius: 99px; }
+.tb-btn { height: 2.6rem; padding-inline: 1rem; border-radius: 99px; text-decoration: none; }
 .tb-btn svg { width: 1.15rem; height: 1.15rem; }
 .tab {
   flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
@@ -431,6 +431,7 @@ body { overflow: hidden; }
   .topbar-meta { font-size: .85rem; gap: .15rem .7rem; }
   .topbar-actions { flex-wrap: nowrap; }
   .tb-btn span, #install { display: none; }
+  #help { display: none; } /* phones: Settings › About has Read the guide; the header keeps room for the date */
   .tb-btn { width: 2.75rem; height: 2.75rem; padding: 0; }
   .tb-btn svg { width: 1.3rem; height: 1.3rem; }
   .toast { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }

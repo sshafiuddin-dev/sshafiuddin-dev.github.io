@@ -1,6 +1,6 @@
 // Builds the Iqama Times guide: node scripts/guide/build.mjs
 // Each chapter's text is in scripts/guide/chapters/<slug>.html; this wraps it in the shared page (top bar, contents,
-// previous and next) and writes iqama/guide/<slug>.html, plus the guide's front page iqama/guide/index.html.
+// previous and next) and writes iqama/guide/<slug>.html (Cloudflare Pages serves it at /iqama/guide/<slug>, so links leave off .html), plus the guide's front page iqama/guide/index.html.
 // The output is committed, so the site still needs no build step, like daisy.css.
 //
 // Shorthand the chapter files can use:
@@ -81,7 +81,7 @@ function devices(html) {
 }
 
 function toc(current) {
-  const items = CHAPTERS.map(c => `<li><a href="${c.slug}.html"${c.slug === current ? ' aria-current="page"' : ''}>${esc(c.title)}</a></li>`).join('');
+  const items = CHAPTERS.map(c => `<li><a href="${c.slug}"${c.slug === current ? ' aria-current="page"' : ''}>${esc(c.title)}</a></li>`).join('');
   const where = current ? `Chapter ${CHAPTERS.findIndex(c => c.slug === current) + 1} of ${CHAPTERS.length}` : 'Guide';
   return `<nav aria-label="Chapters"><details class="g-toc"><summary>${where}</summary><ol><li class="g-home"><a href="./"${current ? '' : ' aria-current="page"'}>Start here</a></li>${items}</ol></details></nav>`;
 }
@@ -114,7 +114,7 @@ ${toc(slug)}
 ${body}
 </main>
 </div>
-<footer class="g-foot">Iqama Times keeps your settings on this device. <a href="../#settings">Settings</a> · <a href="help.html">Help and questions</a> · <a href="/">Shafiuddin Syed</a></footer>
+<footer class="g-foot">Iqama Times keeps your settings on this device. <a href="../#settings">Settings</a> · <a href="help">Help and questions</a> · <a href="/">Shafiuddin Syed</a></footer>
 </body>
 </html>
 `;
@@ -125,15 +125,15 @@ for (const [i, c] of CHAPTERS.entries()) {
   if (!existsSync(src)) { console.log(`skip ${c.slug} (no text yet)`); continue; }
   const prev = CHAPTERS[i - 1], next = CHAPTERS[i + 1];
   const pager = `<nav class="g-pager" aria-label="Previous and next chapter">`
-    + (prev ? `<a class="g-prev" href="${prev.slug}.html" rel="prev"><small>Previous</small><span>${esc(prev.title)}</span></a>` : `<a class="g-prev" href="./" rel="prev"><small>Back to</small><span>Start here</span></a>`)
-    + (next ? `<a class="g-next" href="${next.slug}.html" rel="next"><small>Next · ${i + 2}</small><span>${esc(next.title)}</span></a>` : `<a class="g-next" href="../"><small>Done</small><span>Open the app</span></a>`)
+    + (prev ? `<a class="g-prev" href="${prev.slug}" rel="prev"><small>Previous</small><span>${esc(prev.title)}</span></a>` : `<a class="g-prev" href="./" rel="prev"><small>Back to</small><span>Start here</span></a>`)
+    + (next ? `<a class="g-next" href="${next.slug}" rel="next"><small>Next · ${i + 2}</small><span>${esc(next.title)}</span></a>` : `<a class="g-next" href="../"><small>Done</small><span>Open the app</span></a>`)
     + `</nav>`;
   const body = `<p class="g-kicker">Chapter ${i + 1}</p>\n<h1>${esc(c.title)}</h1>\n${devices(shots(readFileSync(src, 'utf8'))).trim()}\n${pager}`;
   writeFileSync(join(out, `${c.slug}.html`), page({ slug: c.slug, title: `${c.title} · Iqama Times guide`, description: c.blurb, body }));
   console.log(`wrote ${c.slug}.html`);
 }
 
-const cards = CHAPTERS.map((c, i) => `<li><a href="${c.slug}.html"><b>Chapter ${i + 1}</b><strong>${esc(c.title)}</strong><span>${esc(c.blurb)}</span></a></li>`).join('\n');
+const cards = CHAPTERS.map((c, i) => `<li><a href="${c.slug}"><b>Chapter ${i + 1}</b><strong>${esc(c.title)}</strong><span>${esc(c.blurb)}</span></a></li>`).join('\n');
 const home = readFileSync(join(here, 'chapters', '_home.html'), 'utf8').replace('<!-- chapters -->', `<ol class="g-cards">\n${cards}\n</ol>`);
 writeFileSync(join(out, 'index.html'), page({ slug: null, title: 'Iqama Times guide', description: 'How to turn a spare tablet into a home prayer hub with Iqama Times, and how to use every screen.', body: shots(home).trim() }));
 console.log('wrote index.html');

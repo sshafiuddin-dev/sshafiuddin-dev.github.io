@@ -1,0 +1,3 @@
+# Iqama Times now lives at salahhub.pages.dev (its own repo and Cloudflare project); keep old /iqama links working.
+/iqama https://salahhub.pages.dev/ 301
+/iqama/* https://salahhub.pages.dev/:splat 301

@@ -1,7 +1,7 @@
 # Sources and credits
 
 Everything on this site that comes from someone else, where it is used, and under what terms.
-The credits for Iqama Times (its own repo and site) are in [salahhub's CREDITS.md](https://github.com/sshafiuddin-dev/salahhub/blob/main/CREDITS.md).
+The credits for IqamaHub (its own repo and site) are in [salahhub's CREDITS.md](https://github.com/sshafiuddin-dev/salahhub/blob/main/CREDITS.md).
 
 | What | Source | Licence | Where |
 |---|---|---|---|

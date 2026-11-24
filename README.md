@@ -6,7 +6,7 @@ Personal portfolio and project hub, hosted on Cloudflare Pages.
 https://sshafiuddin.pages.dev (the old github.io address redirects here)
 
 ## Projects
-- **Iqama Times** → https://salahhub.pages.dev (own repo: [sshafiuddin-dev/salahhub](https://github.com/sshafiuddin-dev/salahhub)). Old `/iqama/` links redirect there (see `_redirects`).
+- **IqamaHub** → https://iqamahub.app (own repo: [sshafiuddin-dev/salahhub](https://github.com/sshafiuddin-dev/salahhub)). Old `/iqama/` links redirect there (see `_redirects`).
 - **Wiki Jeopardy** → https://sshafiuddin-dev.github.io/wiki-jeopardy/
 
 ## Tech Stack
